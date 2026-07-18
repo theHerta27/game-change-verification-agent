@@ -1,0 +1,107 @@
+"""Test Scenario Agent for Phase 1."""
+
+from __future__ import annotations
+
+
+class TestScenarioAgent:
+    name = "Test Scenario Agent"
+
+    def generate(self, final_configs: dict) -> list[dict]:
+        weapon = final_configs["weapon_config"][0]
+        reward = final_configs["reward_config"][0]
+        upgrades = sorted(final_configs["upgrade_config"], key=lambda row: row["level"])
+
+        scenarios = [
+            {
+                "scenario_id": "scenario_weapon_base_attack",
+                "title": "Training Sword base attack matches beginner requirement",
+                "config_refs": ["weapon_config.weapon_training_sword"],
+                "steps": [
+                    "Load weapon_config for weapon_training_sword.",
+                    "Read base_attack.",
+                    "Compare against expected beginner value 50.",
+                ],
+                "expected_result": f"base_attack is {weapon['base_attack']} and equals 50.",
+                "coverage_tags": ["base_attack_exact"],
+                "priority": "high",
+            },
+            {
+                "scenario_id": "scenario_weapon_item_reference",
+                "title": "Weapon item reference resolves to item_config",
+                "config_refs": ["weapon_config.item_id", "item_config.item_training_sword"],
+                "steps": [
+                    "Read weapon_config.item_id.",
+                    "Find the same item_id in item_config.",
+                ],
+                "expected_result": f"{weapon['item_id']} exists in item_config.",
+                "coverage_tags": ["weapon_item_reference"],
+                "priority": "high",
+            },
+            {
+                "scenario_id": "scenario_upgrade_levels_and_bonus",
+                "title": "Upgrade levels are continuous and grant +5 attack",
+                "config_refs": ["upgrade_config.weapon_training_sword"],
+                "steps": [
+                    "Sort upgrade rows by level.",
+                    "Assert levels are 1, 2, 3.",
+                    "Assert every attack_bonus is 5.",
+                ],
+                "expected_result": "Upgrade levels are [1, 2, 3] and each attack_bonus is 5.",
+                "coverage_tags": ["upgrade_levels_continuous", "upgrade_bonus_per_level"],
+                "priority": "high",
+            },
+            {
+                "scenario_id": "scenario_upgrade_gold_cost_curve",
+                "title": "Upgrade gold costs follow beginner curve",
+                "config_refs": ["upgrade_config.cost_items.item_gold"],
+                "steps": [
+                    "Read item_gold cost from each upgrade level.",
+                    "Compare amounts against 100, 150, 200.",
+                ],
+                "expected_result": "Gold costs are [100, 150, 200].",
+                "coverage_tags": ["gold_cost_curve"],
+                "priority": "medium",
+            },
+            {
+                "scenario_id": "scenario_upgrade_material_cost_curve",
+                "title": "Upgrade material costs follow beginner curve",
+                "config_refs": ["upgrade_config.cost_items.item_refine_stone"],
+                "steps": [
+                    "Read item_refine_stone cost from each upgrade level.",
+                    "Compare amounts against 1, 2, 3.",
+                ],
+                "expected_result": "Refine stone costs are [1, 2, 3].",
+                "coverage_tags": ["material_cost_curve"],
+                "priority": "medium",
+            },
+            {
+                "scenario_id": "scenario_reward_once_only",
+                "title": "Beginner quest reward can only be claimed once",
+                "config_refs": ["reward_config.reward_beginner_training_sword"],
+                "steps": [
+                    "Load beginner quest reward_config.",
+                    "Read once_only.",
+                    "Attempt to model a second claim.",
+                ],
+                "expected_result": f"once_only is {reward['once_only']} and duplicate claim is rejected.",
+                "coverage_tags": ["reward_once_only"],
+                "priority": "critical",
+            },
+            {
+                "scenario_id": "scenario_reward_item_reference",
+                "title": "Reward item and weapon references resolve",
+                "config_refs": ["reward_config.reward_item_id", "reward_config.weapon_id"],
+                "steps": [
+                    "Read reward_item_id and weapon_id.",
+                    "Find reward_item_id in item_config.",
+                    "Find weapon_id in weapon_config.",
+                ],
+                "expected_result": "Reward references resolve to final item and weapon configs.",
+                "coverage_tags": ["reward_item_reference"],
+                "priority": "high",
+            },
+        ]
+
+        for scenario in scenarios:
+            scenario["source_agent"] = self.name
+        return scenarios

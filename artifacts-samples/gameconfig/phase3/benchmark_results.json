@@ -1,0 +1,1211 @@
+{
+  "dataset_id": "phase3_benchmark_v1",
+  "sample_count": 10,
+  "samples": [
+    {
+      "sample_id": "beginner_weapon_flawed",
+      "requirement_text": "新手剑 Training Sword，攻击力 50，升级 3 次，每级 +5，金币和强化石消耗，一次性新手奖励。",
+      "tags": [
+        "beginner weapon",
+        "missing reference",
+        "reward once_only"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": false,
+        "rule_passed": false,
+        "schema_errors": [],
+        "reference_errors": [
+          {
+            "source": "Reference Checker Tool",
+            "code": "missing_reference",
+            "path": "upgrade_config[0].cost_items[1].item_id",
+            "value": "item_refine_stone",
+            "target": "item_config.item_id",
+            "message": "'item_refine_stone' does not exist in item_config.item_id."
+          }
+        ],
+        "rule_errors": [
+          {
+            "source": "Rule Engine Tool",
+            "code": "non_continuous_upgrade_levels",
+            "path": "upgrade_config.level",
+            "message": "Expected levels [1, 2, 3], got [1, 3]."
+          },
+          {
+            "source": "Rule Engine Tool",
+            "code": "zero_gold_cost",
+            "path": "upgrade_config.cost_items[item_gold].amount",
+            "message": "Gold cost must be positive for upgrade progression."
+          },
+          {
+            "source": "Rule Engine Tool",
+            "code": "beginner_reward_not_once_only",
+            "path": "reward_config[0].once_only",
+            "message": "Beginner quest reward must be once_only=true."
+          }
+        ]
+      },
+      "review_findings": [
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "base_attack does not match the requirement and exceeds beginner policy",
+          "evidence": {
+            "actual": 80,
+            "required": 50,
+            "recommended_range": [
+              35,
+              55
+            ]
+          },
+          "severity": "high",
+          "recommended_range": [
+            35,
+            55
+          ],
+          "preferred_fix": "Set base_attack to the requested value 50."
+        },
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "upgrade levels are not continuous",
+          "evidence": {
+            "actual_levels": [
+              1,
+              3
+            ],
+            "expected_levels": [
+              1,
+              2,
+              3
+            ]
+          },
+          "severity": "high",
+          "recommended_range": [
+            1,
+            2,
+            3
+          ],
+          "preferred_fix": "Create a local level 2 upgrade row and normalize all level costs."
+        },
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "upgrade gold cost is too low for the recommended curve",
+          "evidence": {
+            "actual_gold_costs": [
+              0,
+              0
+            ]
+          },
+          "severity": "medium",
+          "recommended_range": [
+            100,
+            150,
+            200
+          ],
+          "preferred_fix": "Use the deterministic beginner curve 100, 150, 200."
+        },
+        {
+          "section": "Risk Review",
+          "issue": "beginner quest reward can be claimed repeatedly",
+          "evidence": {
+            "once_only": false
+          },
+          "severity": "critical",
+          "recommended_range": [
+            true
+          ],
+          "preferred_fix": "Set reward_config.once_only to true."
+        },
+        {
+          "section": "Risk Review",
+          "issue": "configuration contains missing item references",
+          "evidence": [
+            {
+              "source": "Reference Checker Tool",
+              "code": "missing_reference",
+              "path": "upgrade_config[0].cost_items[1].item_id",
+              "value": "item_refine_stone",
+              "target": "item_config.item_id",
+              "message": "'item_refine_stone' does not exist in item_config.item_id."
+            }
+          ],
+          "severity": "high",
+          "recommended_range": [
+            "all referenced item_id values exist in item_config"
+          ],
+          "preferred_fix": "Add a minimal item_refine_stone item definition."
+        }
+      ],
+      "repair_actions": [
+        {
+          "action": "set_base_attack",
+          "scope": "weapon_config.base_attack",
+          "before": 80,
+          "after": 50,
+          "reason": "Align with original requirement and beginner policy."
+        },
+        {
+          "action": "add_missing_item_reference",
+          "scope": "item_config",
+          "before": null,
+          "after": {
+            "item_id": "item_refine_stone",
+            "display_name": "Refine Stone",
+            "item_type": "material",
+            "rarity": "common"
+          },
+          "reason": "Referenced item is known by the deterministic resource catalog."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=1]",
+          "before": {
+            "weapon_id": "weapon_training_sword",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_training_sword",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 100
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=2]",
+          "before": null,
+          "after": {
+            "weapon_id": "weapon_training_sword",
+            "level": 2,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 150
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=3]",
+          "before": {
+            "weapon_id": "weapon_training_sword",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_training_sword",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 200
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "set_reward_once_only",
+          "scope": "reward_config.once_only",
+          "before": false,
+          "after": true,
+          "reason": "Beginner quest reward must be one-time."
+        }
+      ],
+      "final_validation": {
+        "passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 7,
+      "test_scenario_coverage": 1.0,
+      "test_scenario_coverage_percent": 100.0,
+      "badcases": [],
+      "unresolved": false
+    },
+    {
+      "sample_id": "rare_weapon_flawed",
+      "requirement_text": "稀有武器 Moon Saber，攻击力 110，升级 3 次，每级 +10，活动奖励只能领取一次。",
+      "tags": [
+        "rare weapon",
+        "upgrade cost"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": true,
+        "rule_passed": false,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": [
+          {
+            "source": "Rule Engine Tool",
+            "code": "zero_gold_cost",
+            "path": "upgrade_config.cost_items[item_gold].amount",
+            "message": "Gold cost must be positive for upgrade progression."
+          }
+        ]
+      },
+      "review_findings": [
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "base_attack does not match the requirement and exceeds beginner policy",
+          "evidence": {
+            "actual": 140,
+            "required": 110,
+            "recommended_range": [
+              90,
+              130
+            ]
+          },
+          "severity": "high",
+          "recommended_range": [
+            90,
+            130
+          ],
+          "preferred_fix": "Set base_attack to the requested value 50."
+        },
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "upgrade gold cost is too low for the recommended curve",
+          "evidence": {
+            "actual_gold_costs": [
+              0,
+              0,
+              0
+            ]
+          },
+          "severity": "medium",
+          "recommended_range": [
+            300,
+            450,
+            650
+          ],
+          "preferred_fix": "Use the deterministic beginner curve 100, 150, 200."
+        }
+      ],
+      "repair_actions": [
+        {
+          "action": "set_base_attack",
+          "scope": "weapon_config.base_attack",
+          "before": 140,
+          "after": 110,
+          "reason": "Align with original requirement and beginner policy."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=1]",
+          "before": {
+            "weapon_id": "weapon_moon_saber",
+            "level": 1,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_moon_saber",
+            "level": 1,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 300
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=2]",
+          "before": {
+            "weapon_id": "weapon_moon_saber",
+            "level": 2,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_moon_saber",
+            "level": 2,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 450
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 5
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=3]",
+          "before": {
+            "weapon_id": "weapon_moon_saber",
+            "level": 3,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_moon_saber",
+            "level": 3,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 650
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 8
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        }
+      ],
+      "final_validation": {
+        "passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 7,
+      "test_scenario_coverage": 1.0,
+      "test_scenario_coverage_percent": 100.0,
+      "badcases": [],
+      "unresolved": false
+    },
+    {
+      "sample_id": "upgrade_cost_negative",
+      "requirement_text": "新手斧配置：攻击力 45，升级三次，每级 +5，升级消耗不能为负。",
+      "tags": [
+        "upgrade cost"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": true,
+        "rule_passed": false,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": [
+          {
+            "source": "Rule Engine Tool",
+            "code": "negative_upgrade_cost",
+            "path": "upgrade_config[0].cost_items[0].amount",
+            "message": "Upgrade cost cannot be negative."
+          },
+          {
+            "source": "Rule Engine Tool",
+            "code": "zero_gold_cost",
+            "path": "upgrade_config.cost_items[item_gold].amount",
+            "message": "Gold cost must be positive for upgrade progression."
+          }
+        ]
+      },
+      "review_findings": [
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "upgrade gold cost is too low for the recommended curve",
+          "evidence": {
+            "actual_gold_costs": [
+              -10,
+              0,
+              0
+            ]
+          },
+          "severity": "medium",
+          "recommended_range": [
+            100,
+            150,
+            200
+          ],
+          "preferred_fix": "Use the deterministic beginner curve 100, 150, 200."
+        }
+      ],
+      "repair_actions": [
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=1]",
+          "before": {
+            "weapon_id": "weapon_training_axe",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": -10
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_training_axe",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 100
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=2]",
+          "before": {
+            "weapon_id": "weapon_training_axe",
+            "level": 2,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_training_axe",
+            "level": 2,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 150
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=3]",
+          "before": {
+            "weapon_id": "weapon_training_axe",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_training_axe",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 200
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        }
+      ],
+      "final_validation": {
+        "passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 7,
+      "test_scenario_coverage": 1.0,
+      "test_scenario_coverage_percent": 100.0,
+      "badcases": [],
+      "unresolved": false
+    },
+    {
+      "sample_id": "reward_once_only_false",
+      "requirement_text": "新手弓作为新手任务奖励，只能领取一次，攻击力 48，升级三次。",
+      "tags": [
+        "reward once_only"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": true,
+        "rule_passed": false,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": [
+          {
+            "source": "Rule Engine Tool",
+            "code": "beginner_reward_not_once_only",
+            "path": "reward_config[0].once_only",
+            "message": "Beginner quest reward must be once_only=true."
+          }
+        ]
+      },
+      "review_findings": [
+        {
+          "section": "Risk Review",
+          "issue": "beginner quest reward can be claimed repeatedly",
+          "evidence": {
+            "once_only": false
+          },
+          "severity": "critical",
+          "recommended_range": [
+            true
+          ],
+          "preferred_fix": "Set reward_config.once_only to true."
+        }
+      ],
+      "repair_actions": [
+        {
+          "action": "set_reward_once_only",
+          "scope": "reward_config.once_only",
+          "before": false,
+          "after": true,
+          "reason": "Beginner quest reward must be one-time."
+        }
+      ],
+      "final_validation": {
+        "passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 7,
+      "test_scenario_coverage": 1.0,
+      "test_scenario_coverage_percent": 100.0,
+      "badcases": [],
+      "unresolved": false
+    },
+    {
+      "sample_id": "duplicate_reward_hardcase",
+      "requirement_text": "活动奖励 Moon Saber 只能配置一份奖励，不能重复发放。",
+      "tags": [
+        "duplicate reward",
+        "hardcase"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": true,
+        "rule_passed": false,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": [
+          {
+            "source": "Rule Engine Tool",
+            "code": "duplicate_id",
+            "path": "reward_config",
+            "message": "Duplicate reward_id: reward_weapon_moon_saber_dup"
+          }
+        ]
+      },
+      "review_findings": [],
+      "repair_actions": [
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=1]",
+          "before": {
+            "weapon_id": "weapon_moon_saber_dup",
+            "level": 1,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 300
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_moon_saber_dup",
+            "level": 1,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 300
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=2]",
+          "before": {
+            "weapon_id": "weapon_moon_saber_dup",
+            "level": 2,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 450
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_moon_saber_dup",
+            "level": 2,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 450
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 5
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=3]",
+          "before": {
+            "weapon_id": "weapon_moon_saber_dup",
+            "level": 3,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 650
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_moon_saber_dup",
+            "level": 3,
+            "attack_bonus": 10,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 650
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 8
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        }
+      ],
+      "final_validation": {
+        "passed": false,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": [
+          {
+            "source": "Rule Engine Tool",
+            "code": "duplicate_id",
+            "path": "reward_config",
+            "message": "Duplicate reward_id: reward_weapon_moon_saber_dup"
+          }
+        ]
+      },
+      "test_scenario_count": 0,
+      "test_scenario_coverage": 0.0,
+      "test_scenario_coverage_percent": 0.0,
+      "badcases": [
+        {
+          "sample_id": "duplicate_reward_hardcase",
+          "stage": "final_validation",
+          "reason": "sample remains unresolved after benchmark flow",
+          "schema_errors": [],
+          "reference_errors": [],
+          "rule_errors": [
+            {
+              "source": "Rule Engine Tool",
+              "code": "duplicate_id",
+              "path": "reward_config",
+              "message": "Duplicate reward_id: reward_weapon_moon_saber_dup"
+            }
+          ]
+        }
+      ],
+      "unresolved": true
+    },
+    {
+      "sample_id": "skill_damage_optional_config",
+      "requirement_text": "配置技能 Spark Slash，技能伤害倍率 1.2，绑定 Training Sword。",
+      "tags": [
+        "skill damage config",
+        "optional skill_config"
+      ],
+      "initial_validation": {
+        "schema_passed": false,
+        "reference_passed": false,
+        "rule_passed": false,
+        "schema_errors": [
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].display_name",
+            "message": "Required field is missing."
+          },
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].damage",
+            "message": "Required field is missing."
+          },
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].cooldown",
+            "message": "Required field is missing."
+          },
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].range",
+            "message": "Required field is missing."
+          }
+        ],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "review_findings": [],
+      "repair_actions": [],
+      "final_validation": {
+        "passed": false,
+        "schema_errors": [
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].display_name",
+            "message": "Required field is missing."
+          },
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].damage",
+            "message": "Required field is missing."
+          },
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].cooldown",
+            "message": "Required field is missing."
+          },
+          {
+            "source": "Schema Validator Tool",
+            "code": "missing_field",
+            "path": "skill_config[0].range",
+            "message": "Required field is missing."
+          }
+        ],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 0,
+      "test_scenario_coverage": 0.0,
+      "test_scenario_coverage_percent": 0.0,
+      "badcases": [
+        {
+          "sample_id": "skill_damage_optional_config",
+          "stage": "schema_validation",
+          "reason": "initial schema validation failed",
+          "errors": [
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].display_name",
+              "message": "Required field is missing."
+            },
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].damage",
+              "message": "Required field is missing."
+            },
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].cooldown",
+              "message": "Required field is missing."
+            },
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].range",
+              "message": "Required field is missing."
+            }
+          ]
+        },
+        {
+          "sample_id": "skill_damage_optional_config",
+          "stage": "final_validation",
+          "reason": "sample remains unresolved after benchmark flow",
+          "schema_errors": [
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].display_name",
+              "message": "Required field is missing."
+            },
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].damage",
+              "message": "Required field is missing."
+            },
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].cooldown",
+              "message": "Required field is missing."
+            },
+            {
+              "source": "Schema Validator Tool",
+              "code": "missing_field",
+              "path": "skill_config[0].range",
+              "message": "Required field is missing."
+            }
+          ],
+          "reference_errors": [],
+          "rule_errors": []
+        }
+      ],
+      "unresolved": true
+    },
+    {
+      "sample_id": "level_reward_curve",
+      "requirement_text": "等级奖励曲线每 5 级给一次新手材料，奖励引用必须存在。",
+      "tags": [
+        "level reward curve"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": true,
+        "rule_passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "review_findings": [],
+      "repair_actions": [],
+      "final_validation": {
+        "passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 7,
+      "test_scenario_coverage": 1.0,
+      "test_scenario_coverage_percent": 100.0,
+      "badcases": [],
+      "unresolved": false
+    },
+    {
+      "sample_id": "missing_reward_reference",
+      "requirement_text": "奖励配置引用缺失时必须被识别，Training Sword 仍应保持合法。",
+      "tags": [
+        "missing reference"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": false,
+        "rule_passed": true,
+        "schema_errors": [],
+        "reference_errors": [
+          {
+            "source": "Reference Checker Tool",
+            "code": "missing_reference",
+            "path": "reward_config[0].reward_item_id",
+            "value": "item_missing_reward",
+            "target": "item_config.item_id",
+            "message": "'item_missing_reward' does not exist in item_config.item_id."
+          }
+        ],
+        "rule_errors": []
+      },
+      "review_findings": [
+        {
+          "section": "Risk Review",
+          "issue": "configuration contains missing item references",
+          "evidence": [
+            {
+              "source": "Reference Checker Tool",
+              "code": "missing_reference",
+              "path": "reward_config[0].reward_item_id",
+              "value": "item_missing_reward",
+              "target": "item_config.item_id",
+              "message": "'item_missing_reward' does not exist in item_config.item_id."
+            }
+          ],
+          "severity": "high",
+          "recommended_range": [
+            "all referenced item_id values exist in item_config"
+          ],
+          "preferred_fix": "Add a minimal item_refine_stone item definition."
+        }
+      ],
+      "repair_actions": [],
+      "final_validation": {
+        "passed": false,
+        "schema_errors": [],
+        "reference_errors": [
+          {
+            "source": "Reference Checker Tool",
+            "code": "missing_reference",
+            "path": "reward_config[0].reward_item_id",
+            "value": "item_missing_reward",
+            "target": "item_config.item_id",
+            "message": "'item_missing_reward' does not exist in item_config.item_id."
+          }
+        ],
+        "rule_errors": []
+      },
+      "test_scenario_count": 0,
+      "test_scenario_coverage": 0.0,
+      "test_scenario_coverage_percent": 0.0,
+      "badcases": [
+        {
+          "sample_id": "missing_reward_reference",
+          "stage": "final_validation",
+          "reason": "sample remains unresolved after benchmark flow",
+          "schema_errors": [],
+          "reference_errors": [
+            {
+              "source": "Reference Checker Tool",
+              "code": "missing_reference",
+              "path": "reward_config[0].reward_item_id",
+              "value": "item_missing_reward",
+              "target": "item_config.item_id",
+              "message": "'item_missing_reward' does not exist in item_config.item_id."
+            }
+          ],
+          "rule_errors": []
+        }
+      ],
+      "unresolved": true
+    },
+    {
+      "sample_id": "safe_balanced_config",
+      "requirement_text": "安全平衡的新手剑配置，攻击力 50，升级三次，奖励一次性。",
+      "tags": [
+        "safe balanced config"
+      ],
+      "initial_validation": {
+        "schema_passed": true,
+        "reference_passed": true,
+        "rule_passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "review_findings": [],
+      "repair_actions": [],
+      "final_validation": {
+        "passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 7,
+      "test_scenario_coverage": 1.0,
+      "test_scenario_coverage_percent": 100.0,
+      "badcases": [],
+      "unresolved": false
+    },
+    {
+      "sample_id": "dirty_schema_hardcase",
+      "requirement_text": "脏结构 hardcase：升级配置可能被模型输出成字符串，系统不能崩溃。",
+      "tags": [
+        "hardcase",
+        "schema drift"
+      ],
+      "initial_validation": {
+        "schema_passed": false,
+        "reference_passed": false,
+        "rule_passed": false,
+        "schema_errors": [
+          {
+            "source": "Schema Validator Tool",
+            "code": "invalid_type",
+            "path": "upgrade_config[0]",
+            "message": "Expected object, got str."
+          }
+        ],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "review_findings": [],
+      "repair_actions": [],
+      "final_validation": {
+        "passed": false,
+        "schema_errors": [
+          {
+            "source": "Schema Validator Tool",
+            "code": "invalid_type",
+            "path": "upgrade_config[0]",
+            "message": "Expected object, got str."
+          }
+        ],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenario_count": 0,
+      "test_scenario_coverage": 0.0,
+      "test_scenario_coverage_percent": 0.0,
+      "badcases": [
+        {
+          "sample_id": "dirty_schema_hardcase",
+          "stage": "schema_validation",
+          "reason": "initial schema validation failed",
+          "errors": [
+            {
+              "source": "Schema Validator Tool",
+              "code": "invalid_type",
+              "path": "upgrade_config[0]",
+              "message": "Expected object, got str."
+            }
+          ]
+        },
+        {
+          "sample_id": "dirty_schema_hardcase",
+          "stage": "final_validation",
+          "reason": "sample remains unresolved after benchmark flow",
+          "schema_errors": [
+            {
+              "source": "Schema Validator Tool",
+              "code": "invalid_type",
+              "path": "upgrade_config[0]",
+              "message": "Expected object, got str."
+            }
+          ],
+          "reference_errors": [],
+          "rule_errors": []
+        }
+      ],
+      "unresolved": true
+    }
+  ],
+  "metrics": {
+    "sample_count": 10,
+    "schema_pass_rate": 0.8,
+    "reference_pass_rate": 0.6,
+    "rule_pass_rate": 0.3,
+    "repair_success_rate": 0.5,
+    "test_scenario_coverage_rate": 0.6,
+    "badcase_count": 6,
+    "unresolved_count": 4,
+    "avg_repair_actions": 1.7
+  }
+}

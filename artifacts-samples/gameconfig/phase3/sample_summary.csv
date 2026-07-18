@@ -1,0 +1,11 @@
+sample_id,tags,schema_passed,reference_passed,rule_passed,final_passed,repair_actions,coverage_percent,badcases,unresolved
+beginner_weapon_flawed,beginner weapon;missing reference;reward once_only,True,False,False,True,6,100.0,0,False
+rare_weapon_flawed,rare weapon;upgrade cost,True,True,False,True,4,100.0,0,False
+upgrade_cost_negative,upgrade cost,True,True,False,True,3,100.0,0,False
+reward_once_only_false,reward once_only,True,True,False,True,1,100.0,0,False
+duplicate_reward_hardcase,duplicate reward;hardcase,True,True,False,False,3,0.0,1,True
+skill_damage_optional_config,skill damage config;optional skill_config,False,False,False,False,0,0.0,2,True
+level_reward_curve,level reward curve,True,True,True,True,0,100.0,0,False
+missing_reward_reference,missing reference,True,False,True,False,0,0.0,1,True
+safe_balanced_config,safe balanced config,True,True,True,True,0,100.0,0,False
+dirty_schema_hardcase,hardcase;schema drift,False,False,False,False,0,0.0,2,True

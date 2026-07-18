@@ -1,0 +1,20 @@
+diff --git a/service/profile.go b/service/profile.go
+index 1111111..2222222 100644
+--- a/service/profile.go
++++ b/service/profile.go
+@@ -1,7 +1,13 @@
+ package service
+ 
+ import "io"
+ 
+ func ReadProfile(resp ResponseLike) ([]byte, error) {
++	data, err := io.ReadAll(resp.Body)
++	if err != nil {
++		return nil, err
++	}
++	return data, nil
+ }
+ 
+ type ResponseLike struct {
+ 	Body io.Reader
+ }

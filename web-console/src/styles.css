@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: #0f172a;
+}
+
+@layer components {
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-300;
+  }
+
+  .input {
+    @apply w-full rounded-md border border-line bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition-colors duration-200 placeholder:text-slate-500 focus:border-run focus:ring-2 focus:ring-run/30;
+  }
+
+  .button-primary {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md bg-run px-4 py-2 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-green-300 focus:outline-none focus:ring-2 focus:ring-run/40 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .button-secondary {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-panel2 px-4 py-2 text-sm font-semibold text-slate-100 transition-colors duration-200 hover:border-run hover:text-run focus:outline-none focus:ring-2 focus:ring-run/40 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .tab {
+    @apply min-h-10 cursor-pointer rounded-md px-3 py-2 text-sm text-slate-300 transition-colors duration-200 hover:bg-panel2 hover:text-slate-50 focus:outline-none focus:ring-2 focus:ring-run/40;
+  }
+
+  .tab-active {
+    @apply min-h-10 cursor-pointer rounded-md bg-run px-3 py-2 text-sm font-semibold text-slate-950 focus:outline-none focus:ring-2 focus:ring-run/40;
+  }
+
+  .chip {
+    @apply cursor-pointer rounded-md border border-line bg-panel2 px-3 py-1.5 text-sm text-slate-300 transition-colors duration-200 hover:border-run hover:text-run focus:outline-none focus:ring-2 focus:ring-run/40;
+  }
+
+  .chip-active {
+    @apply cursor-pointer rounded-md border border-run bg-run/15 px-3 py-1.5 text-sm text-run focus:outline-none focus:ring-2 focus:ring-run/40;
+  }
+}

@@ -1,0 +1,12 @@
+diff --git a/service/client.go b/service/client.go
+index 1111111..2222222 100644
+--- a/service/client.go
++++ b/service/client.go
+@@ -1,5 +1,8 @@
+ package service
+ 
+ import "net/http"
+ 
++func Fetch(url string) (*http.Response, error) {
++    return http.Get(url)
++}

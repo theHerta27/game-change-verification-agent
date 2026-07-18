@@ -1,0 +1,642 @@
+{
+  "provider": "openai_compatible",
+  "model": "test-model",
+  "results": [
+    {
+      "sample_id": "real_demo_input",
+      "requirement_text": "设计一个新手武器 Training Sword。",
+      "provider": "openai_compatible",
+      "structured_requirement": {
+        "request_id": "req_training_sword_beginner_weapon",
+        "item_name": "Training Sword",
+        "category": "beginner_weapon",
+        "base_attack": 50,
+        "upgrade_times": 3,
+        "upgrade_attack_bonus": 5,
+        "cost_item_tags": [
+          "gold",
+          "refine_stone"
+        ],
+        "reward_channel": "beginner_quest",
+        "once_only": true
+      },
+      "assumptions": [
+        {
+          "field": "rarity",
+          "value": "common",
+          "reason": "Beginner quest weapons default to common rarity unless specified."
+        },
+        {
+          "field": "once_only",
+          "value": true,
+          "reason": "Beginner quest rewards are assumed to be one-time unless specified."
+        }
+      ],
+      "draft_configs": {
+        "item_config": [
+          {
+            "item_id": "item_training_sword",
+            "display_name": "Training Sword",
+            "item_type": "weapon",
+            "rarity": "common"
+          },
+          {
+            "item_id": "item_gold",
+            "display_name": "Gold",
+            "item_type": "currency",
+            "rarity": "common"
+          }
+        ],
+        "weapon_config": [
+          {
+            "weapon_id": "weapon_training_sword",
+            "item_id": "item_training_sword",
+            "weapon_type": "sword",
+            "base_attack": 80,
+            "strength_tier": "common"
+          }
+        ],
+        "upgrade_config": [
+          {
+            "weapon_id": "weapon_training_sword",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          {
+            "weapon_id": "weapon_training_sword",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          }
+        ],
+        "reward_config": [
+          {
+            "reward_id": "reward_beginner_training_sword",
+            "quest_id": "quest_beginner_first_weapon",
+            "reward_item_id": "item_training_sword",
+            "weapon_id": "weapon_training_sword",
+            "once_only": false,
+            "source": "beginner_quest"
+          }
+        ]
+      },
+      "draft_validation": {
+        "schema_passed": true,
+        "schema_errors": [],
+        "reference_errors": [
+          {
+            "source": "Reference Checker Tool",
+            "code": "missing_reference",
+            "path": "upgrade_config[0].cost_items[1].item_id",
+            "value": "item_refine_stone",
+            "target": "item_config.item_id",
+            "message": "'item_refine_stone' does not exist in item_config.item_id."
+          }
+        ],
+        "rule_errors": [
+          {
+            "source": "Rule Engine Tool",
+            "code": "non_continuous_upgrade_levels",
+            "path": "upgrade_config.level",
+            "message": "Expected levels [1, 2, 3], got [1, 3]."
+          },
+          {
+            "source": "Rule Engine Tool",
+            "code": "zero_gold_cost",
+            "path": "upgrade_config.cost_items[item_gold].amount",
+            "message": "Gold cost must be positive for upgrade progression."
+          },
+          {
+            "source": "Rule Engine Tool",
+            "code": "beginner_reward_not_once_only",
+            "path": "reward_config[0].once_only",
+            "message": "Beginner quest reward must be once_only=true."
+          }
+        ]
+      },
+      "review_findings": [
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "base_attack does not match the requirement and exceeds beginner policy",
+          "evidence": {
+            "actual": 80,
+            "required": 50,
+            "recommended_range": [
+              35,
+              55
+            ]
+          },
+          "severity": "high",
+          "recommended_range": [
+            35,
+            55
+          ],
+          "preferred_fix": "Set base_attack to the requested value 50."
+        },
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "upgrade levels are not continuous",
+          "evidence": {
+            "actual_levels": [
+              1,
+              3
+            ],
+            "expected_levels": [
+              1,
+              2,
+              3
+            ]
+          },
+          "severity": "high",
+          "recommended_range": [
+            1,
+            2,
+            3
+          ],
+          "preferred_fix": "Create a local level 2 upgrade row and normalize all level costs."
+        },
+        {
+          "section": "Balance & Consistency Review",
+          "issue": "upgrade gold cost is too low for the recommended curve",
+          "evidence": {
+            "actual_gold_costs": [
+              0,
+              0
+            ]
+          },
+          "severity": "medium",
+          "recommended_range": [
+            100,
+            150,
+            200
+          ],
+          "preferred_fix": "Use the deterministic beginner curve 100, 150, 200."
+        },
+        {
+          "section": "Risk Review",
+          "issue": "beginner quest reward can be claimed repeatedly",
+          "evidence": {
+            "once_only": false
+          },
+          "severity": "critical",
+          "recommended_range": [
+            true
+          ],
+          "preferred_fix": "Set reward_config.once_only to true."
+        }
+      ],
+      "repaired_configs": {
+        "item_config": [
+          {
+            "item_id": "item_training_sword",
+            "display_name": "Training Sword",
+            "item_type": "weapon",
+            "rarity": "common"
+          },
+          {
+            "item_id": "item_gold",
+            "display_name": "Gold",
+            "item_type": "currency",
+            "rarity": "common"
+          },
+          {
+            "item_id": "item_refine_stone",
+            "display_name": "Refine Stone",
+            "item_type": "material",
+            "rarity": "common"
+          }
+        ],
+        "weapon_config": [
+          {
+            "weapon_id": "weapon_training_sword",
+            "item_id": "item_training_sword",
+            "weapon_type": "sword",
+            "base_attack": 50,
+            "strength_tier": "common"
+          }
+        ],
+        "upgrade_config": [
+          {
+            "weapon_id": "weapon_training_sword",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 100
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          {
+            "weapon_id": "weapon_training_sword",
+            "level": 2,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 150
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          {
+            "weapon_id": "weapon_training_sword",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 200
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          }
+        ],
+        "reward_config": [
+          {
+            "reward_id": "reward_beginner_training_sword",
+            "quest_id": "quest_beginner_first_weapon",
+            "reward_item_id": "item_training_sword",
+            "weapon_id": "weapon_training_sword",
+            "once_only": true,
+            "source": "beginner_quest"
+          }
+        ]
+      },
+      "repair_actions": [
+        {
+          "action": "set_base_attack",
+          "scope": "weapon_config.base_attack",
+          "before": 80,
+          "after": 50,
+          "reason": "Align with original requirement and beginner policy."
+        },
+        {
+          "action": "add_missing_item_reference",
+          "scope": "item_config",
+          "before": null,
+          "after": {
+            "item_id": "item_refine_stone",
+            "display_name": "Refine Stone",
+            "item_type": "material",
+            "rarity": "common"
+          },
+          "reason": "Referenced item is known by the deterministic resource catalog."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=1]",
+          "before": {
+            "weapon_id": "weapon_training_sword",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_training_sword",
+            "level": 1,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 100
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 1
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=2]",
+          "before": null,
+          "after": {
+            "weapon_id": "weapon_training_sword",
+            "level": 2,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 150
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 2
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "normalize_upgrade_level",
+          "scope": "upgrade_config[level=3]",
+          "before": {
+            "weapon_id": "weapon_training_sword",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 0
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "after": {
+            "weapon_id": "weapon_training_sword",
+            "level": 3,
+            "attack_bonus": 5,
+            "cost_items": [
+              {
+                "item_id": "item_gold",
+                "amount": 200
+              },
+              {
+                "item_id": "item_refine_stone",
+                "amount": 3
+              }
+            ]
+          },
+          "reason": "Repair coupled level, attack bonus, and cost fields locally."
+        },
+        {
+          "action": "set_reward_once_only",
+          "scope": "reward_config.once_only",
+          "before": false,
+          "after": true,
+          "reason": "Beginner quest reward must be one-time."
+        }
+      ],
+      "final_validation": {
+        "passed": true,
+        "schema_errors": [],
+        "reference_errors": [],
+        "rule_errors": []
+      },
+      "test_scenarios": [
+        {
+          "scenario_id": "scenario_weapon_base_attack",
+          "title": "Training Sword base attack matches beginner requirement",
+          "config_refs": [
+            "weapon_config.weapon_training_sword"
+          ],
+          "steps": [
+            "Load weapon_config for weapon_training_sword.",
+            "Read base_attack.",
+            "Compare against expected beginner value 50."
+          ],
+          "expected_result": "base_attack is 50 and equals 50.",
+          "coverage_tags": [
+            "base_attack_exact"
+          ],
+          "priority": "high",
+          "source_agent": "Test Scenario Agent"
+        },
+        {
+          "scenario_id": "scenario_weapon_item_reference",
+          "title": "Weapon item reference resolves to item_config",
+          "config_refs": [
+            "weapon_config.item_id",
+            "item_config.item_training_sword"
+          ],
+          "steps": [
+            "Read weapon_config.item_id.",
+            "Find the same item_id in item_config."
+          ],
+          "expected_result": "item_training_sword exists in item_config.",
+          "coverage_tags": [
+            "weapon_item_reference"
+          ],
+          "priority": "high",
+          "source_agent": "Test Scenario Agent"
+        },
+        {
+          "scenario_id": "scenario_upgrade_levels_and_bonus",
+          "title": "Upgrade levels are continuous and grant +5 attack",
+          "config_refs": [
+            "upgrade_config.weapon_training_sword"
+          ],
+          "steps": [
+            "Sort upgrade rows by level.",
+            "Assert levels are 1, 2, 3.",
+            "Assert every attack_bonus is 5."
+          ],
+          "expected_result": "Upgrade levels are [1, 2, 3] and each attack_bonus is 5.",
+          "coverage_tags": [
+            "upgrade_levels_continuous",
+            "upgrade_bonus_per_level"
+          ],
+          "priority": "high",
+          "source_agent": "Test Scenario Agent"
+        },
+        {
+          "scenario_id": "scenario_upgrade_gold_cost_curve",
+          "title": "Upgrade gold costs follow beginner curve",
+          "config_refs": [
+            "upgrade_config.cost_items.item_gold"
+          ],
+          "steps": [
+            "Read item_gold cost from each upgrade level.",
+            "Compare amounts against 100, 150, 200."
+          ],
+          "expected_result": "Gold costs are [100, 150, 200].",
+          "coverage_tags": [
+            "gold_cost_curve"
+          ],
+          "priority": "medium",
+          "source_agent": "Test Scenario Agent"
+        },
+        {
+          "scenario_id": "scenario_upgrade_material_cost_curve",
+          "title": "Upgrade material costs follow beginner curve",
+          "config_refs": [
+            "upgrade_config.cost_items.item_refine_stone"
+          ],
+          "steps": [
+            "Read item_refine_stone cost from each upgrade level.",
+            "Compare amounts against 1, 2, 3."
+          ],
+          "expected_result": "Refine stone costs are [1, 2, 3].",
+          "coverage_tags": [
+            "material_cost_curve"
+          ],
+          "priority": "medium",
+          "source_agent": "Test Scenario Agent"
+        },
+        {
+          "scenario_id": "scenario_reward_once_only",
+          "title": "Beginner quest reward can only be claimed once",
+          "config_refs": [
+            "reward_config.reward_beginner_training_sword"
+          ],
+          "steps": [
+            "Load beginner quest reward_config.",
+            "Read once_only.",
+            "Attempt to model a second claim."
+          ],
+          "expected_result": "once_only is True and duplicate claim is rejected.",
+          "coverage_tags": [
+            "reward_once_only"
+          ],
+          "priority": "critical",
+          "source_agent": "Test Scenario Agent"
+        },
+        {
+          "scenario_id": "scenario_reward_item_reference",
+          "title": "Reward item and weapon references resolve",
+          "config_refs": [
+            "reward_config.reward_item_id",
+            "reward_config.weapon_id"
+          ],
+          "steps": [
+            "Read reward_item_id and weapon_id.",
+            "Find reward_item_id in item_config.",
+            "Find weapon_id in weapon_config."
+          ],
+          "expected_result": "Reward references resolve to final item and weapon configs.",
+          "coverage_tags": [
+            "reward_item_reference"
+          ],
+          "priority": "high",
+          "source_agent": "Test Scenario Agent"
+        }
+      ],
+      "evaluation": {
+        "dataset_id": "phase1_training_sword_coverage_v1",
+        "scenario_count": 7,
+        "expected_tag_count": 8,
+        "covered_tag_count": 8,
+        "coverage": 1.0,
+        "coverage_percent": 100.0,
+        "covered_tags": [
+          "base_attack_exact",
+          "gold_cost_curve",
+          "material_cost_curve",
+          "reward_item_reference",
+          "reward_once_only",
+          "upgrade_bonus_per_level",
+          "upgrade_levels_continuous",
+          "weapon_item_reference"
+        ],
+        "missing_tags": [],
+        "passed": true
+      },
+      "badcases": [],
+      "trace": [
+        {
+          "sample_id": "real_demo_input",
+          "actor": "openai_compatible",
+          "action": "generator_prompt",
+          "json_parse_success": true,
+          "latency_ms": 0
+        },
+        {
+          "sample_id": "real_demo_input",
+          "actor": "openai_compatible",
+          "action": "reviewer_prompt",
+          "json_parse_success": true,
+          "latency_ms": 0
+        },
+        {
+          "sample_id": "real_demo_input",
+          "actor": "openai_compatible",
+          "action": "repairer_prompt",
+          "json_parse_success": true,
+          "latency_ms": 0
+        },
+        {
+          "sample_id": "real_demo_input",
+          "actor": "openai_compatible",
+          "action": "test_scenario_prompt",
+          "json_parse_success": true,
+          "latency_ms": 0
+        }
+      ],
+      "provider_metrics": [
+        {
+          "prompt_name": "generator",
+          "latency_ms": 0,
+          "usage": null,
+          "token_estimate": 312
+        },
+        {
+          "prompt_name": "reviewer",
+          "latency_ms": 0,
+          "usage": null,
+          "token_estimate": 376
+        },
+        {
+          "prompt_name": "repairer",
+          "latency_ms": 0,
+          "usage": null,
+          "token_estimate": 754
+        },
+        {
+          "prompt_name": "test_scenario",
+          "latency_ms": 0,
+          "usage": null,
+          "token_estimate": 470
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "sample_count": 1,
+    "json_parse_success_rate": 1.0,
+    "schema_pass_rate": 1.0,
+    "final_validation_pass_rate": 1.0,
+    "repair_success_rate": 1.0,
+    "test_scenario_coverage_rate": 1.0,
+    "latency_ms": {
+      "total": 0,
+      "average": 0.0
+    },
+    "token_estimate": 1912,
+    "usage": null,
+    "badcase_count": 0
+  }
+}

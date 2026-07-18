@@ -1,0 +1,10 @@
+diff --git a/app/logger.py b/app/logger.py
+index 1111111..2222222 100644
+--- a/app/logger.py
++++ b/app/logger.py
+@@ -1,5 +1,8 @@
+ import logging
+ 
+ def log_request(path):
++    logging.info("request path=%s", path)
++    return True

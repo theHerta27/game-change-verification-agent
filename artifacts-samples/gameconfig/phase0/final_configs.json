@@ -1,0 +1,88 @@
+{
+  "item_config": [
+    {
+      "item_id": "item_training_sword",
+      "display_name": "Training Sword",
+      "item_type": "weapon",
+      "rarity": "common"
+    },
+    {
+      "item_id": "item_gold",
+      "display_name": "Gold",
+      "item_type": "currency",
+      "rarity": "common"
+    },
+    {
+      "item_id": "item_refine_stone",
+      "display_name": "Refine Stone",
+      "item_type": "material",
+      "rarity": "common"
+    }
+  ],
+  "weapon_config": [
+    {
+      "weapon_id": "weapon_training_sword",
+      "item_id": "item_training_sword",
+      "weapon_type": "sword",
+      "base_attack": 50,
+      "strength_tier": "common"
+    }
+  ],
+  "upgrade_config": [
+    {
+      "weapon_id": "weapon_training_sword",
+      "level": 1,
+      "attack_bonus": 5,
+      "cost_items": [
+        {
+          "item_id": "item_gold",
+          "amount": 100
+        },
+        {
+          "item_id": "item_refine_stone",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "weapon_id": "weapon_training_sword",
+      "level": 2,
+      "attack_bonus": 5,
+      "cost_items": [
+        {
+          "item_id": "item_gold",
+          "amount": 150
+        },
+        {
+          "item_id": "item_refine_stone",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "weapon_id": "weapon_training_sword",
+      "level": 3,
+      "attack_bonus": 5,
+      "cost_items": [
+        {
+          "item_id": "item_gold",
+          "amount": 200
+        },
+        {
+          "item_id": "item_refine_stone",
+          "amount": 3
+        }
+      ]
+    }
+  ],
+  "reward_config": [
+    {
+      "reward_id": "reward_beginner_training_sword",
+      "quest_id": "quest_beginner_first_weapon",
+      "reward_item_id": "item_training_sword",
+      "weapon_id": "weapon_training_sword",
+      "once_only": true,
+      "source": "beginner_quest"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+diff --git a/service/client.go b/service/client.go
+index 1111111..2222222 100644
+--- a/service/client.go
++++ b/service/client.go
+@@ -1,4 +1,14 @@
+ package service
+ 
++func Fetch(ctx context.Context, url string) (*http.Response, error) {
++    ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
++    defer cancel()
++    req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
++    if err != nil {
++        return nil, err
++    }
++    client := &http.Client{Timeout: 5 * time.Second}
++    return client.Do(req)
++}

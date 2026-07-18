@@ -1,0 +1,11 @@
+diff --git a/integrations/catalog.py b/integrations/catalog.py
+index 1111111..2222222 100644
+--- a/integrations/catalog.py
++++ b/integrations/catalog.py
+@@ -1,3 +1,7 @@
+ import requests
+ 
++def load_catalog(url: str) -> dict:
++    response = requests.get(url)
++    response.raise_for_status()
++    return response.json()

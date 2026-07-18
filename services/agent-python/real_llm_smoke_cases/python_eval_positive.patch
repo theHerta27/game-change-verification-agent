@@ -1,0 +1,7 @@
+diff --git a/rules/expression.py b/rules/expression.py
+index 1111111..2222222 100644
+--- a/rules/expression.py
++++ b/rules/expression.py
+@@ -1,2 +1,5 @@
++def evaluate_rule(expression: str, context: dict):
++    return eval(expression, {}, context)

@@ -1,0 +1,1767 @@
+﻿{
+    "schema_version":  "1.1",
+    "snapshot_time":  "2026-07-18T13:49:31.5905876Z",
+    "source_vcs":  "none",
+    "source_roots":  [
+                         {
+                             "name":  "GameConfig-Agent",
+                             "excluded_paths":  [
+                                                    ".env",
+                                                    ".idea",
+                                                    ".pytest_cache",
+                                                    "frontend/node_modules",
+                                                    "frontend/dist",
+                                                    "unity/GameConfigRuntimeDemo/Library",
+                                                    "unity/GameConfigRuntimeDemo/Temp",
+                                                    "unity/GameConfigRuntimeDemo/Logs",
+                                                    "unity/GameConfigRuntimeDemo/Builds",
+                                                    "unity/GameConfigRuntimeDemo/UserSettings",
+                                                    "outputs/runtime_runs"
+                                                ]
+                         },
+                         {
+                             "name":  "DevQuality-Agent",
+                             "excluded_paths":  [
+                                                    ".idea",
+                                                    "backend",
+                                                    "frontend",
+                                                    "design-system",
+                                                    "scripts",
+                                                    "agent_service/.env",
+                                                    "agent_service/.pytest_cache",
+                                                    "agent_service/logs",
+                                                    "agent_service/outputs"
+                                                ]
+                         },
+                         {
+                             "name":  "MMD_REIMU",
+                             "excluded_paths":  [
+
+                                                ]
+                         }
+                     ],
+    "imported_file_count":  215,
+    "manifest_sha256":  "1bab859a4fc602ccff56d8326cc06af5594f94f3edefc4f61c9f895327a71158",
+    "files":  [
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/__init__.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/__init__.py",
+                      "source_sha256":  "79bc6186cd1e7635a4ddfa660e90c0382a272a39d9f7a27b1a21c47d8413eaf9",
+                      "destination_sha256":  "79bc6186cd1e7635a4ddfa660e90c0382a272a39d9f7a27b1a21c47d8413eaf9",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/agents/__init__.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/agents/__init__.py",
+                      "source_sha256":  "88960f9f599b665814d29ef372c894a8678dc2ac32be8860135c771fa76ed0b8",
+                      "destination_sha256":  "88960f9f599b665814d29ef372c894a8678dc2ac32be8860135c771fa76ed0b8",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/agents/generator.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/agents/generator.py",
+                      "source_sha256":  "05b052df479b3156d70f5775c1aa3e488954185f19b2d4f7e4bddf284ccce94e",
+                      "destination_sha256":  "05b052df479b3156d70f5775c1aa3e488954185f19b2d4f7e4bddf284ccce94e",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/agents/repairer.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/agents/repairer.py",
+                      "source_sha256":  "087a66950a71960325978df636493e86db9bf94e3ea2c5600556e735ae51aab9",
+                      "destination_sha256":  "087a66950a71960325978df636493e86db9bf94e3ea2c5600556e735ae51aab9",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/agents/reviewer.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/agents/reviewer.py",
+                      "source_sha256":  "f8faf78725eea49f5f411d538914a4693d9f01c4bddc477354f72e1eefc8d29a",
+                      "destination_sha256":  "f8faf78725eea49f5f411d538914a4693d9f01c4bddc477354f72e1eefc8d29a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/agents/test_scenario.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/agents/test_scenario.py",
+                      "source_sha256":  "5249fc7232d91974d3c606ebbb5c73940ebfeef5c2c8ac91647d7b117fadbec3",
+                      "destination_sha256":  "5249fc7232d91974d3c606ebbb5c73940ebfeef5c2c8ac91647d7b117fadbec3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/blackboard/__init__.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/blackboard/__init__.py",
+                      "source_sha256":  "09b73f0651e11058a368c6709535060a87d984c83418eef08904bb773bbd1257",
+                      "destination_sha256":  "09b73f0651e11058a368c6709535060a87d984c83418eef08904bb773bbd1257",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/blackboard/schema.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/blackboard/schema.py",
+                      "source_sha256":  "9dff841f21996cb618a32ac153f729dccb0547a4ffdf8331040f7dbce7962a12",
+                      "destination_sha256":  "9dff841f21996cb618a32ac153f729dccb0547a4ffdf8331040f7dbce7962a12",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/cli.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/cli.py",
+                      "source_sha256":  "80dfc44ae4720ae9ad8e0ae4831b32171eb5fdfa0c3b0f80e94702a11d3c67ed",
+                      "destination_sha256":  "80dfc44ae4720ae9ad8e0ae4831b32171eb5fdfa0c3b0f80e94702a11d3c67ed",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/data/__init__.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/data/__init__.py",
+                      "source_sha256":  "db59c426974b97995ff4318cc3e773088037fcf85158867b58ba9410a2e49794",
+                      "destination_sha256":  "db59c426974b97995ff4318cc3e773088037fcf85158867b58ba9410a2e49794",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/data/benchmark_dataset.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/data/benchmark_dataset.py",
+                      "source_sha256":  "69936364a757d797292b8254c3c461b0abe5d4ba5c1c65e96ab1048eed4c6b5d",
+                      "destination_sha256":  "69936364a757d797292b8254c3c461b0abe5d4ba5c1c65e96ab1048eed4c6b5d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/data/classic_cases.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/data/classic_cases.py",
+                      "source_sha256":  "8e7ad1a77b5405e7b8c842caa66f58fb644edd265941190f4a4412d2d97500be",
+                      "destination_sha256":  "8e7ad1a77b5405e7b8c842caa66f58fb644edd265941190f4a4412d2d97500be",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/data/design_reference.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/data/design_reference.py",
+                      "source_sha256":  "0767905ecb02fc0fc366a21dbad665e1059910c52b62e650329764c24165a29a",
+                      "destination_sha256":  "0767905ecb02fc0fc366a21dbad665e1059910c52b62e650329764c24165a29a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/data/evaluation_dataset.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/data/evaluation_dataset.py",
+                      "source_sha256":  "ea55f9ddbac34a70f4bc4bb950d4c802025d99de596cbbdd282068ba2a4eb300",
+                      "destination_sha256":  "ea55f9ddbac34a70f4bc4bb950d4c802025d99de596cbbdd282068ba2a4eb300",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/data/real_run_evaluation.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/data/real_run_evaluation.py",
+                      "source_sha256":  "8ee862018028e62dc8409fbc6438b1b1ae2a608a95c8f08dac02d0dc48a4d3e4",
+                      "destination_sha256":  "8ee862018028e62dc8409fbc6438b1b1ae2a608a95c8f08dac02d0dc48a4d3e4",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/data/starter_trial_catalog.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/data/starter_trial_catalog.py",
+                      "source_sha256":  "3de02178ed7a632d91adbf7ac3cb1fc62751ca940e9c43ea5e74b859a19fbdac",
+                      "destination_sha256":  "3de02178ed7a632d91adbf7ac3cb1fc62751ca940e9c43ea5e74b859a19fbdac",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/env_loader.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/env_loader.py",
+                      "source_sha256":  "abcba7f141a98ed5d37a758f3303493d98c4e98fd3053ef3b42051a829c2033f",
+                      "destination_sha256":  "abcba7f141a98ed5d37a758f3303493d98c4e98fd3053ef3b42051a829c2033f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/evaluation_evidence.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/evaluation_evidence.py",
+                      "source_sha256":  "cc1f49f1629f3d032fbfd0bb54992a3c0fe46ce7fa4d3160d0e96716f26a9a23",
+                      "destination_sha256":  "cc1f49f1629f3d032fbfd0bb54992a3c0fe46ce7fa4d3160d0e96716f26a9a23",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/mock_llm.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/mock_llm.py",
+                      "source_sha256":  "291c6c2f4d77cd05ee1bcb66881606a60410153edf8b17e114c4830fa9737be4",
+                      "destination_sha256":  "291c6c2f4d77cd05ee1bcb66881606a60410153edf8b17e114c4830fa9737be4",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/phase3_benchmark.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/phase3_benchmark.py",
+                      "source_sha256":  "0cdf054b8c19e996e63bcf74c139f3db006f2e6cfce6a3227bf2e66c74fcbaeb",
+                      "destination_sha256":  "0cdf054b8c19e996e63bcf74c139f3db006f2e6cfce6a3227bf2e66c74fcbaeb",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/prompts/__init__.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/prompts/__init__.py",
+                      "source_sha256":  "b62f54d5fbf4b302a02a8013cce2c8e70bfb50e5a9d21e3f22cb92abe1723fd5",
+                      "destination_sha256":  "b62f54d5fbf4b302a02a8013cce2c8e70bfb50e5a9d21e3f22cb92abe1723fd5",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/prompts/generator.md",
+                      "destination_path":  "services/agent-python/gameconfig_agent/prompts/generator.md",
+                      "source_sha256":  "9dc116ebd5f21c7a31c6ef5acab7c3a9c1d655fa1e4fe09e60f4f244d592dec1",
+                      "destination_sha256":  "9dc116ebd5f21c7a31c6ef5acab7c3a9c1d655fa1e4fe09e60f4f244d592dec1",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/prompts/repairer.md",
+                      "destination_path":  "services/agent-python/gameconfig_agent/prompts/repairer.md",
+                      "source_sha256":  "4a385c2843dc63b5b4ec7fba748b3260a9e510cca24b457d20845b900b1e3dbf",
+                      "destination_sha256":  "4a385c2843dc63b5b4ec7fba748b3260a9e510cca24b457d20845b900b1e3dbf",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/prompts/reviewer.md",
+                      "destination_path":  "services/agent-python/gameconfig_agent/prompts/reviewer.md",
+                      "source_sha256":  "e5e2956cca1b7e44f2a6723282e813ac9401f55a845563c3815b34521f9a70e1",
+                      "destination_sha256":  "e5e2956cca1b7e44f2a6723282e813ac9401f55a845563c3815b34521f9a70e1",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/prompts/test_scenario.md",
+                      "destination_path":  "services/agent-python/gameconfig_agent/prompts/test_scenario.md",
+                      "source_sha256":  "394a4f2d7c9d904b90cfd71dbd120ada6f9df6bf3fedfe8dd95235c1c22dfa2a",
+                      "destination_sha256":  "394a4f2d7c9d904b90cfd71dbd120ada6f9df6bf3fedfe8dd95235c1c22dfa2a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/providers/__init__.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/providers/__init__.py",
+                      "source_sha256":  "e1e450d242db64423b1c6d4455246ab7d69a7532e12d9dc8e6a1029972f1edb0",
+                      "destination_sha256":  "e1e450d242db64423b1c6d4455246ab7d69a7532e12d9dc8e6a1029972f1edb0",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/providers/base.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/providers/base.py",
+                      "source_sha256":  "4fc9266e159228642ce39dcd4330a1be1bbad22c8204a02304edfe2b58a37a65",
+                      "destination_sha256":  "4fc9266e159228642ce39dcd4330a1be1bbad22c8204a02304edfe2b58a37a65",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/providers/mock_provider.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/providers/mock_provider.py",
+                      "source_sha256":  "c2c47a27d340ca5f141b42834db662f1122ad99bd93c4646153002e04a3e19c8",
+                      "destination_sha256":  "c2c47a27d340ca5f141b42834db662f1122ad99bd93c4646153002e04a3e19c8",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/providers/openai_compatible.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/providers/openai_compatible.py",
+                      "source_sha256":  "96e701ba60588205a8e063724306f8630f1076188812cad4e1e9617f3352a605",
+                      "destination_sha256":  "96e701ba60588205a8e063724306f8630f1076188812cad4e1e9617f3352a605",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/real_run.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/real_run.py",
+                      "source_sha256":  "bd350284cb89ee2fca2a2b02d4066c376d5aec00d4ca00a05865f2699e4dc77c",
+                      "destination_sha256":  "bd350284cb89ee2fca2a2b02d4066c376d5aec00d4ca00a05865f2699e4dc77c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/requirement_intake.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/requirement_intake.py",
+                      "source_sha256":  "0fce2e597543760e28a9f206abef509fc13a441c372e30d66071c91effaff99a",
+                      "destination_sha256":  "0fce2e597543760e28a9f206abef509fc13a441c372e30d66071c91effaff99a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/runtime_contract.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/runtime_contract.py",
+                      "source_sha256":  "cd4f5599ec689e593f6cace98749ba5c94af5518de0a018f5ef5aafe45ef84d8",
+                      "destination_sha256":  "cd4f5599ec689e593f6cace98749ba5c94af5518de0a018f5ef5aafe45ef84d8",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/runtime_evaluation.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/runtime_evaluation.py",
+                      "source_sha256":  "b5041ec52ae8e3afe5cc9f758ed0af11142683f7e3a05ddbf8c640ad0eed953d",
+                      "destination_sha256":  "b5041ec52ae8e3afe5cc9f758ed0af11142683f7e3a05ddbf8c640ad0eed953d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/runtime_runs.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/runtime_runs.py",
+                      "source_sha256":  "1f48e9d5e88cc1685091df58b487e2d125d6154383cbfdb99c95d6c0c8144ca3",
+                      "destination_sha256":  "1f48e9d5e88cc1685091df58b487e2d125d6154383cbfdb99c95d6c0c8144ca3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/runtime_telemetry.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/runtime_telemetry.py",
+                      "source_sha256":  "b6fb8c7cc869303fbef7583bcb6ef15052d84a6642e28fb6b6063b5981dd7357",
+                      "destination_sha256":  "b6fb8c7cc869303fbef7583bcb6ef15052d84a6642e28fb6b6063b5981dd7357",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/schemas.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/schemas.py",
+                      "source_sha256":  "fa9d582752f72b5f1bce9377ca8e9f7b33bcd32149b6e0272637cfc99a529794",
+                      "destination_sha256":  "fa9d582752f72b5f1bce9377ca8e9f7b33bcd32149b6e0272637cfc99a529794",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/server.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/server.py",
+                      "source_sha256":  "f52d44241235cb0b52a62776b83cf2af72e5a51b6585a470571e0c307bf4cfe0",
+                      "destination_sha256":  "feeec0828f7785399b72c4754a3ef8677aaea714f206bfabc1e8677a20a3de84",
+                      "adapted_after_import":  true
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/tools/__init__.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/tools/__init__.py",
+                      "source_sha256":  "d355904a5877816736a5ae69daf2778fe93ca06aee63e0c9356a55d67ba96899",
+                      "destination_sha256":  "d355904a5877816736a5ae69daf2778fe93ca06aee63e0c9356a55d67ba96899",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/tools/evaluator.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/tools/evaluator.py",
+                      "source_sha256":  "fed9862f626753448983ca4768adae6f113e2f903c65a7a27c08825c86f041a1",
+                      "destination_sha256":  "fed9862f626753448983ca4768adae6f113e2f903c65a7a27c08825c86f041a1",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/tools/exporter.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/tools/exporter.py",
+                      "source_sha256":  "0ba3b91d02324ed3a0b2887f87fc1db1267663ce258e608e0039e0aceab7c631",
+                      "destination_sha256":  "0ba3b91d02324ed3a0b2887f87fc1db1267663ce258e608e0039e0aceab7c631",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/tools/reference_checker.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/tools/reference_checker.py",
+                      "source_sha256":  "c248acdcb152ff0cffb54f6f4ce0a1660b54b255d114df95220f35064c0ab137",
+                      "destination_sha256":  "c248acdcb152ff0cffb54f6f4ce0a1660b54b255d114df95220f35064c0ab137",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/tools/rule_engine.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/tools/rule_engine.py",
+                      "source_sha256":  "5fa301adc840e79111df0f8856cedf6575e2b6028321c70ffbd160db1c99591c",
+                      "destination_sha256":  "5fa301adc840e79111df0f8856cedf6575e2b6028321c70ffbd160db1c99591c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "gameconfig_agent/tools/schema_validator.py",
+                      "destination_path":  "services/agent-python/gameconfig_agent/tools/schema_validator.py",
+                      "source_sha256":  "9e39389b23f88cadb8c6cff56de4b230299c5b7c0aba49d0a5577e533573a9c3",
+                      "destination_sha256":  "9e39389b23f88cadb8c6cff56de4b230299c5b7c0aba49d0a5577e533573a9c3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_classic_cases.py",
+                      "destination_path":  "services/agent-python/tests/test_classic_cases.py",
+                      "source_sha256":  "ed04005d4690ac7855ec3011a9b8ce4ff763a04e573b09cd42835c448a3b22c7",
+                      "destination_sha256":  "f447a135d2ad9a895914513a890d0b8d5f90a2b043f2316e1d92b490174a5b9b",
+                      "adapted_after_import":  true
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_cli_demo.py",
+                      "destination_path":  "services/agent-python/tests/test_cli_demo.py",
+                      "source_sha256":  "a821285272b49eaea9769a169b71692d2b0ffd25b04134a5a06830f888e63d6a",
+                      "destination_sha256":  "a821285272b49eaea9769a169b71692d2b0ffd25b04134a5a06830f888e63d6a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_evaluation_evidence.py",
+                      "destination_path":  "services/agent-python/tests/test_evaluation_evidence.py",
+                      "source_sha256":  "6946ecb8291bbdc34963ab18c715ae6605739e73aa140f71adaf5614cd5ca73a",
+                      "destination_sha256":  "335c797628e61076b778352336fbeca883ac2747122c19023d9e77f344924f37",
+                      "adapted_after_import":  true
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_phase1_scenarios.py",
+                      "destination_path":  "services/agent-python/tests/test_phase1_scenarios.py",
+                      "source_sha256":  "e25a76448a6758a470b89a49218859a92a0ed742d8bc6657c8ce263456b2d9f8",
+                      "destination_sha256":  "e25a76448a6758a470b89a49218859a92a0ed742d8bc6657c8ce263456b2d9f8",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_phase2_real_run.py",
+                      "destination_path":  "services/agent-python/tests/test_phase2_real_run.py",
+                      "source_sha256":  "f32486904c6109f75f80788661de97fe10c835b0dfb2ca52960a7abd13c0b51a",
+                      "destination_sha256":  "f32486904c6109f75f80788661de97fe10c835b0dfb2ca52960a7abd13c0b51a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_phase2b_hotfix.py",
+                      "destination_path":  "services/agent-python/tests/test_phase2b_hotfix.py",
+                      "source_sha256":  "5b97ae7951cac0b8ac9f7a91da0839e78d98e0016959a12d6114141490415f83",
+                      "destination_sha256":  "5b97ae7951cac0b8ac9f7a91da0839e78d98e0016959a12d6114141490415f83",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_phase3_benchmark.py",
+                      "destination_path":  "services/agent-python/tests/test_phase3_benchmark.py",
+                      "source_sha256":  "c188f7a0ab568666523bbd0c5f54eb49e02b9c2dc68623411ab20a84bc0125ad",
+                      "destination_sha256":  "c188f7a0ab568666523bbd0c5f54eb49e02b9c2dc68623411ab20a84bc0125ad",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_reference_checker.py",
+                      "destination_path":  "services/agent-python/tests/test_reference_checker.py",
+                      "source_sha256":  "bacb19b0aaa12d6b8be1943123b38e1f15996c03f41d415006b39780a83e2927",
+                      "destination_sha256":  "bacb19b0aaa12d6b8be1943123b38e1f15996c03f41d415006b39780a83e2927",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_repair_loop.py",
+                      "destination_path":  "services/agent-python/tests/test_repair_loop.py",
+                      "source_sha256":  "6e9e9bebe84c07ed8d7d3fb75fd967c90e49f61399492a832038cc1faf74c1fc",
+                      "destination_sha256":  "6e9e9bebe84c07ed8d7d3fb75fd967c90e49f61399492a832038cc1faf74c1fc",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_rule_engine.py",
+                      "destination_path":  "services/agent-python/tests/test_rule_engine.py",
+                      "source_sha256":  "8e1fcc65cdb641f14aa3b5666986d0770d5c0b7898a061b2ffad6883dd418eee",
+                      "destination_sha256":  "8e1fcc65cdb641f14aa3b5666986d0770d5c0b7898a061b2ffad6883dd418eee",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_runtime_contract.py",
+                      "destination_path":  "services/agent-python/tests/test_runtime_contract.py",
+                      "source_sha256":  "eb39427d3b58656f430fa75232ec2b7509d0834ab7729939dce4b1df5b0b0398",
+                      "destination_sha256":  "eb39427d3b58656f430fa75232ec2b7509d0834ab7729939dce4b1df5b0b0398",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_runtime_evaluation.py",
+                      "destination_path":  "services/agent-python/tests/test_runtime_evaluation.py",
+                      "source_sha256":  "208fae99298acf2eff10ac79d2665424838777a3d2e30137d8914b359e87ee2c",
+                      "destination_sha256":  "208fae99298acf2eff10ac79d2665424838777a3d2e30137d8914b359e87ee2c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_runtime_runs.py",
+                      "destination_path":  "services/agent-python/tests/test_runtime_runs.py",
+                      "source_sha256":  "f86ae650f20c491e499fe31e2632622634d83e36ee659014e97d7ae92e21461d",
+                      "destination_sha256":  "f86ae650f20c491e499fe31e2632622634d83e36ee659014e97d7ae92e21461d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_schema_validator.py",
+                      "destination_path":  "services/agent-python/tests/test_schema_validator.py",
+                      "source_sha256":  "e5945c1995ae85717e1faaf8f15df5e7fd5c99adaab5c83bd744e559db589aa6",
+                      "destination_sha256":  "e5945c1995ae85717e1faaf8f15df5e7fd5c99adaab5c83bd744e559db589aa6",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_starter_trial_contract.py",
+                      "destination_path":  "services/agent-python/tests/test_starter_trial_contract.py",
+                      "source_sha256":  "84944f84976399c803aaf81953b8de84e499679048ea6e46425ac3d291c2c8a2",
+                      "destination_sha256":  "84944f84976399c803aaf81953b8de84e499679048ea6e46425ac3d291c2c8a2",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "tests/test_web_console_api.py",
+                      "destination_path":  "services/agent-python/tests/test_web_console_api.py",
+                      "source_sha256":  "b7b2432394c6435d6aa043d970e9d8481433d7e4da5bc13eab297fc443f75c33",
+                      "destination_sha256":  "b7b2432394c6435d6aa043d970e9d8481433d7e4da5bc13eab297fc443f75c33",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "examples/classic_cases/case_01_baseline_trial.md",
+                      "destination_path":  "services/agent-python/examples/classic_cases/case_01_baseline_trial.md",
+                      "source_sha256":  "a6e9af911f72c617b50200735e2c45458e8e080705b9a80611bfb1a2ba4c8599",
+                      "destination_sha256":  "a6e9af911f72c617b50200735e2c45458e8e080705b9a80611bfb1a2ba4c8599",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "examples/classic_cases/case_02_reward_overgrant.md",
+                      "destination_path":  "services/agent-python/examples/classic_cases/case_02_reward_overgrant.md",
+                      "source_sha256":  "c3f38f2b05ba12ac4041e09a3cae3e7b0784f1c6b98ffef034909d2f53a04a75",
+                      "destination_sha256":  "c3f38f2b05ba12ac4041e09a3cae3e7b0784f1c6b98ffef034909d2f53a04a75",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "examples/classic_cases/case_03_combat_too_fast.md",
+                      "destination_path":  "services/agent-python/examples/classic_cases/case_03_combat_too_fast.md",
+                      "source_sha256":  "b4f6512c221f1e484437ebe9cf6bf060b1aaf5e8e647d72eabf2d223805933cc",
+                      "destination_sha256":  "b4f6512c221f1e484437ebe9cf6bf060b1aaf5e8e647d72eabf2d223805933cc",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "examples/classic_cases/case_04_missing_reference.md",
+                      "destination_path":  "services/agent-python/examples/classic_cases/case_04_missing_reference.md",
+                      "source_sha256":  "fe4c393ba33d57754d09b4e13714c3296d6e9e97c8b4ab2dae3ad2a155a644b0",
+                      "destination_sha256":  "fe4c393ba33d57754d09b4e13714c3296d6e9e97c8b4ab2dae3ad2a155a644b0",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "examples/classic_cases/case_05_skill_guidance_balance.md",
+                      "destination_path":  "services/agent-python/examples/classic_cases/case_05_skill_guidance_balance.md",
+                      "source_sha256":  "0d010375167344579dd55ee1e53a9fa6c498a85f102e8029805d82927f093376",
+                      "destination_sha256":  "0d010375167344579dd55ee1e53a9fa6c498a85f102e8029805d82927f093376",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "examples/training_sword_requirement.txt",
+                      "destination_path":  "services/agent-python/examples/training_sword_requirement.txt",
+                      "source_sha256":  "d57edfd5edf669225fa46e4877944f1a36aa8024803a4707d9277c5b1df34381",
+                      "destination_sha256":  "d57edfd5edf669225fa46e4877944f1a36aa8024803a4707d9277c5b1df34381",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/src/main.tsx",
+                      "destination_path":  "web-console/src/main.tsx",
+                      "source_sha256":  "0b4648d3310b72c02524044e6f21bb037e9fc70eae8282cb3e20f30de44c70f3",
+                      "destination_sha256":  "0b4648d3310b72c02524044e6f21bb037e9fc70eae8282cb3e20f30de44c70f3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/src/styles.css",
+                      "destination_path":  "web-console/src/styles.css",
+                      "source_sha256":  "59203e3b5bc40a28570ea38d59d63c44fe479f7ea783c400c46d4088f7c21fa1",
+                      "destination_sha256":  "59203e3b5bc40a28570ea38d59d63c44fe479f7ea783c400c46d4088f7c21fa1",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/index.html",
+                      "destination_path":  "web-console/index.html",
+                      "source_sha256":  "6762201ad8d44d5f98d9401b9368d1195caf672cad2d6437a0a9189b4415633f",
+                      "destination_sha256":  "6762201ad8d44d5f98d9401b9368d1195caf672cad2d6437a0a9189b4415633f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/package.json",
+                      "destination_path":  "web-console/package.json",
+                      "source_sha256":  "3fc6cf0d6a1acb6f11984b4f08d74cbd4fdc87a7ab95a71ae2e855f8a3b62a86",
+                      "destination_sha256":  "7dbf885293b336cef38869e9752bbc9dc5af522d20b2cbb0316c181c541f55f7",
+                      "adapted_after_import":  true
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/package-lock.json",
+                      "destination_path":  "web-console/package-lock.json",
+                      "source_sha256":  "a6f2683106c7e68f762899b3d9b7154fcbc4b1f9f7038d73e71711785094af17",
+                      "destination_sha256":  "47ad5ac708f196d1953ac78e83beb8451dc6270d5e80b58e57d9f34893b95d50",
+                      "adapted_after_import":  true
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/postcss.config.js",
+                      "destination_path":  "web-console/postcss.config.js",
+                      "source_sha256":  "082f9a07aae22ae329bfc652d405ba5a704cba1ee86f4b78c7c70f98d628a610",
+                      "destination_sha256":  "082f9a07aae22ae329bfc652d405ba5a704cba1ee86f4b78c7c70f98d628a610",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/tailwind.config.js",
+                      "destination_path":  "web-console/tailwind.config.js",
+                      "source_sha256":  "8b7f97790ef77a3d00713ebe67653838144da28bc703df04d15c99e1e8b904d9",
+                      "destination_sha256":  "8b7f97790ef77a3d00713ebe67653838144da28bc703df04d15c99e1e8b904d9",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/tsconfig.json",
+                      "destination_path":  "web-console/tsconfig.json",
+                      "source_sha256":  "a043926a1c02562384a05d174123966c72d6b145b8a89201e673d31a1f024de4",
+                      "destination_sha256":  "a043926a1c02562384a05d174123966c72d6b145b8a89201e673d31a1f024de4",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/tsconfig.node.json",
+                      "destination_path":  "web-console/tsconfig.node.json",
+                      "source_sha256":  "e82d87ed1e0613c7926731d8f54c9a3bbf23c074739e8e84ee50684a95455012",
+                      "destination_sha256":  "e82d87ed1e0613c7926731d8f54c9a3bbf23c074739e8e84ee50684a95455012",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "frontend/vite.config.ts",
+                      "destination_path":  "web-console/vite.config.ts",
+                      "source_sha256":  "bdea52e8edaeb07af2e126af2b722d707c7b8a58e7bb271e53dc10f09a5cabd7",
+                      "destination_sha256":  "bdea52e8edaeb07af2e126af2b722d707c7b8a58e7bb271e53dc10f09a5cabd7",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Editor.meta",
+                      "destination_path":  "game-unity/Assets/Editor.meta",
+                      "source_sha256":  "b322ff9d02045e9b517a6b392c6edba3c09695b2f6e5a1b3663cbff0acead5d3",
+                      "destination_sha256":  "b322ff9d02045e9b517a6b392c6edba3c09695b2f6e5a1b3663cbff0acead5d3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Editor/RuntimeDemoBuilder.cs",
+                      "destination_path":  "game-unity/Assets/Editor/RuntimeDemoBuilder.cs",
+                      "source_sha256":  "1c5b4b466316fd457d790e11b5d11a431e0715da87d80a257316bc66af0730a7",
+                      "destination_sha256":  "911f17630f92c7dfa84dea99d5bb08350a81bc126f145e5792301538b0638376",
+                      "adapted_after_import":  true
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Editor/RuntimeDemoBuilder.cs.meta",
+                      "destination_path":  "game-unity/Assets/Editor/RuntimeDemoBuilder.cs.meta",
+                      "source_sha256":  "aa4e88b19a3aa253eaa942c8785df0562f4dc77fe8fcc7ab1e1e6decfa3584e3",
+                      "destination_sha256":  "aa4e88b19a3aa253eaa942c8785df0562f4dc77fe8fcc7ab1e1e6decfa3584e3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Resources.meta",
+                      "destination_path":  "game-unity/Assets/Resources.meta",
+                      "source_sha256":  "6116e4e48ed2a5e916a7031769f21a392a90f41aea8491c28a5f7f4010e43595",
+                      "destination_sha256":  "6116e4e48ed2a5e916a7031769f21a392a90f41aea8491c28a5f7f4010e43595",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Resources/SolidColor.shader",
+                      "destination_path":  "game-unity/Assets/Resources/SolidColor.shader",
+                      "source_sha256":  "78b20ef37a4a1a9821e0f7a4e10affaa90fae0dedb03263fff28d3d8d7490c74",
+                      "destination_sha256":  "78b20ef37a4a1a9821e0f7a4e10affaa90fae0dedb03263fff28d3d8d7490c74",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Resources/SolidColor.shader.meta",
+                      "destination_path":  "game-unity/Assets/Resources/SolidColor.shader.meta",
+                      "source_sha256":  "2aa32636511aaf7a375a7811623aa37fc5cefacf50adddbe70fbd35203d8a3a2",
+                      "destination_sha256":  "2aa32636511aaf7a375a7811623aa37fc5cefacf50adddbe70fbd35203d8a3a2",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scenes.meta",
+                      "destination_path":  "game-unity/Assets/Scenes.meta",
+                      "source_sha256":  "b65aabf5746b27cbfb3d320545ef1e7f299d988af121f9c30a2f0fbf62b5f60a",
+                      "destination_sha256":  "b65aabf5746b27cbfb3d320545ef1e7f299d988af121f9c30a2f0fbf62b5f60a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scenes/RuntimeDemo.unity",
+                      "destination_path":  "game-unity/Assets/Scenes/RuntimeDemo.unity",
+                      "source_sha256":  "2dab5017419a2ee28505c5594da8f22a492895f3ae30dd8afc70a6a0c52ddc1a",
+                      "destination_sha256":  "2dab5017419a2ee28505c5594da8f22a492895f3ae30dd8afc70a6a0c52ddc1a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scenes/RuntimeDemo.unity.meta",
+                      "destination_path":  "game-unity/Assets/Scenes/RuntimeDemo.unity.meta",
+                      "source_sha256":  "c247669b0b184f4def6f7f3edaeb3d428a69fdea45edf39b0260b116ed3b332c",
+                      "destination_sha256":  "c247669b0b184f4def6f7f3edaeb3d428a69fdea45edf39b0260b116ed3b332c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts.meta",
+                      "destination_path":  "game-unity/Assets/Scripts.meta",
+                      "source_sha256":  "d81f2ee5cd38a89369059acff5472dc79ce0fcbeb53092ea1d67133df735e387",
+                      "destination_sha256":  "d81f2ee5cd38a89369059acff5472dc79ce0fcbeb53092ea1d67133df735e387",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/CombatRangePolicy.cs",
+                      "destination_path":  "game-unity/Assets/Scripts/CombatRangePolicy.cs",
+                      "source_sha256":  "04150eab0edca9c372b9cb03c042ccd4745a2bab48d2b738d22fbf6533873aff",
+                      "destination_sha256":  "04150eab0edca9c372b9cb03c042ccd4745a2bab48d2b738d22fbf6533873aff",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/CombatRangePolicy.cs.meta",
+                      "destination_path":  "game-unity/Assets/Scripts/CombatRangePolicy.cs.meta",
+                      "source_sha256":  "8a1bfb07d84e2dc59ba5b1f5ecfcf067c92596bda5f68a438ca1917ea02cca1b",
+                      "destination_sha256":  "8a1bfb07d84e2dc59ba5b1f5ecfcf067c92596bda5f68a438ca1917ea02cca1b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/GameConfigData.cs",
+                      "destination_path":  "game-unity/Assets/Scripts/GameConfigData.cs",
+                      "source_sha256":  "8ed594cea234748eceecdde3741ed7b3dce0da769c9520c5301155cadd9a1914",
+                      "destination_sha256":  "8ed594cea234748eceecdde3741ed7b3dce0da769c9520c5301155cadd9a1914",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/GameConfigData.cs.meta",
+                      "destination_path":  "game-unity/Assets/Scripts/GameConfigData.cs.meta",
+                      "source_sha256":  "f810a230dc161abb81f8d2c08125b12f01939bbb0c38ee9372481c38bb60619f",
+                      "destination_sha256":  "f810a230dc161abb81f8d2c08125b12f01939bbb0c38ee9372481c38bb60619f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/GameConfigLoader.cs",
+                      "destination_path":  "game-unity/Assets/Scripts/GameConfigLoader.cs",
+                      "source_sha256":  "c07e8dec07ea9bfaec04d4d3e953492bcca459bea0b7358c70e1843975070ecb",
+                      "destination_sha256":  "c07e8dec07ea9bfaec04d4d3e953492bcca459bea0b7358c70e1843975070ecb",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/GameConfigLoader.cs.meta",
+                      "destination_path":  "game-unity/Assets/Scripts/GameConfigLoader.cs.meta",
+                      "source_sha256":  "68c604878f56865c63308f88cb985043d9b6d115048f63b52a99cef74f457fe7",
+                      "destination_sha256":  "68c604878f56865c63308f88cb985043d9b6d115048f63b52a99cef74f457fe7",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/RuntimeDemoBootstrap.cs",
+                      "destination_path":  "game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs",
+                      "source_sha256":  "fda527afd92eb1f4ea57b50e858de7b582005a296720039f2b9498ae408a8f17",
+                      "destination_sha256":  "b76869c090e3d3bbe9306423667adf901fc2f940633e24bc70b500cbba7b8ab2",
+                      "adapted_after_import":  true
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/Scripts/RuntimeDemoBootstrap.cs.meta",
+                      "destination_path":  "game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs.meta",
+                      "source_sha256":  "336948eeefc43ce58be8883a63471bf936cfb1a1d232b4ce9054d07878961210",
+                      "destination_sha256":  "336948eeefc43ce58be8883a63471bf936cfb1a1d232b4ce9054d07878961210",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/StreamingAssets.meta",
+                      "destination_path":  "game-unity/Assets/StreamingAssets.meta",
+                      "source_sha256":  "808b7a3f0f7abcb08ce6cebdb7069ebb27296daf2697c9d8a45ef9c583ba0c49",
+                      "destination_sha256":  "808b7a3f0f7abcb08ce6cebdb7069ebb27296daf2697c9d8a45ef9c583ba0c49",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/StreamingAssets/game_config.json",
+                      "destination_path":  "game-unity/Assets/StreamingAssets/game_config.json",
+                      "source_sha256":  "3a50ce462aa7e9f3106b8fbd3355901ecfa8765d467325dc67310d3fa5cca17f",
+                      "destination_sha256":  "3a50ce462aa7e9f3106b8fbd3355901ecfa8765d467325dc67310d3fa5cca17f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Assets/StreamingAssets/game_config.json.meta",
+                      "destination_path":  "game-unity/Assets/StreamingAssets/game_config.json.meta",
+                      "source_sha256":  "20fa7853480aa5c78a89ddacd11b3453b44fe72a9ae6d2ebd2f70c63d8c12a3e",
+                      "destination_sha256":  "20fa7853480aa5c78a89ddacd11b3453b44fe72a9ae6d2ebd2f70c63d8c12a3e",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Packages/manifest.json",
+                      "destination_path":  "game-unity/Packages/manifest.json",
+                      "source_sha256":  "fc25e68b919de17266ad1cc606b43c4f1d134032444f78877f1e8ae7371aaf57",
+                      "destination_sha256":  "fc25e68b919de17266ad1cc606b43c4f1d134032444f78877f1e8ae7371aaf57",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/Packages/packages-lock.json",
+                      "destination_path":  "game-unity/Packages/packages-lock.json",
+                      "source_sha256":  "6d7f5ecc2704ac6b0a1e233ac762de469aa44df7f061a68bfb1bee3460520685",
+                      "destination_sha256":  "6d7f5ecc2704ac6b0a1e233ac762de469aa44df7f061a68bfb1bee3460520685",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/AudioManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/AudioManager.asset",
+                      "source_sha256":  "9543c41dbfc7d3951217c4dd9481ed026eb8e529b85ecf4463969a0fea747729",
+                      "destination_sha256":  "9543c41dbfc7d3951217c4dd9481ed026eb8e529b85ecf4463969a0fea747729",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/ClusterInputManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/ClusterInputManager.asset",
+                      "source_sha256":  "40e65dd214bf254955d2c8829ca8ce2130fd3510485560ce012e9a1ddd93e623",
+                      "destination_sha256":  "40e65dd214bf254955d2c8829ca8ce2130fd3510485560ce012e9a1ddd93e623",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/DynamicsManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/DynamicsManager.asset",
+                      "source_sha256":  "fb36e677f7de32325bede8462e7e3eaf0be86ca374216d2907886fce7cb1d488",
+                      "destination_sha256":  "fb36e677f7de32325bede8462e7e3eaf0be86ca374216d2907886fce7cb1d488",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/EditorBuildSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/EditorBuildSettings.asset",
+                      "source_sha256":  "dece5dee5f11861aad23c4b4c641419045893ae00d73f91056cc12d3e826c969",
+                      "destination_sha256":  "dece5dee5f11861aad23c4b4c641419045893ae00d73f91056cc12d3e826c969",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/EditorSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/EditorSettings.asset",
+                      "source_sha256":  "4a87c54b3541c7bd242aad68c3fc28661083db1117ec56149694ee592156415e",
+                      "destination_sha256":  "4a87c54b3541c7bd242aad68c3fc28661083db1117ec56149694ee592156415e",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/GraphicsSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/GraphicsSettings.asset",
+                      "source_sha256":  "72c16e187f9d88c212da1ddee71196c43b4e2870e7b92e456b61d1a9b8650b1d",
+                      "destination_sha256":  "72c16e187f9d88c212da1ddee71196c43b4e2870e7b92e456b61d1a9b8650b1d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/InputManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/InputManager.asset",
+                      "source_sha256":  "d0f454ddb880912abcae92e3e12957a7446786ba89e24937e019ff3bbc0d4300",
+                      "destination_sha256":  "d0f454ddb880912abcae92e3e12957a7446786ba89e24937e019ff3bbc0d4300",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/MemorySettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/MemorySettings.asset",
+                      "source_sha256":  "1e8379a461b10ae09f3f696911088c16875d63e87ed5f2d95df9e1892703f9fd",
+                      "destination_sha256":  "1e8379a461b10ae09f3f696911088c16875d63e87ed5f2d95df9e1892703f9fd",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/MultiplayerManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/MultiplayerManager.asset",
+                      "source_sha256":  "ce4075d7a7dd8ac7ffe55de2427692c63f90dae398208bd80cec0f27cbe09f4b",
+                      "destination_sha256":  "ce4075d7a7dd8ac7ffe55de2427692c63f90dae398208bd80cec0f27cbe09f4b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/NavMeshAreas.asset",
+                      "destination_path":  "game-unity/ProjectSettings/NavMeshAreas.asset",
+                      "source_sha256":  "7ebbf8f53b8033104e1878b95ca07a28d0954092d81c220f14196a42f651e658",
+                      "destination_sha256":  "7ebbf8f53b8033104e1878b95ca07a28d0954092d81c220f14196a42f651e658",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/PackageManagerSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/PackageManagerSettings.asset",
+                      "source_sha256":  "8f19147a8cca86d1b47fa1af6cd2e2d45b16747f409f55b61cde7dc2bc4c599d",
+                      "destination_sha256":  "8f19147a8cca86d1b47fa1af6cd2e2d45b16747f409f55b61cde7dc2bc4c599d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/Physics2DSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/Physics2DSettings.asset",
+                      "source_sha256":  "1cfc0c8fbceec604fd7cd2a06c04ff05dddee6335b75c92b0f5715ad80ba9490",
+                      "destination_sha256":  "1cfc0c8fbceec604fd7cd2a06c04ff05dddee6335b75c92b0f5715ad80ba9490",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/PresetManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/PresetManager.asset",
+                      "source_sha256":  "29c125923fe6e29f90190d4fce1c82d660e7051546e2c9d02908d18c9cf2436c",
+                      "destination_sha256":  "29c125923fe6e29f90190d4fce1c82d660e7051546e2c9d02908d18c9cf2436c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/ProjectSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/ProjectSettings.asset",
+                      "source_sha256":  "a2e085b720d2a669697e5b52961fc9888bd3cb97c5e5dd6b3fe6d7f95ab8b56f",
+                      "destination_sha256":  "a2e085b720d2a669697e5b52961fc9888bd3cb97c5e5dd6b3fe6d7f95ab8b56f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/ProjectVersion.txt",
+                      "destination_path":  "game-unity/ProjectSettings/ProjectVersion.txt",
+                      "source_sha256":  "3e78f3e1fbb6e96c92f36002865a679ff7344056725f11d06922c2b2eab02ff3",
+                      "destination_sha256":  "3e78f3e1fbb6e96c92f36002865a679ff7344056725f11d06922c2b2eab02ff3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/QualitySettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/QualitySettings.asset",
+                      "source_sha256":  "f1f893b1be47ad2442f58338dd7c860dc1986bb317e2f5bb31084454ffabbf4c",
+                      "destination_sha256":  "f1f893b1be47ad2442f58338dd7c860dc1986bb317e2f5bb31084454ffabbf4c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/SceneTemplateSettings.json",
+                      "destination_path":  "game-unity/ProjectSettings/SceneTemplateSettings.json",
+                      "source_sha256":  "bb9098b3bfcde78d93e264b96f7b77b5430e64e8c57a7aad7f5a5d9c3945e16a",
+                      "destination_sha256":  "bb9098b3bfcde78d93e264b96f7b77b5430e64e8c57a7aad7f5a5d9c3945e16a",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/TagManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/TagManager.asset",
+                      "source_sha256":  "da4b5eefc927f8b91bcf9e56a186d2b852f49d9cbe91d466638d26c79d6a83ce",
+                      "destination_sha256":  "da4b5eefc927f8b91bcf9e56a186d2b852f49d9cbe91d466638d26c79d6a83ce",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/TimeManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/TimeManager.asset",
+                      "source_sha256":  "3396f52fdc16d445024e01d7a2d99db6f0a37569d1d73c0302e9ffb857d90287",
+                      "destination_sha256":  "3396f52fdc16d445024e01d7a2d99db6f0a37569d1d73c0302e9ffb857d90287",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/UnityConnectSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/UnityConnectSettings.asset",
+                      "source_sha256":  "11251dae0356b6f43dd2c67bb511f6b7ecda4e5de425186bba3297e6f3dc1c6f",
+                      "destination_sha256":  "11251dae0356b6f43dd2c67bb511f6b7ecda4e5de425186bba3297e6f3dc1c6f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/VersionControlSettings.asset",
+                      "destination_path":  "game-unity/ProjectSettings/VersionControlSettings.asset",
+                      "source_sha256":  "e199cdfa6a8f2bf33cfd47e549198f13e3eb2a5099e908fdb4e0f14d939ccc6b",
+                      "destination_sha256":  "e199cdfa6a8f2bf33cfd47e549198f13e3eb2a5099e908fdb4e0f14d939ccc6b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "unity/GameConfigRuntimeDemo/ProjectSettings/VFXManager.asset",
+                      "destination_path":  "game-unity/ProjectSettings/VFXManager.asset",
+                      "source_sha256":  "2973a6af930e142f62cde00076beda8a3cc3a66d9bfcde7a58ba7d4be2251c26",
+                      "destination_sha256":  "2973a6af930e142f62cde00076beda8a3cc3a66d9bfcde7a58ba7d4be2251c26",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/AGENT_GAMECONFIG_WORKFLOW_GUIDE.md",
+                      "destination_path":  "docs/source-gameconfig/AGENT_GAMECONFIG_WORKFLOW_GUIDE.md",
+                      "source_sha256":  "e1c18c57598c2d2723c81e7180e224fb6c4d78652090c3a0cd373ffb11fda50d",
+                      "destination_sha256":  "e1c18c57598c2d2723c81e7180e224fb6c4d78652090c3a0cd373ffb11fda50d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/BEGINNER_END_TO_END_GUIDE.md",
+                      "destination_path":  "docs/source-gameconfig/BEGINNER_END_TO_END_GUIDE.md",
+                      "source_sha256":  "ad863f8b3e9bb64f71666e114b139a0987a5bef9c35d1277f3667fad7617907b",
+                      "destination_sha256":  "ad863f8b3e9bb64f71666e114b139a0987a5bef9c35d1277f3667fad7617907b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/DEMO_SCRIPT.md",
+                      "destination_path":  "docs/source-gameconfig/DEMO_SCRIPT.md",
+                      "source_sha256":  "0ec844f81fd4c7edcda0229cf3e9407787cb64030ae71d4bec99e87c1808768d",
+                      "destination_sha256":  "0ec844f81fd4c7edcda0229cf3e9407787cb64030ae71d4bec99e87c1808768d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/INTERVIEW_NOTES.md",
+                      "destination_path":  "docs/source-gameconfig/INTERVIEW_NOTES.md",
+                      "source_sha256":  "9723bc67fb243f26e2d333abcbf161204d4104068fe65aadd3bf57ca782b43c4",
+                      "destination_sha256":  "9723bc67fb243f26e2d333abcbf161204d4104068fe65aadd3bf57ca782b43c4",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/MILESTONE8_STARTER_TRIAL_TUNING_LOOP_PLAN.md",
+                      "destination_path":  "docs/source-gameconfig/MILESTONE8_STARTER_TRIAL_TUNING_LOOP_PLAN.md",
+                      "source_sha256":  "ebc6c5b910b318ab8b5e5c755b91c6b8c832a7c60dda36edb589f5a936b70c0c",
+                      "destination_sha256":  "ebc6c5b910b318ab8b5e5c755b91c6b8c832a7c60dda36edb589f5a936b70c0c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE0_VERTICAL_SLICE.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE0_VERTICAL_SLICE.md",
+                      "source_sha256":  "7c455050427b71cd6ab59b277a6322dc86dce93500f0e73760e21a706a076b38",
+                      "destination_sha256":  "7c455050427b71cd6ab59b277a6322dc86dce93500f0e73760e21a706a076b38",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE1_TEST_SCENARIOS.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE1_TEST_SCENARIOS.md",
+                      "source_sha256":  "8f8d9dca5136674bda21468b376be2b61f70767222f75ce1533d3b26dcab64c3",
+                      "destination_sha256":  "8f8d9dca5136674bda21468b376be2b61f70767222f75ce1533d3b26dcab64c3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE2_REAL_LLM_PROVIDER.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE2_REAL_LLM_PROVIDER.md",
+                      "source_sha256":  "8ec58a6841fc3763fd4f11736656418cf05e40d3af5edef23c6129b229e79365",
+                      "destination_sha256":  "8ec58a6841fc3763fd4f11736656418cf05e40d3af5edef23c6129b229e79365",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE3_BENCHMARK.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE3_BENCHMARK.md",
+                      "source_sha256":  "4a31a11779167082fe1d6dd6c72d4af36fe76cf6fa8bad0d311e30cb30a4fb6c",
+                      "destination_sha256":  "4a31a11779167082fe1d6dd6c72d4af36fe76cf6fa8bad0d311e30cb30a4fb6c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE4_WEB_CONSOLE.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE4_WEB_CONSOLE.md",
+                      "source_sha256":  "4ac92ad85c83c50c0d5106a284a9b5586a6bfe494530d38190ff55f017693735",
+                      "destination_sha256":  "4ac92ad85c83c50c0d5106a284a9b5586a6bfe494530d38190ff55f017693735",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE6_UNITY_RUNTIME.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE6_UNITY_RUNTIME.md",
+                      "source_sha256":  "74301ad8f6d9d3f16dc42a384804fe300a706ecb8cd3d7c090b2afa2b6c0304e",
+                      "destination_sha256":  "74301ad8f6d9d3f16dc42a384804fe300a706ecb8cd3d7c090b2afa2b6c0304e",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE6E_GUIDED_UNITY_VALIDATION.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE6E_GUIDED_UNITY_VALIDATION.md",
+                      "source_sha256":  "5d68932cbdf3c6669d7fd8cf70160c3b0d1bb3c7c55dc3ddde555827b68b02e1",
+                      "destination_sha256":  "5d68932cbdf3c6669d7fd8cf70160c3b0d1bb3c7c55dc3ddde555827b68b02e1",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PHASE6F_PLANNER_VIEW.md",
+                      "destination_path":  "docs/source-gameconfig/PHASE6F_PLANNER_VIEW.md",
+                      "source_sha256":  "62bb922212f9486d411ed9cf6f1ddbad27314756b077014ee4cdd4c3a0ed4f31",
+                      "destination_sha256":  "62bb922212f9486d411ed9cf6f1ddbad27314756b077014ee4cdd4c3a0ed4f31",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PROJECT_PLAN.md",
+                      "destination_path":  "docs/source-gameconfig/PROJECT_PLAN.md",
+                      "source_sha256":  "fe7b90229b3d88445d36563af2eb51dd2b066c1006beccb6e6fcb08330c270ad",
+                      "destination_sha256":  "fe7b90229b3d88445d36563af2eb51dd2b066c1006beccb6e6fcb08330c270ad",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/PROJECT_REVIEW.md",
+                      "destination_path":  "docs/source-gameconfig/PROJECT_REVIEW.md",
+                      "source_sha256":  "1812880bbe853332a54a15cf6a334f0666d99bd15f3506747ed03d926a0cd408",
+                      "destination_sha256":  "1812880bbe853332a54a15cf6a334f0666d99bd15f3506747ed03d926a0cd408",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/REQUIREMENT_BOUNDARIES_AND_NEXT_STEPS.md",
+                      "destination_path":  "docs/source-gameconfig/REQUIREMENT_BOUNDARIES_AND_NEXT_STEPS.md",
+                      "source_sha256":  "c79e01dfc6374685fe2773e07492de822f742ab29dfd04290096336c1bd61525",
+                      "destination_sha256":  "c79e01dfc6374685fe2773e07492de822f742ab29dfd04290096336c1bd61525",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/和GPT关于agent项目的对话.txt",
+                      "destination_path":  "docs/source-gameconfig/和GPT关于agent项目的对话.txt",
+                      "source_sha256":  "7843666f381ba78522fe274432c19e95846f2d2e0312a0ac1093a3b64e26c6b2",
+                      "destination_sha256":  "7843666f381ba78522fe274432c19e95846f2d2e0312a0ac1093a3b64e26c6b2",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "docs/面试时如何演示完整流程.md",
+                      "destination_path":  "docs/source-gameconfig/面试时如何演示完整流程.md",
+                      "source_sha256":  "4f4c7e6565edae61ffab1c9cfba1aeb1d2aa924f55b00fcf05be7a8c58d00df1",
+                      "destination_sha256":  "4f4c7e6565edae61ffab1c9cfba1aeb1d2aa924f55b00fcf05be7a8c58d00df1",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase0/blackboard_trace.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase0/blackboard_trace.json",
+                      "source_sha256":  "5168efaa866ec827ffb25831c72cd7c936893d061d738e56af481a69a633ea41",
+                      "destination_sha256":  "5168efaa866ec827ffb25831c72cd7c936893d061d738e56af481a69a633ea41",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase0/draft_configs.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase0/draft_configs.json",
+                      "source_sha256":  "5be54bf627c43ef96d95b8001ea15e0fb0a309bb96251dbe21003f5b114eaf8c",
+                      "destination_sha256":  "5be54bf627c43ef96d95b8001ea15e0fb0a309bb96251dbe21003f5b114eaf8c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase0/final_configs.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase0/final_configs.json",
+                      "source_sha256":  "d3ebd990ee059db9c10e68b1da2ba511415c767ae5505fe287dcb863ae2e4cbc",
+                      "destination_sha256":  "d3ebd990ee059db9c10e68b1da2ba511415c767ae5505fe287dcb863ae2e4cbc",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase0/repair_trace.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase0/repair_trace.md",
+                      "source_sha256":  "f38d921ee4baa8688294247ef14d9c6de68fdb4ff7d76cfae48673c0a2fce33b",
+                      "destination_sha256":  "f38d921ee4baa8688294247ef14d9c6de68fdb4ff7d76cfae48673c0a2fce33b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase0/risk_report.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase0/risk_report.md",
+                      "source_sha256":  "e97f0677fd80c103a0c2b1d053a28767720cb5ff4c4419212d21e8216ecbc676",
+                      "destination_sha256":  "e97f0677fd80c103a0c2b1d053a28767720cb5ff4c4419212d21e8216ecbc676",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase0/validation_report.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase0/validation_report.md",
+                      "source_sha256":  "a6eee5deaf7c6656d59bc376f01266a3c165e9099bdccab9d9ded390b8c2cab2",
+                      "destination_sha256":  "a6eee5deaf7c6656d59bc376f01266a3c165e9099bdccab9d9ded390b8c2cab2",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase1/evaluation.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase1/evaluation.json",
+                      "source_sha256":  "140071d57769d555537ba9a13592a6c428f0ec7e8f64a3af57b0042786b616b7",
+                      "destination_sha256":  "140071d57769d555537ba9a13592a6c428f0ec7e8f64a3af57b0042786b616b7",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase1/evaluation_report.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase1/evaluation_report.md",
+                      "source_sha256":  "6c521f8a850befb0b5f05cc475cb37adeda8d9ad775b7c76cf37b116c729c37b",
+                      "destination_sha256":  "6c521f8a850befb0b5f05cc475cb37adeda8d9ad775b7c76cf37b116c729c37b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase1/test_scenario_report.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase1/test_scenario_report.md",
+                      "source_sha256":  "3087cfb0ab8a7e18ac3b4ee2213c5df42e579cc59ab654347534a7f818c78523",
+                      "destination_sha256":  "3087cfb0ab8a7e18ac3b4ee2213c5df42e579cc59ab654347534a7f818c78523",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase1/test_scenarios.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase1/test_scenarios.json",
+                      "source_sha256":  "9ef207eca56357dfb2623f87ed13fc820d794603c09cddfc2826c9abf96a8324",
+                      "destination_sha256":  "9ef207eca56357dfb2623f87ed13fc820d794603c09cddfc2826c9abf96a8324",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase2/badcases.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase2/badcases.md",
+                      "source_sha256":  "c2aaeb390055d78a67b485e9682440fd3ce71a67ddbbf5d8d1cd43a9d8ce5810",
+                      "destination_sha256":  "c2aaeb390055d78a67b485e9682440fd3ce71a67ddbbf5d8d1cd43a9d8ce5810",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase2/real_run_report.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase2/real_run_report.md",
+                      "source_sha256":  "1079a8d11dbcf481d013ce14d84eff5b56211255ee71d0ebff1b2a7190c21701",
+                      "destination_sha256":  "1079a8d11dbcf481d013ce14d84eff5b56211255ee71d0ebff1b2a7190c21701",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase2/real_run_result.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase2/real_run_result.json",
+                      "source_sha256":  "eebb8bd2511602be87e6b94dd58a56697cdb500f942936d0edb3983b700a48a5",
+                      "destination_sha256":  "eebb8bd2511602be87e6b94dd58a56697cdb500f942936d0edb3983b700a48a5",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase2/real_run_trace.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase2/real_run_trace.json",
+                      "source_sha256":  "64194275394d1c8b66888011164ab4a3b766a2012c013e777ed538247d7ae32b",
+                      "destination_sha256":  "64194275394d1c8b66888011164ab4a3b766a2012c013e777ed538247d7ae32b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase3/badcases.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase3/badcases.md",
+                      "source_sha256":  "42f66d470cd36a4e07472ed0d83252c0e7b55d7ce28f6172a7f1bcc5592627df",
+                      "destination_sha256":  "42f66d470cd36a4e07472ed0d83252c0e7b55d7ce28f6172a7f1bcc5592627df",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase3/benchmark_results.json",
+                      "destination_path":  "artifacts-samples/gameconfig/phase3/benchmark_results.json",
+                      "source_sha256":  "0ec79fd907e985db2cfadb20da76008144295f53c22d9c6e56363cced0c1b97f",
+                      "destination_sha256":  "0ec79fd907e985db2cfadb20da76008144295f53c22d9c6e56363cced0c1b97f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase3/evaluation_report.md",
+                      "destination_path":  "artifacts-samples/gameconfig/phase3/evaluation_report.md",
+                      "source_sha256":  "b34c150ab82d8d58aa2468333402141ad7aba2e8bfd352faec018d8f0880f6f0",
+                      "destination_sha256":  "b34c150ab82d8d58aa2468333402141ad7aba2e8bfd352faec018d8f0880f6f0",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/phase3/sample_summary.csv",
+                      "destination_path":  "artifacts-samples/gameconfig/phase3/sample_summary.csv",
+                      "source_sha256":  "ec3cc8c67ed2596e5b39801d68f90eb6aca10517b7b59bceecbee8324ab97d72",
+                      "destination_sha256":  "ec3cc8c67ed2596e5b39801d68f90eb6aca10517b7b59bceecbee8324ab97d72",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "GameConfig-Agent",
+                      "source_relative_path":  "outputs/final/project_summary.md",
+                      "destination_path":  "artifacts-samples/gameconfig/final/project_summary.md",
+                      "source_sha256":  "b3b4346a38d2856b68668569c5f1ac8b8d886f657230abb41e71240aaf64a957",
+                      "destination_sha256":  "b3b4346a38d2856b68668569c5f1ac8b8d886f657230abb41e71240aaf64a957",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/__init__.py",
+                      "destination_path":  "services/agent-python/agent_service/__init__.py",
+                      "source_sha256":  "f0430928f00dc10a7f404bf2253e1e096b005c2a8a20053a24be9260b4362035",
+                      "destination_sha256":  "f0430928f00dc10a7f404bf2253e1e096b005c2a8a20053a24be9260b4362035",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/agents/__init__.py",
+                      "destination_path":  "services/agent-python/agent_service/agents/__init__.py",
+                      "source_sha256":  "c71fa38a8c24b8772ccca7590d9fc8c8d208b290f2137483653d8e8397cd1e49",
+                      "destination_sha256":  "c71fa38a8c24b8772ccca7590d9fc8c8d208b290f2137483653d8e8397cd1e49",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/agents/dual_agent.py",
+                      "destination_path":  "services/agent-python/agent_service/agents/dual_agent.py",
+                      "source_sha256":  "4212e78adf43b26cd94f2eb5b9a247a193d7d8956a49dfd7d506164240ed4947",
+                      "destination_sha256":  "4212e78adf43b26cd94f2eb5b9a247a193d7d8956a49dfd7d506164240ed4947",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/agents/review_agent.py",
+                      "destination_path":  "services/agent-python/agent_service/agents/review_agent.py",
+                      "source_sha256":  "7917099fb06cd5b4b8439d9176d11010f1aa972627b98b147bf1a2582a487830",
+                      "destination_sha256":  "7917099fb06cd5b4b8439d9176d11010f1aa972627b98b147bf1a2582a487830",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/agents/single_agent.py",
+                      "destination_path":  "services/agent-python/agent_service/agents/single_agent.py",
+                      "source_sha256":  "8c009062ab029e8d9b2cd85c527aa72f10b432e62277b75875da0e9923f4e785",
+                      "destination_sha256":  "8c009062ab029e8d9b2cd85c527aa72f10b432e62277b75875da0e9923f4e785",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/agents/test_agent.py",
+                      "destination_path":  "services/agent-python/agent_service/agents/test_agent.py",
+                      "source_sha256":  "263c1af9ffb102a11f77acc54db7f8d0662aab642472de18e9da112c51643b5c",
+                      "destination_sha256":  "263c1af9ffb102a11f77acc54db7f8d0662aab642472de18e9da112c51643b5c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/cli.py",
+                      "destination_path":  "services/agent-python/agent_service/cli.py",
+                      "source_sha256":  "7e5a5b24bd700a9b9ca183da6b26e62d39c3d9868b888044eedca903a40891ba",
+                      "destination_sha256":  "7e5a5b24bd700a9b9ca183da6b26e62d39c3d9868b888044eedca903a40891ba",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/debug_info.py",
+                      "destination_path":  "services/agent-python/agent_service/debug_info.py",
+                      "source_sha256":  "5e58f7d7bac8556c06471c048be0bf43de41c1f488b6bde179f682c65e0559ca",
+                      "destination_sha256":  "5e58f7d7bac8556c06471c048be0bf43de41c1f488b6bde179f682c65e0559ca",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/evaluation/__init__.py",
+                      "destination_path":  "services/agent-python/agent_service/evaluation/__init__.py",
+                      "source_sha256":  "04c3041ce61cd13d69e99c80eeb74b8f64210ec2d0581988edee638f22879d3b",
+                      "destination_sha256":  "04c3041ce61cd13d69e99c80eeb74b8f64210ec2d0581988edee638f22879d3b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/evaluation/dataset.py",
+                      "destination_path":  "services/agent-python/agent_service/evaluation/dataset.py",
+                      "source_sha256":  "3f96c04fbb275509f46a86fa620b45902408faaeb7b974e5fa0bd17298be09fe",
+                      "destination_sha256":  "3f96c04fbb275509f46a86fa620b45902408faaeb7b974e5fa0bd17298be09fe",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/evaluation/runner.py",
+                      "destination_path":  "services/agent-python/agent_service/evaluation/runner.py",
+                      "source_sha256":  "8f7912454d40e9540cd467384339a3aa051fc1b4d6e582d3529049d0a7761c32",
+                      "destination_sha256":  "8f7912454d40e9540cd467384339a3aa051fc1b4d6e582d3529049d0a7761c32",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/llm/__init__.py",
+                      "destination_path":  "services/agent-python/agent_service/llm/__init__.py",
+                      "source_sha256":  "f72300679204a1a95f338f38a71e1236197b545b1479ff3d69adcc7c95fc4ecd",
+                      "destination_sha256":  "f72300679204a1a95f338f38a71e1236197b545b1479ff3d69adcc7c95fc4ecd",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/llm/base.py",
+                      "destination_path":  "services/agent-python/agent_service/llm/base.py",
+                      "source_sha256":  "e229643ceab38110c5db64ce84ff600f1451383f928d3a8a6eaeb08cb7866cd7",
+                      "destination_sha256":  "e229643ceab38110c5db64ce84ff600f1451383f928d3a8a6eaeb08cb7866cd7",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/llm/factory.py",
+                      "destination_path":  "services/agent-python/agent_service/llm/factory.py",
+                      "source_sha256":  "be96da83e7438fcd2dc0d1125f99de0ec275933d3a8812394cd20c0f6df4b702",
+                      "destination_sha256":  "be96da83e7438fcd2dc0d1125f99de0ec275933d3a8812394cd20c0f6df4b702",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/llm/mock_llm.py",
+                      "destination_path":  "services/agent-python/agent_service/llm/mock_llm.py",
+                      "source_sha256":  "72ad7db6ff3ff1307d4e08d5df84d0ee499d55ec25deeed708d6f42cb4fe9a3b",
+                      "destination_sha256":  "72ad7db6ff3ff1307d4e08d5df84d0ee499d55ec25deeed708d6f42cb4fe9a3b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/llm/openai_compatible.py",
+                      "destination_path":  "services/agent-python/agent_service/llm/openai_compatible.py",
+                      "source_sha256":  "22aff4dbb0d00e896b3616fb4a1c1ec0c78afab29a5a4f1ca1fbaefbbcd7fc86",
+                      "destination_sha256":  "22aff4dbb0d00e896b3616fb4a1c1ec0c78afab29a5a4f1ca1fbaefbbcd7fc86",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/report_builder.py",
+                      "destination_path":  "services/agent-python/agent_service/report_builder.py",
+                      "source_sha256":  "447b56b46d92c5c18c41d03eebb671e766d5640d5681a67f8d864d08f3f00d2e",
+                      "destination_sha256":  "447b56b46d92c5c18c41d03eebb671e766d5640d5681a67f8d864d08f3f00d2e",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/schemas.py",
+                      "destination_path":  "services/agent-python/agent_service/schemas.py",
+                      "source_sha256":  "305e515df73a3135d3c0108caba491e8424a6234b4a66338ba5e8ae13799e12c",
+                      "destination_sha256":  "305e515df73a3135d3c0108caba491e8424a6234b4a66338ba5e8ae13799e12c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/server.py",
+                      "destination_path":  "services/agent-python/agent_service/server.py",
+                      "source_sha256":  "3712a72562bdd2a60d303991000b8867efa292ef4a142c2befcbd31e2a85eca4",
+                      "destination_sha256":  "3712a72562bdd2a60d303991000b8867efa292ef4a142c2befcbd31e2a85eca4",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/summary.py",
+                      "destination_path":  "services/agent-python/agent_service/summary.py",
+                      "source_sha256":  "e232e36dcec2246c86fb435510c706229324f6fb63c057818158b569870ace3f",
+                      "destination_sha256":  "e232e36dcec2246c86fb435510c706229324f6fb63c057818158b569870ace3f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/tools/__init__.py",
+                      "destination_path":  "services/agent-python/agent_service/tools/__init__.py",
+                      "source_sha256":  "fc53207820a302d11c694ceac1a49dfac8083924f89eb74a646668d1d6e94690",
+                      "destination_sha256":  "fc53207820a302d11c694ceac1a49dfac8083924f89eb74a646668d1d6e94690",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/tools/diff_parser.py",
+                      "destination_path":  "services/agent-python/agent_service/tools/diff_parser.py",
+                      "source_sha256":  "cb14100c62ea544b8f0026e0088af93d915a42a0db79af9f0a98cfb680f90b5b",
+                      "destination_sha256":  "cb14100c62ea544b8f0026e0088af93d915a42a0db79af9f0a98cfb680f90b5b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/tools/static_checker.py",
+                      "destination_path":  "services/agent-python/agent_service/tools/static_checker.py",
+                      "source_sha256":  "5d0f9814141859c9524878751a56d6f117c025c66d499b653a4a3cff6434e818",
+                      "destination_sha256":  "5d0f9814141859c9524878751a56d6f117c025c66d499b653a4a3cff6434e818",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/agent_service/validator.py",
+                      "destination_path":  "services/agent-python/agent_service/validator.py",
+                      "source_sha256":  "aebdfd94af5c96155ed3cb01c47b0aaba9501f77f30d1c1a534232347daf1f9b",
+                      "destination_sha256":  "aebdfd94af5c96155ed3cb01c47b0aaba9501f77f30d1c1a534232347daf1f9b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/fixtures/openai_compatible_server.py",
+                      "destination_path":  "services/agent-python/tests/fixtures/openai_compatible_server.py",
+                      "source_sha256":  "5c10638c46f062a83e54ab6c966ba7053bcc543586cd3fc14ab49bfca32a2dd4",
+                      "destination_sha256":  "5c10638c46f062a83e54ab6c966ba7053bcc543586cd3fc14ab49bfca32a2dd4",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_cli.py",
+                      "destination_path":  "services/agent-python/tests/test_cli.py",
+                      "source_sha256":  "abe08bc1b8b1e766aef4c338c48c0334af26001a34e147d3d256a553415b2959",
+                      "destination_sha256":  "abe08bc1b8b1e766aef4c338c48c0334af26001a34e147d3d256a553415b2959",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_diff_parser.py",
+                      "destination_path":  "services/agent-python/tests/test_diff_parser.py",
+                      "source_sha256":  "a5f656c1f633834f7f7d25163cc6a53617437e2fc00c8a8ae873768d80fdeaed",
+                      "destination_sha256":  "a5f656c1f633834f7f7d25163cc6a53617437e2fc00c8a8ae873768d80fdeaed",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_dual_agent.py",
+                      "destination_path":  "services/agent-python/tests/test_dual_agent.py",
+                      "source_sha256":  "d20a0c22045eff5ce06d29ac17fca2ef55a321c2a7d653787eb61db761df2e6e",
+                      "destination_sha256":  "d20a0c22045eff5ce06d29ac17fca2ef55a321c2a7d653787eb61db761df2e6e",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_evaluation.py",
+                      "destination_path":  "services/agent-python/tests/test_evaluation.py",
+                      "source_sha256":  "ce318a062e2d200207393e17a8b6d99f9032697ba0aa9e3d1441f138f1778ebb",
+                      "destination_sha256":  "ce318a062e2d200207393e17a8b6d99f9032697ba0aa9e3d1441f138f1778ebb",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_mock_modes.py",
+                      "destination_path":  "services/agent-python/tests/test_mock_modes.py",
+                      "source_sha256":  "b41159799332b97bae5b1a9436b5faee20f1ad5e6ee258de3b4f7219b21cde3b",
+                      "destination_sha256":  "b41159799332b97bae5b1a9436b5faee20f1ad5e6ee258de3b4f7219b21cde3b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_openai_compatible.py",
+                      "destination_path":  "services/agent-python/tests/test_openai_compatible.py",
+                      "source_sha256":  "a21574486d3b7a33cc4bff84dc6eb3c2691375a5df4a609555d122baf32a4114",
+                      "destination_sha256":  "a21574486d3b7a33cc4bff84dc6eb3c2691375a5df4a609555d122baf32a4114",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_server.py",
+                      "destination_path":  "services/agent-python/tests/test_server.py",
+                      "source_sha256":  "df8702ea93c276e1945b2297c024683edbefc661d1afb50e2534dd5f5690ea20",
+                      "destination_sha256":  "df8702ea93c276e1945b2297c024683edbefc661d1afb50e2534dd5f5690ea20",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_static_checker.py",
+                      "destination_path":  "services/agent-python/tests/test_static_checker.py",
+                      "source_sha256":  "9c330ea7d1fee881ddb175bca1d47355da260b78cde9277a82059b836c4c7b45",
+                      "destination_sha256":  "9c330ea7d1fee881ddb175bca1d47355da260b78cde9277a82059b836c4c7b45",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/tests/test_validator.py",
+                      "destination_path":  "services/agent-python/tests/test_validator.py",
+                      "source_sha256":  "b4c611988454917f1688c7d692df0b9f3ad5d1045f23ee68ed7af242682c580b",
+                      "destination_sha256":  "b4c611988454917f1688c7d692df0b9f3ad5d1045f23ee68ed7af242682c580b",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/examples/go_http_no_timeout.patch",
+                      "destination_path":  "services/agent-python/examples/go_http_no_timeout.patch",
+                      "source_sha256":  "305323d782f1ffa70af495b8abdf9f80e2b8ab20aa3d1ad1efffbfd84d6e709f",
+                      "destination_sha256":  "305323d782f1ffa70af495b8abdf9f80e2b8ab20aa3d1ad1efffbfd84d6e709f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/examples/go_resp_body_not_closed.patch",
+                      "destination_path":  "services/agent-python/examples/go_resp_body_not_closed.patch",
+                      "source_sha256":  "6fb5c15a7793f0c5ef5119606c9cd2f52ff6acba07c247ff777d326dba101f65",
+                      "destination_sha256":  "6fb5c15a7793f0c5ef5119606c9cd2f52ff6acba07c247ff777d326dba101f65",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/examples/negative_safe_logging.patch",
+                      "destination_path":  "services/agent-python/examples/negative_safe_logging.patch",
+                      "source_sha256":  "dd4cc71abc633286488b3b47e64a2539993aa9404e7d0588ff3d3406167abc69",
+                      "destination_sha256":  "dd4cc71abc633286488b3b47e64a2539993aa9404e7d0588ff3d3406167abc69",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/examples/python_requests_no_timeout.patch",
+                      "destination_path":  "services/agent-python/examples/python_requests_no_timeout.patch",
+                      "source_sha256":  "e0fd34e3774b3a7c9b536f8c78ea65e9b992ae9571ff416e289c5afb51680ef2",
+                      "destination_sha256":  "e0fd34e3774b3a7c9b536f8c78ea65e9b992ae9571ff416e289c5afb51680ef2",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/examples/python_sql_injection.patch",
+                      "destination_path":  "services/agent-python/examples/python_sql_injection.patch",
+                      "source_sha256":  "81a2dc3e265056e5ea7b6948fa6e8e02f308fea10e611b2ca8389f5ea7c37aa2",
+                      "destination_sha256":  "81a2dc3e265056e5ea7b6948fa6e8e02f308fea10e611b2ca8389f5ea7c37aa2",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/go_context_timeout_safe_negative.patch",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/go_context_timeout_safe_negative.patch",
+                      "source_sha256":  "6f5ace2c3d8a749f6fd90bfbd22487a899d741d8ee279b5f914b39a64fb865d0",
+                      "destination_sha256":  "6f5ace2c3d8a749f6fd90bfbd22487a899d741d8ee279b5f914b39a64fb865d0",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/go_http_no_timeout_positive.patch",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/go_http_no_timeout_positive.patch",
+                      "source_sha256":  "3ad2c382d58827ba559e5b1a06f3fe1f7f2159ec0196d5d915365b33e91b8a2c",
+                      "destination_sha256":  "3ad2c382d58827ba559e5b1a06f3fe1f7f2159ec0196d5d915365b33e91b8a2c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/go_response_body_not_closed_positive.patch",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/go_response_body_not_closed_positive.patch",
+                      "source_sha256":  "c9577dcb003c0b2ca018ac718907bfe5ff04136a8e55e33abb1c076b3a221b4c",
+                      "destination_sha256":  "c9577dcb003c0b2ca018ac718907bfe5ff04136a8e55e33abb1c076b3a221b4c",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/python_eval_positive.patch",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/python_eval_positive.patch",
+                      "source_sha256":  "94402c0dc7ffc5036e9f6ec5d2e8c56fab131f0218dc5cb96f6606e112e6be5d",
+                      "destination_sha256":  "94402c0dc7ffc5036e9f6ec5d2e8c56fab131f0218dc5cb96f6606e112e6be5d",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/python_parameterized_sql_safe_negative.patch",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/python_parameterized_sql_safe_negative.patch",
+                      "source_sha256":  "d92b9b7daffa9a9f0a9c65748a7209eb0487f7b90b932f54dca75e176aa43376",
+                      "destination_sha256":  "d92b9b7daffa9a9f0a9c65748a7209eb0487f7b90b932f54dca75e176aa43376",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/python_requests_no_timeout_positive.patch",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/python_requests_no_timeout_positive.patch",
+                      "source_sha256":  "1fd5643e8956a5c74a17a5d56503b08779c2baac8783d01dcc6fa92c379a82b0",
+                      "destination_sha256":  "1fd5643e8956a5c74a17a5d56503b08779c2baac8783d01dcc6fa92c379a82b0",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/python_sql_injection_positive.patch",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/python_sql_injection_positive.patch",
+                      "source_sha256":  "4a31ff05cb4b258a6058d4dfba91b2a775049277913a0b5bb5620c6ebf341f37",
+                      "destination_sha256":  "4a31ff05cb4b258a6058d4dfba91b2a775049277913a0b5bb5620c6ebf341f37",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "agent_service/real_llm_smoke_cases/README.md",
+                      "destination_path":  "services/agent-python/real_llm_smoke_cases/README.md",
+                      "source_sha256":  "b5129d195380985b6efd0e862a14bc916d76f7cd12bf8b54009197a650d99fb6",
+                      "destination_sha256":  "b5129d195380985b6efd0e862a14bc916d76f7cd12bf8b54009197a650d99fb6",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/AGENT_LOOP_DESIGN.md",
+                      "destination_path":  "docs/source-devquality/AGENT_LOOP_DESIGN.md",
+                      "source_sha256":  "e10ceb437d964cb4b99745b079d270844f53de9efb9ff6c4a377f870adb8c9bc",
+                      "destination_sha256":  "e10ceb437d964cb4b99745b079d270844f53de9efb9ff6c4a377f870adb8c9bc",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/CODE_WALKTHROUGH.md",
+                      "destination_path":  "docs/source-devquality/CODE_WALKTHROUGH.md",
+                      "source_sha256":  "046b5be0fe879011a149a9063eb6cd8eca9fcb5aab337a8071e21e5040f36ad5",
+                      "destination_sha256":  "046b5be0fe879011a149a9063eb6cd8eca9fcb5aab337a8071e21e5040f36ad5",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/DEMO_WALKTHROUGH.md",
+                      "destination_path":  "docs/source-devquality/DEMO_WALKTHROUGH.md",
+                      "source_sha256":  "f3abaf5fc79fb5df1d720b3e8f8fd49916e63d28cc8bee1e9da1497e07dea6b3",
+                      "destination_sha256":  "f3abaf5fc79fb5df1d720b3e8f8fd49916e63d28cc8bee1e9da1497e07dea6b3",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/INTERVIEW_QA.md",
+                      "destination_path":  "docs/source-devquality/INTERVIEW_QA.md",
+                      "source_sha256":  "17df8f945e993586179312c8ba2769f9b12e76029c4d63f3bc80f7b5b723a3b1",
+                      "destination_sha256":  "17df8f945e993586179312c8ba2769f9b12e76029c4d63f3bc80f7b5b723a3b1",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/INTERVIEW_STORYLINE.md",
+                      "destination_path":  "docs/source-devquality/INTERVIEW_STORYLINE.md",
+                      "source_sha256":  "3970b2453ebcd08d112136b36f3c62f3f754b603e65615d06fec33e4a5796b29",
+                      "destination_sha256":  "3970b2453ebcd08d112136b36f3c62f3f754b603e65615d06fec33e4a5796b29",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/PROJECT_PLAN.md",
+                      "destination_path":  "docs/source-devquality/PROJECT_PLAN.md",
+                      "source_sha256":  "ddbc4f02b79fd4a93b55199c42d5cd838744276ca1a057330acd166e53c3f175",
+                      "destination_sha256":  "ddbc4f02b79fd4a93b55199c42d5cd838744276ca1a057330acd166e53c3f175",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/PROJECT_UNDERSTANDING.md",
+                      "destination_path":  "docs/source-devquality/PROJECT_UNDERSTANDING.md",
+                      "source_sha256":  "e9eed893c104fd38c6764e9fd3096f366e163497424a58a38bc4bb3da2986264",
+                      "destination_sha256":  "e9eed893c104fd38c6764e9fd3096f366e163497424a58a38bc4bb3da2986264",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/REAL_LLM_PROVIDER.md",
+                      "destination_path":  "docs/source-devquality/REAL_LLM_PROVIDER.md",
+                      "source_sha256":  "c86c3bbbf0247b613b4061f477b075ffe15175451bf2eb11348e0028d178e153",
+                      "destination_sha256":  "c86c3bbbf0247b613b4061f477b075ffe15175451bf2eb11348e0028d178e153",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/REAL_LLM_SMOKE_TEST.md",
+                      "destination_path":  "docs/source-devquality/REAL_LLM_SMOKE_TEST.md",
+                      "source_sha256":  "d06a8e3b352caeeb7a8cda2461c4004171993400026e3b0e40b1dec5b5e3634f",
+                      "destination_sha256":  "d06a8e3b352caeeb7a8cda2461c4004171993400026e3b0e40b1dec5b5e3634f",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "DevQuality-Agent",
+                      "source_relative_path":  "docs/WINDOWS_LOCAL_RUNBOOK.md",
+                      "destination_path":  "docs/source-devquality/WINDOWS_LOCAL_RUNBOOK.md",
+                      "source_sha256":  "6cb208a8bc2b330c1196c5dba7dbe0a3e1d4b694d18ae34748cc49822c3d3a73",
+                      "destination_sha256":  "6cb208a8bc2b330c1196c5dba7dbe0a3e1d4b694d18ae34748cc49822c3d3a73",
+                      "adapted_after_import":  false
+                  },
+                  {
+                      "source_name":  "MMD_REIMU",
+                      "source_relative_path":  "MMD_REIMU.ZIP.zip",
+                      "destination_path":  "local-assets/reimu/source/MMD_REIMU.ZIP.zip",
+                      "source_sha256":  "017b89685626169dd09c8fea29b707e0015fd3c86a9e316f141162fec994d6b3",
+                      "destination_sha256":  "017b89685626169dd09c8fea29b707e0015fd3c86a9e316f141162fec994d6b3",
+                      "adapted_after_import":  false
+                  }
+              ]
+}

@@ -1,0 +1,157 @@
+{
+  "contract_version": "1.0",
+  "source": "GameConfig Agent final_configs",
+  "configs": {
+    "item_config": [
+      {
+        "item_id": "item_training_sword",
+        "display_name": "Training Sword",
+        "item_type": "weapon",
+        "rarity": "common"
+      },
+      {
+        "item_id": "item_gold",
+        "display_name": "Gold",
+        "item_type": "currency",
+        "rarity": "common"
+      },
+      {
+        "item_id": "item_refine_stone",
+        "display_name": "Refine Stone",
+        "item_type": "material",
+        "rarity": "common"
+      }
+    ],
+    "weapon_config": [
+      {
+        "weapon_id": "weapon_training_sword",
+        "item_id": "item_training_sword",
+        "weapon_type": "sword",
+        "base_attack": 50,
+        "strength_tier": "common"
+      }
+    ],
+    "upgrade_config": [
+      {
+        "weapon_id": "weapon_training_sword",
+        "level": 1,
+        "attack_bonus": 5,
+        "cost_items": [
+          {
+            "item_id": "item_gold",
+            "amount": 100
+          },
+          {
+            "item_id": "item_refine_stone",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "weapon_id": "weapon_training_sword",
+        "level": 2,
+        "attack_bonus": 5,
+        "cost_items": [
+          {
+            "item_id": "item_gold",
+            "amount": 150
+          },
+          {
+            "item_id": "item_refine_stone",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "weapon_id": "weapon_training_sword",
+        "level": 3,
+        "attack_bonus": 5,
+        "cost_items": [
+          {
+            "item_id": "item_gold",
+            "amount": 200
+          },
+          {
+            "item_id": "item_refine_stone",
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "reward_config": [
+      {
+        "reward_id": "reward_beginner_training_sword",
+        "quest_id": "quest_beginner_first_weapon",
+        "reward_item_id": "item_training_sword",
+        "weapon_id": "weapon_training_sword",
+        "once_only": true,
+        "source": "beginner_quest"
+      }
+    ]
+  },
+  "runtime_scenario": {
+    "scenario_id": "scenario_beginner_trial_arena",
+    "display_name": "Beginner Trial Arena",
+    "player": {
+      "max_health": 500,
+      "move_speed": 7.0,
+      "attack_range": 3.2,
+      "attack_cooldown": 0.55
+    },
+    "skill": {
+      "skill_id": "skill_training_slash",
+      "display_name": "Training Slash",
+      "damage": 100,
+      "cooldown": 5.0,
+      "range": 4.5
+    },
+    "enemies": [
+      {
+        "enemy_id": "enemy_training_dummy",
+        "display_name": "Training Dummy",
+        "max_health": 180,
+        "attack": 8,
+        "move_speed": 2.2
+      },
+      {
+        "enemy_id": "enemy_training_guard",
+        "display_name": "Training Guard",
+        "max_health": 260,
+        "attack": 12,
+        "move_speed": 2.5
+      },
+      {
+        "enemy_id": "enemy_training_elite",
+        "display_name": "Training Elite",
+        "max_health": 700,
+        "attack": 18,
+        "move_speed": 2.0
+      }
+    ],
+    "waves": [
+      {
+        "wave": 1,
+        "enemy_id": "enemy_training_dummy",
+        "count": 2
+      },
+      {
+        "wave": 2,
+        "enemy_id": "enemy_training_guard",
+        "count": 2
+      },
+      {
+        "wave": 3,
+        "enemy_id": "enemy_training_elite",
+        "count": 1
+      }
+    ],
+    "targets": {
+      "normal_enemy_hits_to_kill_min": 3,
+      "normal_enemy_hits_to_kill_max": 6,
+      "completion_time_seconds_min": 20.0,
+      "completion_time_seconds_max": 150.0,
+      "first_upgrade_affordable": true,
+      "second_upgrade_affordable": false
+    }
+  }
+}

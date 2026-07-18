@@ -1,0 +1,30 @@
+[
+  {
+    "sample_id": "real_demo_input",
+    "actor": "openai_compatible",
+    "action": "generator_prompt",
+    "json_parse_success": true,
+    "latency_ms": 0
+  },
+  {
+    "sample_id": "real_demo_input",
+    "actor": "openai_compatible",
+    "action": "reviewer_prompt",
+    "json_parse_success": true,
+    "latency_ms": 0
+  },
+  {
+    "sample_id": "real_demo_input",
+    "actor": "openai_compatible",
+    "action": "repairer_prompt",
+    "json_parse_success": true,
+    "latency_ms": 0
+  },
+  {
+    "sample_id": "real_demo_input",
+    "actor": "openai_compatible",
+    "action": "test_scenario_prompt",
+    "json_parse_success": true,
+    "latency_ms": 0
+  }
+]

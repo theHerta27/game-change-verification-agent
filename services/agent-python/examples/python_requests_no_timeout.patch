@@ -1,0 +1,10 @@
+diff --git a/app/client.py b/app/client.py
+index 1111111..2222222 100644
+--- a/app/client.py
++++ b/app/client.py
+@@ -1,5 +1,9 @@
+ import requests
+ 
+ def fetch_profile(url):
++    response = requests.get(url)
++    return response.json()
