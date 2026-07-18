@@ -27,6 +27,8 @@ namespace GameConfig.Runtime
         private Material playerMaterial;
         private Material enemyMaterial;
         private Material eliteMaterial;
+        private Material basicImpactMaterial;
+        private Material skillImpactMaterial;
         private int playerHealth;
         private int playerAttack;
         private int gold;
@@ -129,8 +131,8 @@ namespace GameConfig.Runtime
         private void LateUpdate()
         {
             if (player == null || gameplayCamera == null) return;
-            Vector3 focus = player.transform.position + new Vector3(0, 0, 2.5f);
-            Vector3 desired = player.transform.position + new Vector3(0, 13, -10);
+            Vector3 focus = player.transform.position + new Vector3(0, 0.8f, 2.8f);
+            Vector3 desired = player.transform.position + new Vector3(0, 8, -8);
             gameplayCamera.transform.position = Vector3.Lerp(gameplayCamera.transform.position, desired, 8f * Time.deltaTime);
             gameplayCamera.transform.LookAt(focus);
         }
@@ -142,8 +144,8 @@ namespace GameConfig.Runtime
             gameplayCamera.tag = "MainCamera";
             gameplayCamera.clearFlags = CameraClearFlags.SolidColor;
             gameplayCamera.backgroundColor = new Color(0.035f, 0.055f, 0.07f);
-            gameplayCamera.fieldOfView = 52f;
-            gameplayCamera.transform.position = new Vector3(0, 13, -10);
+            gameplayCamera.fieldOfView = 48f;
+            gameplayCamera.transform.position = new Vector3(0, 8, -8);
 
             Light light = new GameObject("Directional Light").AddComponent<Light>();
             light.type = LightType.Directional;
@@ -156,6 +158,8 @@ namespace GameConfig.Runtime
             playerMaterial = CreateMaterial(shader, new Color(0.1f, 0.75f, 0.95f));
             enemyMaterial = CreateMaterial(shader, new Color(0.96f, 0.63f, 0.18f));
             eliteMaterial = CreateMaterial(shader, new Color(0.92f, 0.2f, 0.18f));
+            basicImpactMaterial = CreateMaterial(shader, new Color(1f, 0.95f, 0.65f));
+            skillImpactMaterial = CreateMaterial(shader, new Color(0.95f, 0.15f, 0.18f));
 
             GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             floor.name = "Trial Arena";
@@ -165,9 +169,11 @@ namespace GameConfig.Runtime
 
             CreateArenaMarkers(shader);
 
-            CharacterViewResolution playerView = CharacterViewResolver.Resolve(new Vector3(0, 1, 0), playerMaterial);
+            bool forcePlaceholder = Environment.GetCommandLineArgs().Contains("--force-placeholder");
+            CharacterViewResolution playerView = CharacterViewResolver.Resolve(new Vector3(0, 1, 0), playerMaterial, forcePlaceholder);
             player = playerView.View;
             if (!playerView.UsesLocalAsset) player.transform.localScale = new Vector3(0.85f, 1f, 0.85f);
+            CreatePlayerFocus(shader);
 
             GameObject direction = GameObject.CreatePrimitive(PrimitiveType.Cube);
             direction.name = "Player Direction";
@@ -203,6 +209,7 @@ namespace GameConfig.Runtime
             if (PlanarDistanceTo(target) > contract.runtime_scenario.player.attack_range * 0.75f)
             {
                 player.transform.position += offset.normalized * contract.runtime_scenario.player.move_speed * Time.deltaTime;
+                player.transform.rotation = Quaternion.Slerp(player.transform.rotation, Quaternion.LookRotation(offset), 14f * Time.deltaTime);
                 ClampPlayerToArena();
             }
             else if (Time.time >= nextBasicAttack)
@@ -224,7 +231,9 @@ namespace GameConfig.Runtime
             EnemyState target = enemies.Where(InBasicRange).OrderBy(PlanarDistanceTo).FirstOrDefault();
             if (target != null)
             {
+                Vector3 impactPosition = target.View.transform.position + Vector3.up;
                 DamageEnemy(target, playerAttack);
+                CreateImpactEffect(impactPosition, basicImpactMaterial, 0.24f);
                 ShowFeedback($"普通攻击 -{playerAttack}");
             }
             else ShowFeedback("没有敌人在攻击范围内");
@@ -236,7 +245,12 @@ namespace GameConfig.Runtime
             nextSkill = Time.time + contract.runtime_scenario.skill.cooldown;
             telemetry.skill_uses++;
             EnemyState[] targets = enemies.Where(InSkillRange).ToArray();
-            foreach (EnemyState enemy in targets) DamageEnemy(enemy, contract.runtime_scenario.skill.damage);
+            foreach (EnemyState enemy in targets)
+            {
+                Vector3 impactPosition = enemy.View.transform.position + Vector3.up;
+                DamageEnemy(enemy, contract.runtime_scenario.skill.damage);
+                CreateImpactEffect(impactPosition, skillImpactMaterial, 0.38f);
+            }
             ShowFeedback(targets.Length > 0 ? $"技能命中 {targets.Length} 个敌人" : "技能范围内没有敌人");
         }
 
@@ -361,6 +375,36 @@ namespace GameConfig.Runtime
             return material;
         }
 
+        private void CreatePlayerFocus(Shader shader)
+        {
+            GameObject ofuda = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            ofuda.name = "Ofuda Focus";
+            ofuda.transform.SetParent(player.transform, false);
+            ofuda.transform.localPosition = new Vector3(0.58f, 0.45f, 0.1f);
+            ofuda.transform.localScale = new Vector3(0.12f, 0.4f, 0.035f);
+            ofuda.GetComponent<Renderer>().sharedMaterial = CreateMaterial(shader, new Color(0.98f, 0.92f, 0.78f));
+            Destroy(ofuda.GetComponent<Collider>());
+
+            GameObject orb = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            orb.name = "Yin Yang Orb Focus";
+            orb.transform.SetParent(player.transform, false);
+            orb.transform.localPosition = new Vector3(-0.62f, 0.48f, 0.08f);
+            orb.transform.localScale = Vector3.one * 0.28f;
+            orb.GetComponent<Renderer>().sharedMaterial = CreateMaterial(shader, new Color(0.9f, 0.08f, 0.12f));
+            Destroy(orb.GetComponent<Collider>());
+        }
+
+        private static void CreateImpactEffect(Vector3 position, Material material, float lifetime)
+        {
+            GameObject pulse = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            pulse.name = "Combat Impact";
+            pulse.transform.position = position;
+            pulse.transform.localScale = Vector3.one * 0.35f;
+            pulse.GetComponent<Renderer>().sharedMaterial = material;
+            Destroy(pulse.GetComponent<Collider>());
+            pulse.AddComponent<RuntimeVisualPulse>().Configure(lifetime);
+        }
+
         private void CreateArenaMarkers(Shader shader)
         {
             Material lineMaterial = CreateMaterial(shader, new Color(0.14f, 0.24f, 0.27f));
@@ -459,7 +503,7 @@ namespace GameConfig.Runtime
             Destroy(target);
             Destroy(image);
             Debug.Log($"Runtime preview written: {path}");
-            if (args.Contains("--screenshot-only")) Application.Quit(0);
+            if (args.Contains("--screenshot-only")) StartCoroutine(QuitAfterCleanup(0));
         }
 
         private void OnGUI()

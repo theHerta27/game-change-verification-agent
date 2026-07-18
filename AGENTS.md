@@ -12,7 +12,7 @@
 
 ## 当前阶段
 
-Milestone 1 灰盒自动战斗测试床已完成。下一阶段为 Milestone 2 灵梦角色表现层；在用户确认进入前，不提前修改第三方模型和角色表现。
+Milestone 2 灵梦角色表现层已完成。下一阶段为 Milestone 3A 配置变更闭环；在用户确认前，不提前重构 Agent 工作流。
 
 禁止：
 
@@ -38,6 +38,15 @@ Milestone 1 灰盒自动战斗测试床已完成。下一阶段为 Milestone 2 �
 
 ```powershell
 .\scripts\test-all.ps1
+```
+
+Milestone 2 本地资产通路可单独执行：
+
+```powershell
+.\scripts\bootstrap-blender.ps1
+.\scripts\convert-reimu.ps1
+.\scripts\import-reimu-unity.ps1
+.\scripts\smoke-reimu-presentation.ps1
 ```
 
 ## 本地资产

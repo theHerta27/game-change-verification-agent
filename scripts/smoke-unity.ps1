@@ -77,7 +77,7 @@ if ($buildText -notmatch "Character view resolver smoke passed") {
     throw "Character resolver branches were not validated. See $BuildLog"
 }
 
-$runArgs = "-force-d3d11 --auto-run --seed $Seed --config-input `"$Contract`" --telemetry-output `"$Telemetry`" -logFile `"$PlayerLog`""
+$runArgs = "-batchmode -nographics --auto-run --seed $Seed --config-input `"$Contract`" --telemetry-output `"$Telemetry`" -logFile `"$PlayerLog`""
 Remove-Item -LiteralPath $Telemetry -Force -ErrorAction SilentlyContinue
 $runExit = Invoke-ProcessWithTimeout -FileName $Player -Arguments $runArgs -WorkingDirectory (Split-Path -Parent $Player) -TimeoutSeconds $RunTimeoutSeconds
 if ($runExit -ne 0) { throw "Unity auto-run failed with exit code $runExit. See $PlayerLog" }
@@ -88,7 +88,7 @@ if ($result.random_seed -ne $Seed -or $result.run_mode -ne "auto") {
     throw "Unity telemetry did not preserve the fixed seed and auto run mode."
 }
 
-$repeatArgs = "-force-d3d11 --auto-run --seed $Seed --config-input `"$Contract`" --telemetry-output `"$RepeatTelemetry`" -logFile `"$RepeatPlayerLog`""
+$repeatArgs = "-batchmode -nographics --auto-run --seed $Seed --config-input `"$Contract`" --telemetry-output `"$RepeatTelemetry`" -logFile `"$RepeatPlayerLog`""
 Remove-Item -LiteralPath $RepeatTelemetry -Force -ErrorAction SilentlyContinue
 $repeatExit = Invoke-ProcessWithTimeout -FileName $Player -Arguments $repeatArgs -WorkingDirectory (Split-Path -Parent $Player) -TimeoutSeconds $RunTimeoutSeconds
 if ($repeatExit -ne 0) { throw "Unity repeated auto-run failed with exit code $repeatExit. See $RepeatPlayerLog" }

@@ -63,3 +63,34 @@
 ### 最终状态
 
 `Milestone 1 complete。下一阶段为 Milestone 2 灵梦角色表现层。`
+
+## 2026-07-18 Milestone 2
+
+### 已完成
+
+- 自动下载并锁定 Blender 4.5.11 portable 与 MMD Tools v4.5.10。
+- 后台导入 `R_spring.pmx`，导出 FBX、Blend、贴图和转换报告。
+- Unity 自动导入 FBX、归一化身高并生成本地 Reimu Prefab。
+- 12 个材质全部绑定贴图，unsupported shader 和 missing texture 均为 0。
+- CharacterViewResolver 实际本地模型分支通过。
+- 新增轻量待机/移动摆动、御札/阴阳玉占位表现和命中脉冲。
+- 调整运行镜头并完成 1280x720 截图人工检查。
+- 像素检查通过：非背景 31.9%，红色像素 3835，中央亮色像素 2705。
+- Milestone 1 固定种子双跑保持 100% 可重复。
+- 逻辑双跑改为无图形模式，避免 Unity 图形设备退出的间歇性访问冲突。
+
+### 最终验收
+
+- Blender PMX 转换：通过，1 Mesh / 301 Blender Bones / 15,913 Vertices / 12 Materials。
+- Unity 导入：通过，297 Unity Bones / 12 Bound Textures / 0 Missing / 0 Unsupported Shaders。
+- Reimu runtime preview：通过人工检查和像素检查。
+- Placeholder `--force-placeholder` 实际 Player 回退：通过。
+- Python：94 passed，1 warning。
+- Web：Vite production build 通过，2.57s。
+- Unity：Windows Build、无图形固定种子双跑、D3D11 截图均通过。
+- Milestone 1 Repeatability：10/10，100%。
+- 仓库清洁和旧来源 SHA256：通过。
+
+### 最终状态
+
+`Milestone 2 complete。下一阶段为 Milestone 3A 配置变更闭环。`

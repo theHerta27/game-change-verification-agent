@@ -32,3 +32,13 @@
 - Unity Player 在写完 telemetry 后立即从最后一个固定帧调用 `Application.Quit()`，偶发 `0xC0000005`；延迟到帧末和下一帧退出后消失。D3D11 作为 Windows 自动化的固定图形后端保留。
 - 测试画像与 runtime contract 必须分离：前者定义验证条件，后者定义被测游戏配置。
 - 固定种子双跑能证明回归稳定性，不能证明真实玩家体验、趣味性或统计学平衡。
+
+## 2026-07-18 Milestone 2
+
+- 官方当前版本是 Blender `4.5.11 LTS` 与 MMD Tools `v4.5.10`；原计划把两个补丁版本都写成 4.5.11，插件版本不存在。
+- Blender 4.5 portable 不会自动扫描安装目录下的旧式 `scripts/addons`；通过项目级 `BLENDER_USER_SCRIPTS` 暴露 MMD Tools 后可稳定后台加载。
+- GitHub tag archive 下载成功，但 `git ls-remote` 在本机网络超时；改用官方 REST API锁定完整 commit，并在后续运行优先复用本地 lock，避免匿名 API 限额。
+- FBX 嵌入贴图进入 Unity 后材质 Shader 可用，但主贴图未自动绑定；根据 Blender 报告中的材质语义显式生成和 remap 本地 Unity 材质后，12/12 贴图成功绑定。
+- 原高位镜头能够展示场地但角色过小；降低镜头后角色与两名敌人同时可辨认，固定种子 telemetry 未发生回退。
+- MMD 物理存在稳定性和迁移成本，本阶段明确不导入；表现层只做可替换角色、轻量摆动和命中反馈。
+- Windows Development Player 在完成 telemetry 后偶发于图形设备清理阶段返回 `0xC0000005`，即使延迟退出也不能完全消除；将逻辑双跑改为 `-batchmode -nographics` 后退出稳定，视觉截图继续独立使用 D3D11。

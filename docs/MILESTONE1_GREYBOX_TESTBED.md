@@ -58,7 +58,7 @@ Time.fixedDeltaTime = 1 / 60
 run_mode = auto
 ```
 
-固定 seed 控制生成位置的微小扰动；固定模拟步长消除渲染帧调度对攻击次数和承伤次数的影响。Windows 自动化强制使用 D3D11，并在战斗完成后延迟到下一帧退出，避免 Unity 在待销毁对象尚未清理时关闭 Player。
+固定 seed 控制生成位置的微小扰动；固定模拟步长消除渲染帧调度对攻击次数和承伤次数的影响。纯 telemetry 自动运行使用 Player 的 `-batchmode -nographics`，不让图形驱动退出路径影响逻辑回归；角色截图则单独使用 D3D11 图形模式。
 
 ## 运行流程
 

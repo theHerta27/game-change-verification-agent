@@ -96,6 +96,23 @@ namespace GameConfig.Editor
                 throw new BuildFailedException("Character local-asset replacement smoke failed.");
             Object.DestroyImmediate(local.View);
             Object.DestroyImmediate(localCandidate);
+
+            GameObject actualLocalPrefab = Resources.Load<GameObject>(CharacterViewResolver.LocalCharacterPath);
+            if (actualLocalPrefab != null)
+            {
+                CharacterViewResolution actualLocal = CharacterViewResolver.ResolveFromCandidates(
+                    actualLocalPrefab,
+                    placeholder,
+                    Vector3.zero,
+                    null
+                );
+                bool hasRenderer = actualLocal.View.GetComponentsInChildren<Renderer>(true).Length > 0;
+                bool hasPresentation = actualLocal.View.GetComponent<LocalCharacterPresentation>() != null;
+                Object.DestroyImmediate(actualLocal.View);
+                if (!actualLocal.UsesLocalAsset || !hasRenderer || !hasPresentation)
+                    throw new BuildFailedException("Actual local Reimu prefab smoke failed.");
+                Debug.Log("Actual local Reimu prefab smoke passed with renderer and presentation component.");
+            }
             Debug.Log("Character view resolver smoke passed for fallback and local-asset branches.");
         }
 

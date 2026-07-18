@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0 单仓库迁移与 Milestone 1 灰盒自动战斗测试床已完成。** 当前测试床能够对同一配置执行固定种子双跑，并输出可重复性证据。本阶段没有新增 Boss、Roguelite 构筑或自动代码修改。
+**Milestone 0 单仓库迁移、Milestone 1 灰盒自动战斗测试床和 Milestone 2 灵梦角色表现层均已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色。
 
 ## 当前组成
 
@@ -51,6 +51,20 @@ D:\Desktop\agentic-game-rd\game-unity
 ```
 
 项目锁定 Unity `6000.3.19f1`。没有本地灵梦模型时使用仓库内占位角色；本地模型后续通过 `CharacterViewResolver` 动态替换，不改变战斗逻辑。
+
+### 本地灵梦表现层
+
+第三方模型只保留在 Git 忽略目录。首次准备和转换：
+
+```powershell
+cd D:\Desktop\agentic-game-rd
+.\scripts\bootstrap-blender.ps1
+.\scripts\convert-reimu.ps1
+.\scripts\import-reimu-unity.ps1
+.\scripts\smoke-reimu-presentation.ps1
+```
+
+脚本使用 Blender `4.5.11 LTS` 与 MMD Tools `v4.5.10`，自动完成 PMX 导入、FBX 导出、Unity 材质绑定、本地 Prefab 创建、固定种子回归和截图像素检查。工具链、模型、FBX、贴图和 Prefab 都不会进入 Git。
 
 ### 灰盒自动战斗测试床
 

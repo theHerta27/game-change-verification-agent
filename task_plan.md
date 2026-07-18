@@ -10,7 +10,7 @@
 |---|---|---|
 | Milestone 0 | 单仓库迁移与集成 | complete |
 | Milestone 1 | 灰盒自动战斗测试床 | complete |
-| Milestone 2 | 灵梦角色表现层 | planned |
+| Milestone 2 | 灵梦角色表现层 | complete |
 | Milestone 3A | 配置变更闭环 | planned |
 | Milestone 3B | 人工 C# Diff 质量闭环 | planned |
 | Post-MVP | 受控 Code Change Agent | deferred |
@@ -72,6 +72,39 @@
 
 `Milestone 1 complete；下一阶段为 Milestone 2 灵梦角色表现层。`
 
+## Milestone 2：灵梦角色表现层
+
+### 目标
+
+- [x] 锁定 Blender `4.5.11 LTS` 与 MMD Tools `v4.5.10`，记录来源、commit 和 SHA256。
+- [x] 建立免安装、可重复执行的本地工具链，不要求用户手工配置 Blender 插件。
+- [x] 验证 `R_spring.pmx -> Blender -> FBX -> Unity` 完整通路。
+- [x] 在 Git 忽略目录生成本地 Reimu Prefab，已提交 Scene/Prefab 不直接引用其 GUID。
+- [x] 保持 `CharacterViewResolver` 的本地模型替换与 Placeholder 回退路径。
+- [x] 提供基础待机/移动表现、御札或阴阳玉占位表现和命中反馈，不改变战斗数值逻辑。
+- [x] 无本地模型时自动战斗仍能运行；有本地模型时完成 Unity 导入与构建检查。
+- [x] 更新中文工具链、资产边界和复现文档。
+
+### 边界
+
+- 第三方 PMX、贴图、FBX、Prefab、动画和 Blender 工具链均不提交 Git。
+- 本阶段只做角色表现层，不新增敌人、技能数值、Boss、构筑、掉落或养成玩法。
+- 不处理复杂裙摆物理、MMD 刚体还原、高级表情和完整动画状态机。
+- 模型仅用于个人本地学习、测试和面试演示；不公开分发。
+- MMD Tools 采用官方当前稳定版 `v4.5.10`；原规划中的 `v4.5.11` 经核对不存在，不虚构版本。
+
+### 验收标准
+
+- Blender 可通过脚本无界面导入 `R_spring.pmx` 并导出非空 FBX。
+- 转换报告记录 Blender/MMD Tools 版本、模型网格/骨骼/材质数量和文件哈希。
+- Unity 自动创建本地 Reimu Prefab，但 Git 跟踪文件不包含其 GUID。
+- Unity 构建同时验证 Placeholder 回退和本地模型替换分支。
+- 固定种子灰盒自动战斗与 Milestone 1 可重复性指标不回退。
+
+### 当前阶段
+
+`Milestone 2 complete；下一阶段为 Milestone 3A 配置变更闭环。`
+
 ## 遇到的错误
 
 | 日期 | 错误 | 尝试次数 | 处理 |
@@ -85,3 +118,8 @@
 | 2026-07-18 | Unity 双跑中 damage_taken 为 280 / 292，固定 seed 仍未保证行为稳定 | 1 | 自动模式从渲染帧 Update 迁移到固定步长 FixedUpdate |
 | 2026-07-18 | Unity 写完 telemetry 后退出偶发 0xC0000005 | 2 | 固定 D3D11，并把 Application.Quit 延迟到待销毁对象清理后的下一帧 |
 | 2026-07-18 | 清洁脚本中的 git ls-files 被 dubious ownership 拒绝但未使脚本失败 | 1 | 使用命令级 safe.directory 并显式检查 Git 退出码 |
+| 2026-07-18 | MMD Tools 复制到 Blender 安装目录后无法被 4.5 搜索 | 1 | 使用项目级 BLENDER_USER_SCRIPTS/addons 目录 |
+| 2026-07-18 | git ls-remote 查询 MMD Tools tag 超时 | 1 | 改用 GitHub REST API，后续优先复用本地 lock |
+| 2026-07-18 | GitHub REST API 重跑触发匿名限额 | 1 | 安装脚本先读取本地 toolchain-lock，首次安装才访问 API |
+| 2026-07-18 | Unity FBX 材质可用但全部未绑定主贴图 | 1 | 根据 Blender 材质报告生成 12 个本地 Standard 材质并 remap |
+| 2026-07-18 | 图形 Player 完成 telemetry 后偶发 0xC0000005 | 2 | 逻辑双跑改为 -batchmode -nographics，截图独立使用 D3D11 |

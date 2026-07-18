@@ -19,9 +19,9 @@ namespace GameConfig.Runtime
         public const string LocalCharacterPath = "LocalThirdParty/Reimu/Reimu";
         public const string PlaceholderPath = "Characters/Placeholder";
 
-        public static CharacterViewResolution Resolve(Vector3 position, Material placeholderMaterial)
+        public static CharacterViewResolution Resolve(Vector3 position, Material placeholderMaterial, bool forcePlaceholder = false)
         {
-            GameObject localPrefab = Resources.Load<GameObject>(LocalCharacterPath);
+            GameObject localPrefab = forcePlaceholder ? null : Resources.Load<GameObject>(LocalCharacterPath);
             GameObject placeholderPrefab = Resources.Load<GameObject>(PlaceholderPath);
             return ResolveFromCandidates(localPrefab, placeholderPrefab, position, placeholderMaterial);
         }
@@ -50,4 +50,3 @@ namespace GameConfig.Runtime
         }
     }
 }
-

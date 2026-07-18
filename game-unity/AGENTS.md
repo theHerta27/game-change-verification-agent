@@ -8,4 +8,7 @@
 - `Assets/Resources/LocalThirdParty/` 是本地忽略目录。
 - 已提交 Scene、Prefab 和 ScriptableObject 不得序列化引用本地第三方资产。
 - `CharacterViewResolver` 找不到本地角色时必须回退到 `Resources/Characters/Placeholder`。
+- Milestone 2 的 FBX、贴图、Prefab 和动画必须位于 `Assets/Resources/LocalThirdParty/`，不得被 Git 跟踪。
+- 已提交代码只能通过资源路径解析本地角色，不能保存本地 Prefab GUID。
+- 角色动画、武器视图和命中反馈只能改变表现，不能改变命中判定与伤害数值。
 - 完成变更后运行根目录 `scripts/smoke-unity.ps1`。

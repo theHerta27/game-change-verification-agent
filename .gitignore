@@ -37,10 +37,12 @@ game-unity/obj/
 
 # Local-only Unity assets
 game-unity/Assets/Resources/LocalThirdParty/
+game-unity/Assets/Resources/LocalThirdParty.meta
 
 # Runtime and third-party local assets
 runtime-artifacts/
 local-assets/
+local-tools/
 **/outputs/
 **/logs/
 

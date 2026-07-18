@@ -33,3 +33,26 @@ local-assets/reimu/converted/
 - 已提交资产不得通过 Unity GUID 引用本地 Prefab。
 - 自动测试模式不依赖第三方模型或音频。
 
+## 本地转换记录
+
+Milestone 2 已完成 `R_spring.pmx -> Blender -> FBX -> Unity` 本地验证：
+
+- PMX SHA256：`d137bfe8a432bf53dd78d69f68b93d2655821d4d5e3c67f176ba193bd781238e`
+- Blender：`4.5.11 LTS`，build `4db51e9d1e1e`
+- MMD Tools：`v4.5.10`
+- 网格：1
+- Blender 骨骼：301
+- Unity 骨骼：297
+- 顶点：15,913
+- 材质：12
+- MMD 物理：未导入
+
+本地输出：
+
+```text
+local-assets/reimu/converted/spring/
+game-unity/Assets/Resources/LocalThirdParty/Reimu/
+runtime-artifacts/reimu-import/
+```
+
+上述目录中的模型产物和运行证据均不提交 Git。
