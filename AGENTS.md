@@ -12,11 +12,12 @@
 
 ## 当前阶段
 
-当前为 Milestone 0：单仓库迁移与集成。只允许迁移、适配、验证和文档工作。
+Milestone 1 灰盒自动战斗测试床已完成。下一阶段为 Milestone 2 灵梦角色表现层；在用户确认进入前，不提前修改第三方模型和角色表现。
 
 禁止：
 
-- 新增玩法、Boss、构筑或游戏内容。
+- 新增 Boss、构筑、掉落、养成或其他玩法内容。
+- 处理灵梦模型、动画、物理或正式美术表现。
 - 新增 Go 服务、数据库、Redis、Docker 或微服务。
 - 实现 Code Change Agent 或自动应用代码补丁。
 - 修改已有 GameConfig API、JSON artifact 和 Unity runtime contract 字段。
@@ -44,4 +45,3 @@
 - `local-assets/` 和 `game-unity/Assets/Resources/LocalThirdParty/` 永不提交。
 - 已提交的 Scene 或 Prefab 不得序列化引用本地角色 Prefab。
 - 角色表现通过运行时路径解析，缺少本地模型时必须回退到已提交占位角色。
-

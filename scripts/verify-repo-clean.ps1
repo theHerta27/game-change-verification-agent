@@ -34,7 +34,9 @@ Get-ChildItem -LiteralPath $assets -Recurse -File |
     }
 
 if (Test-Path -LiteralPath (Join-Path $RepoRoot '.git')) {
-    $tracked = & git -C $RepoRoot ls-files
+    $safeRepoRoot = $RepoRoot.Replace('\', '/')
+    $tracked = & git -c "safe.directory=$safeRepoRoot" -C $RepoRoot ls-files
+    if ($LASTEXITCODE -ne 0) { throw "git ls-files failed with exit code $LASTEXITCODE." }
     $badTracked = $tracked | Where-Object {
         $_ -match '(^|/)(local-assets|runtime-artifacts|node_modules|dist)(/|$)' -or
         $_ -match '\.egg-info/' -or

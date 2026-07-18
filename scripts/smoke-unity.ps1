@@ -1,5 +1,6 @@
 param(
     [string]$UnityEditor = "E:\Unity6\6000.3.19f1\Editor\Unity.exe",
+    [string]$ProfilePath = "",
     [int]$BuildTimeoutSeconds = 300,
     [int]$RunTimeoutSeconds = 120
 )
@@ -10,13 +11,25 @@ $UnityProject = Join-Path $RepoRoot "game-unity"
 $RuntimeDir = Join-Path $RepoRoot "runtime-artifacts\unity-smoke"
 $BuildLog = Join-Path $RuntimeDir "build.log"
 $PlayerLog = Join-Path $RuntimeDir "player.log"
+$RepeatPlayerLog = Join-Path $RuntimeDir "player_repeat.log"
 $Telemetry = Join-Path $RuntimeDir "telemetry.json"
+$RepeatTelemetry = Join-Path $RuntimeDir "telemetry_repeat.json"
 $Player = Join-Path $UnityProject "Builds\Windows\GameConfigRuntimeDemo.exe"
 $Contract = Join-Path $UnityProject "Assets\StreamingAssets\game_config.json"
+if (-not $ProfilePath) { $ProfilePath = Join-Path $RepoRoot "scenarios\milestone1\starter_trial_baseline.json" }
 
 if (-not (Test-Path -LiteralPath $UnityEditor)) {
     throw "Unity Editor not found: $UnityEditor"
 }
+if (-not (Test-Path -LiteralPath $ProfilePath)) {
+    throw "Milestone 1 test profile not found: $ProfilePath"
+}
+
+$profile = Get-Content -LiteralPath $ProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+if (-not $profile.seed -or $profile.run_mode -ne "auto") {
+    throw "Milestone 1 test profile must define an auto run with a fixed seed."
+}
+$Seed = [int]$profile.seed
 
 New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
 
@@ -64,12 +77,36 @@ if ($buildText -notmatch "Character view resolver smoke passed") {
     throw "Character resolver branches were not validated. See $BuildLog"
 }
 
-$runArgs = "--auto-run --config-input `"$Contract`" --telemetry-output `"$Telemetry`" -logFile `"$PlayerLog`""
+$runArgs = "-force-d3d11 --auto-run --seed $Seed --config-input `"$Contract`" --telemetry-output `"$Telemetry`" -logFile `"$PlayerLog`""
+Remove-Item -LiteralPath $Telemetry -Force -ErrorAction SilentlyContinue
 $runExit = Invoke-ProcessWithTimeout -FileName $Player -Arguments $runArgs -WorkingDirectory (Split-Path -Parent $Player) -TimeoutSeconds $RunTimeoutSeconds
 if ($runExit -ne 0) { throw "Unity auto-run failed with exit code $runExit. See $PlayerLog" }
 if (-not (Test-Path -LiteralPath $Telemetry)) { throw "Unity auto-run did not create telemetry: $Telemetry" }
 $result = Get-Content -LiteralPath $Telemetry -Raw | ConvertFrom-Json
 if ($result.status -ne "completed") { throw "Unity telemetry status was '$($result.status)', expected 'completed'." }
+if ($result.random_seed -ne $Seed -or $result.run_mode -ne "auto") {
+    throw "Unity telemetry did not preserve the fixed seed and auto run mode."
+}
 
-Write-Host "Unity placeholder build and auto-run smoke passed."
-Write-Host "Telemetry: $Telemetry"
+$repeatArgs = "-force-d3d11 --auto-run --seed $Seed --config-input `"$Contract`" --telemetry-output `"$RepeatTelemetry`" -logFile `"$RepeatPlayerLog`""
+Remove-Item -LiteralPath $RepeatTelemetry -Force -ErrorAction SilentlyContinue
+$repeatExit = Invoke-ProcessWithTimeout -FileName $Player -Arguments $repeatArgs -WorkingDirectory (Split-Path -Parent $Player) -TimeoutSeconds $RunTimeoutSeconds
+if ($repeatExit -ne 0) { throw "Unity repeated auto-run failed with exit code $repeatExit. See $RepeatPlayerLog" }
+if (-not (Test-Path -LiteralPath $RepeatTelemetry)) { throw "Unity repeated auto-run did not create telemetry: $RepeatTelemetry" }
+
+. (Join-Path $PSScriptRoot "common.ps1")
+$ProjectPython = Resolve-ProjectPython -RepoRoot $RepoRoot
+$PythonService = Join-Path $RepoRoot "services\agent-python"
+Push-Location $PythonService
+try {
+    & $ProjectPython -m gameconfig_agent.cli evaluate_milestone1_testbed --profile $ProfilePath --telemetry $Telemetry --repeat-telemetry $RepeatTelemetry --output $RuntimeDir
+    if ($LASTEXITCODE -ne 0) { throw "Milestone 1 repeatability evaluation failed. See $RuntimeDir\testbed_evaluation_report.md" }
+}
+finally {
+    Pop-Location
+}
+
+Write-Host "Unity greybox build and fixed-seed repeatability smoke passed."
+Write-Host "Primary telemetry: $Telemetry"
+Write-Host "Repeat telemetry: $RepeatTelemetry"
+Write-Host "Evaluation report: $RuntimeDir\testbed_evaluation_report.md"

@@ -1,0 +1,32 @@
+{
+  "profile_version": "1.0",
+  "profile_id": "milestone1_starter_trial_baseline",
+  "scenario_id": "scenario_beginner_trial_arena",
+  "display_name": "新手试炼灰盒自动战斗基线",
+  "contract_path": "game-unity/Assets/StreamingAssets/game_config.json",
+  "run_mode": "auto",
+  "seed": 20260718,
+  "completion_time_tolerance_seconds": 1.0,
+  "expected": {
+    "status": "completed",
+    "waves_completed": 3,
+    "enemies_defeated": 5,
+    "skill_uses_min": 1
+  },
+  "stable_fields": [
+    "status",
+    "scenario_id",
+    "run_mode",
+    "random_seed",
+    "simulation_ticks",
+    "waves_completed",
+    "enemies_defeated",
+    "basic_attacks",
+    "skill_uses",
+    "damage_dealt",
+    "damage_taken",
+    "gold_earned",
+    "gold_spent",
+    "final_attack"
+  ]
+}

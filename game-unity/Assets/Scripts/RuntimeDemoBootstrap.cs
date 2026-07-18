@@ -21,6 +21,7 @@ namespace GameConfig.Runtime
         private RuntimeContract contract;
         private RuntimeTelemetry telemetry;
         private readonly List<EnemyState> enemies = new();
+        private readonly List<WaveRuntimeTelemetry> waveResults = new();
         private GameObject player;
         private Camera gameplayCamera;
         private Material playerMaterial;
@@ -39,6 +40,13 @@ namespace GameConfig.Runtime
         private bool awaitingStart;
         private string combatFeedback = "";
         private float feedbackUntil;
+        private float waveStartedAt;
+        private int waveStartBasicAttacks;
+        private int waveStartSkillUses;
+        private int waveStartDamageDealt;
+        private int waveStartDamageTaken;
+        private int waveStartDefeated;
+        private RuntimeRunSettings runSettings;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -53,8 +61,14 @@ namespace GameConfig.Runtime
         {
             try
             {
+                runSettings = RuntimeRunSettings.FromArgs(Environment.GetCommandLineArgs());
+                autoRun = runSettings.AutoRun;
+                UnityEngine.Random.InitState(runSettings.RandomSeed);
+                Application.runInBackground = true;
+                QualitySettings.vSyncCount = 0;
+                Application.targetFrameRate = 60;
+                Time.fixedDeltaTime = 1f / 60f;
                 contract = GameConfigLoader.Load();
-                autoRun = Environment.GetCommandLineArgs().Contains("--auto-run");
                 awaitingStart = !autoRun;
                 CreateArena();
                 playerHealth = contract.runtime_scenario.player.max_health;
@@ -64,7 +78,10 @@ namespace GameConfig.Runtime
                     scenario_id = contract.runtime_scenario.scenario_id,
                     contract_version = contract.contract_version,
                     status = "running",
+                    run_mode = runSettings.RunMode,
+                    random_seed = runSettings.RandomSeed,
                     final_attack = playerAttack,
+                    wave_results = Array.Empty<WaveRuntimeTelemetry>(),
                 };
                 startedAt = Time.time;
                 SpawnNextWave();
@@ -94,7 +111,17 @@ namespace GameConfig.Runtime
                     return;
                 }
             }
-            if (autoRun) UpdateAutoPlayer(); else UpdateManualPlayer();
+            if (autoRun) return;
+            UpdateManualPlayer();
+            UpdateEnemies();
+            if (enemies.Count == 0) SpawnNextWave();
+        }
+
+        private void FixedUpdate()
+        {
+            if (!autoRun || contract == null || completed) return;
+            telemetry.simulation_ticks++;
+            UpdateAutoPlayer();
             UpdateEnemies();
             if (enemies.Count == 0) SpawnNextWave();
         }
@@ -130,10 +157,10 @@ namespace GameConfig.Runtime
             enemyMaterial = CreateMaterial(shader, new Color(0.96f, 0.63f, 0.18f));
             eliteMaterial = CreateMaterial(shader, new Color(0.92f, 0.2f, 0.18f));
 
-            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             floor.name = "Trial Arena";
-            floor.transform.position = new Vector3(0, -0.3f, 0);
-            floor.transform.localScale = new Vector3(24, 0.5f, 24);
+            floor.transform.position = new Vector3(0, -0.15f, 0);
+            floor.transform.localScale = new Vector3(12, 0.15f, 12);
             floor.GetComponent<Renderer>().sharedMaterial = floorMaterial;
 
             CreateArenaMarkers(shader);
@@ -161,7 +188,7 @@ namespace GameConfig.Runtime
                 player.transform.position += direction.normalized * contract.runtime_scenario.player.move_speed * Time.deltaTime;
                 player.transform.rotation = Quaternion.Slerp(player.transform.rotation, Quaternion.LookRotation(direction), 14f * Time.deltaTime);
             }
-            player.transform.position = new Vector3(Mathf.Clamp(player.transform.position.x, -10, 10), 1, Mathf.Clamp(player.transform.position.z, -10, 10));
+            ClampPlayerToArena();
             if (Input.GetKey(KeyCode.Space)) BasicAttack(Input.GetKeyDown(KeyCode.Space));
             if (Input.GetKeyDown(KeyCode.Q)) UseSkill();
             if (Input.GetKeyDown(KeyCode.U)) TryUpgrade();
@@ -172,9 +199,11 @@ namespace GameConfig.Runtime
             EnemyState target = enemies.OrderBy(PlanarDistanceTo).FirstOrDefault();
             if (target == null) return;
             Vector3 offset = target.View.transform.position - player.transform.position;
+            offset.y = 0;
             if (PlanarDistanceTo(target) > contract.runtime_scenario.player.attack_range * 0.75f)
             {
                 player.transform.position += offset.normalized * contract.runtime_scenario.player.move_speed * Time.deltaTime;
+                ClampPlayerToArena();
             }
             else if (Time.time >= nextBasicAttack)
             {
@@ -230,6 +259,7 @@ namespace GameConfig.Runtime
             foreach (EnemyState enemy in enemies.ToArray())
             {
                 Vector3 offset = player.transform.position - enemy.View.transform.position;
+                offset.y = 0;
                 if (offset.magnitude > 1.6f)
                 {
                     enemy.View.transform.position += offset.normalized * enemy.Config.move_speed * Time.deltaTime;
@@ -246,6 +276,7 @@ namespace GameConfig.Runtime
 
         private void SpawnNextWave()
         {
+            if (currentWave > 0) CompleteCurrentWave();
             if (currentWave >= contract.runtime_scenario.waves.Length)
             {
                 RewardConfig reward = contract.configs.reward_config.FirstOrDefault();
@@ -258,17 +289,56 @@ namespace GameConfig.Runtime
 
             WaveConfig wave = contract.runtime_scenario.waves[currentWave++];
             EnemyConfig config = contract.runtime_scenario.enemies.First(enemy => enemy.enemy_id == wave.enemy_id);
+            BeginWaveTelemetry();
             for (int index = 0; index < wave.count; index++)
             {
                 GameObject view = GameObject.CreatePrimitive(currentWave == contract.runtime_scenario.waves.Length ? PrimitiveType.Cylinder : PrimitiveType.Cube);
                 view.name = config.display_name;
-                view.transform.position = new Vector3((index - (wave.count - 1) * 0.5f) * 3.0f, currentWave == contract.runtime_scenario.waves.Length ? 1f : 0.75f, 7.0f);
+                float spawnJitter = UnityEngine.Random.Range(-0.25f, 0.25f);
+                view.transform.position = new Vector3((index - (wave.count - 1) * 0.5f) * 3.0f, currentWave == contract.runtime_scenario.waves.Length ? 1f : 0.75f, 7.0f + spawnJitter);
                 view.transform.localScale = currentWave == contract.runtime_scenario.waves.Length ? new Vector3(1.6f, 2f, 1.6f) : new Vector3(1.25f, 1.5f, 1.25f);
                 view.GetComponent<Renderer>().sharedMaterial = currentWave == contract.runtime_scenario.waves.Length ? eliteMaterial : enemyMaterial;
                 enemies.Add(new EnemyState { Config = config, View = view, Health = config.max_health });
             }
             telemetry.waves_completed = currentWave - 1;
             message = $"Wave {currentWave}/{contract.runtime_scenario.waves.Length}: {config.display_name}";
+        }
+
+        private void BeginWaveTelemetry()
+        {
+            waveStartedAt = Time.time;
+            waveStartBasicAttacks = telemetry.basic_attacks;
+            waveStartSkillUses = telemetry.skill_uses;
+            waveStartDamageDealt = telemetry.damage_dealt;
+            waveStartDamageTaken = telemetry.damage_taken;
+            waveStartDefeated = telemetry.enemies_defeated;
+        }
+
+        private void CompleteCurrentWave()
+        {
+            WaveConfig wave = contract.runtime_scenario.waves[currentWave - 1];
+            waveResults.Add(new WaveRuntimeTelemetry
+            {
+                wave = wave.wave,
+                enemy_id = wave.enemy_id,
+                enemies_spawned = wave.count,
+                enemies_defeated = telemetry.enemies_defeated - waveStartDefeated,
+                basic_attacks = telemetry.basic_attacks - waveStartBasicAttacks,
+                skill_uses = telemetry.skill_uses - waveStartSkillUses,
+                damage_dealt = telemetry.damage_dealt - waveStartDamageDealt,
+                damage_taken = telemetry.damage_taken - waveStartDamageTaken,
+                duration_seconds = Time.time - waveStartedAt,
+            });
+            telemetry.waves_completed = currentWave;
+            telemetry.wave_results = waveResults.ToArray();
+        }
+
+        private void ClampPlayerToArena()
+        {
+            const float arenaRadius = 10f;
+            Vector2 planar = new(player.transform.position.x, player.transform.position.z);
+            if (planar.magnitude > arenaRadius) planar = planar.normalized * arenaRadius;
+            player.transform.position = new Vector3(planar.x, 1f, planar.y);
         }
 
         private void TryUpgrade()
@@ -334,7 +404,9 @@ namespace GameConfig.Runtime
             if (completed) return;
             completed = true;
             telemetry.status = status;
+            telemetry.frame_count = Time.frameCount;
             telemetry.waves_completed = status == "completed" ? contract.runtime_scenario.waves.Length : currentWave - 1;
+            telemetry.wave_results = waveResults.ToArray();
             telemetry.completion_time_seconds = Time.time - startedAt;
             telemetry.exported_at_utc = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture);
             string path = ResolveTelemetryPath();
@@ -342,7 +414,14 @@ namespace GameConfig.Runtime
             File.WriteAllText(path, JsonUtility.ToJson(telemetry, true));
             message = $"Run {status}. Telemetry: {path}";
             Debug.Log(message);
-            if (autoRun) Application.Quit(status == "completed" ? 0 : 1);
+            if (autoRun) StartCoroutine(QuitAfterCleanup(status == "completed" ? 0 : 1));
+        }
+
+        private static IEnumerator QuitAfterCleanup(int exitCode)
+        {
+            yield return new WaitForEndOfFrame();
+            yield return null;
+            Application.Quit(exitCode);
         }
 
         private static string ResolveTelemetryPath()

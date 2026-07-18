@@ -36,3 +36,30 @@
 - Telemetry：completed，3 波，5 击败，27 次普攻，2 次技能，15.1531s。
 - FastAPI：GameConfig health 与 Quality Review health 均为 HTTP 200。
 - 仓库清洁：通过。
+
+## 2026-07-18 Milestone 1
+
+### 已完成
+
+- 新增版本化测试画像 `starter_trial_baseline.json`，固定 seed `20260718`。
+- Unity 场地改为圆形灰盒竞技场，角色移动按圆形边界约束。
+- 新增自动/手动运行模式和 seed 参数解析。
+- 自动战斗迁移到 `FixedUpdate()` 固定步长，手动输入保持原路径。
+- telemetry 新增 run mode、seed、simulation ticks 和三波明细。
+- 新增 Python Testbed Evaluator、CLI 和 3 项单元测试。
+- smoke 脚本改为同 seed 双跑并生成 JSON/Markdown 可重复性报告。
+- 修复 Unity 完成运行后立即退出导致的偶发访问冲突。
+
+### 当前验证
+
+- 两次结果：999 ticks、3 波、5 击败、30 普攻、1 技能、1700 伤害、268 承伤、16.6333s。
+- Python：94 passed，1 warning。
+- Web：Vite production build 通过，3.46s。
+- Unity：Windows Development Build、固定种子双跑和分波次 telemetry 通过。
+- Testbed Evaluation：10/10，通过率 100%，两次通关时间差 0s。
+- FastAPI 实进程：`/api/health` 与 `/api/quality/health` 均为 HTTP 200。
+- 仓库清洁与两个旧来源目录 SHA256：通过。
+
+### 最终状态
+
+`Milestone 1 complete。下一阶段为 Milestone 2 灵梦角色表现层。`

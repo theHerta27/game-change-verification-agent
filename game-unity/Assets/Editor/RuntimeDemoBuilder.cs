@@ -18,6 +18,7 @@ namespace GameConfig.Editor
         public static void ConfigureProject()
         {
             ValidateCombatRangePolicy();
+            ValidateRuntimeRunSettings();
             EnsurePlaceholderPrefab();
             ValidateCharacterViewResolver();
             Directory.CreateDirectory("Assets/Scenes");
@@ -42,6 +43,18 @@ namespace GameConfig.Editor
             if (CombatRangePolicy.IsInRange(origin, new Vector3(3.21f, 1, 0), 3.2f))
                 throw new BuildFailedException("Combat range boundary smoke failed at distance 3.21.");
             Debug.Log("Combat range smoke passed: 0, 1.0, and 3.2 hit; 3.21 misses.");
+        }
+
+        private static void ValidateRuntimeRunSettings()
+        {
+            RuntimeRunSettings defaults = RuntimeRunSettings.FromArgs(new string[0]);
+            if (defaults.AutoRun || defaults.RandomSeed != RuntimeRunSettings.DefaultSeed || defaults.RunMode != "manual")
+                throw new BuildFailedException("Runtime run settings default smoke failed.");
+
+            RuntimeRunSettings automatic = RuntimeRunSettings.FromArgs(new[] { "--auto-run", "--seed", "42" });
+            if (!automatic.AutoRun || automatic.RandomSeed != 42 || automatic.RunMode != "auto")
+                throw new BuildFailedException("Runtime run settings argument smoke failed.");
+            Debug.Log("Runtime run settings smoke passed for manual defaults and seeded auto mode.");
         }
 
         private static void EnsurePlaceholderPrefab()

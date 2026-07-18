@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0：单仓库迁移与集成已完成。** 当前下一阶段为 Milestone 1 灰盒自动战斗测试床。本轮没有新增 Boss、Roguelite 构筑或自动代码修改。
+**Milestone 0 单仓库迁移与 Milestone 1 灰盒自动战斗测试床已完成。** 当前测试床能够对同一配置执行固定种子双跑，并输出可重复性证据。本阶段没有新增 Boss、Roguelite 构筑或自动代码修改。
 
 ## 当前组成
 
@@ -51,6 +51,24 @@ D:\Desktop\agentic-game-rd\game-unity
 ```
 
 项目锁定 Unity `6000.3.19f1`。没有本地灵梦模型时使用仓库内占位角色；本地模型后续通过 `CharacterViewResolver` 动态替换，不改变战斗逻辑。
+
+### 灰盒自动战斗测试床
+
+测试画像位于 `scenarios/milestone1/starter_trial_baseline.json`，固定场景、随机种子和验收指标。运行：
+
+```powershell
+cd D:\Desktop\agentic-game-rd
+.\scripts\smoke-unity.ps1
+```
+
+脚本会构建一次 Unity Windows Player，使用同一 seed 自动运行两次，并在 `runtime-artifacts/unity-smoke/` 生成：
+
+- `telemetry.json`
+- `telemetry_repeat.json`
+- `testbed_evaluation.json`
+- `testbed_evaluation_report.md`
+
+该证据证明自动测试可重复，不等同于真实玩家体验或统计学平衡结论。详细说明见 `docs/MILESTONE1_GREYBOX_TESTBED.md`。
 
 ## 验证
 

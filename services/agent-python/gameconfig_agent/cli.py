@@ -14,6 +14,7 @@ from gameconfig_agent.blackboard import create_blackboard, record_trace
 from gameconfig_agent.data.design_reference import BALANCE_POLICY_LOOKUP
 from gameconfig_agent.data.evaluation_dataset import EVALUATION_DATASET
 from gameconfig_agent.env_loader import load_dotenv
+from gameconfig_agent.milestone1_testbed import evaluate_testbed_files
 from gameconfig_agent.phase3_benchmark import run_phase3_benchmark
 from gameconfig_agent.real_run import export_real_run, failed_evaluation_result, make_provider, run_real_evaluation
 from gameconfig_agent.runtime_contract import export_runtime_contract
@@ -368,6 +369,15 @@ def main(argv: list[str] | None = None) -> int:
     unity_evaluation_parser.add_argument("--telemetry", required=True, help="Unity telemetry JSON path.")
     unity_evaluation_parser.add_argument("--output", required=True, help="Runtime evaluation output directory.")
 
+    testbed_parser = subparsers.add_parser(
+        "evaluate_milestone1_testbed",
+        help="Evaluate two fixed-seed Unity greybox runs for repeatability.",
+    )
+    testbed_parser.add_argument("--profile", required=True, help="Milestone 1 test profile JSON path.")
+    testbed_parser.add_argument("--telemetry", required=True, help="Primary Unity telemetry JSON path.")
+    testbed_parser.add_argument("--repeat-telemetry", required=True, help="Repeated Unity telemetry JSON path.")
+    testbed_parser.add_argument("--output", required=True, help="Testbed evaluation output directory.")
+
     args = parser.parse_args(argv)
     if args.command == "run_demo":
         blackboard = run_phase0_demo(args.input, args.output)
@@ -392,6 +402,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "evaluate_unity_runtime":
         result = evaluate_runtime_files(args.contract, args.telemetry, args.output)
         print(f"Unity runtime target pass rate: {result['runtime_target_pass_rate']:.1%}")
+        return 0 if result["passed"] else 1
+    if args.command == "evaluate_milestone1_testbed":
+        result = evaluate_testbed_files(
+            args.profile,
+            args.telemetry,
+            args.repeat_telemetry,
+            args.output,
+        )
+        print(f"Milestone 1 testbed repeatability rate: {result['repeatability_rate']:.1%}")
         return 0 if result["passed"] else 1
     return 2
 

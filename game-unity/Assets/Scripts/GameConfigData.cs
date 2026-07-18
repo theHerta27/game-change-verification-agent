@@ -44,6 +44,10 @@ namespace GameConfig.Runtime
         public string scenario_id;
         public string contract_version;
         public string status;
+        public string run_mode;
+        public int random_seed;
+        public int frame_count;
+        public int simulation_ticks;
         public int waves_completed;
         public int enemies_defeated;
         public int basic_attacks;
@@ -55,5 +59,20 @@ namespace GameConfig.Runtime
         public int final_attack;
         public float completion_time_seconds;
         public string exported_at_utc;
+        public WaveRuntimeTelemetry[] wave_results;
+    }
+
+    [Serializable]
+    public sealed class WaveRuntimeTelemetry
+    {
+        public int wave;
+        public string enemy_id;
+        public int enemies_spawned;
+        public int enemies_defeated;
+        public int basic_attacks;
+        public int skill_uses;
+        public int damage_dealt;
+        public int damage_taken;
+        public float duration_seconds;
     }
 }
