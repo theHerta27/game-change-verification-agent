@@ -44,6 +44,8 @@ class CodeWorkflowService:
         diff_text: str,
         provider: str = "mock",
         timeout_seconds: int = 60,
+        source: str = "human",
+        generation_evidence: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         title = title.strip()
         change_reason = change_reason.strip()
@@ -51,17 +53,22 @@ class CodeWorkflowService:
             raise ValueError("title, change_reason, and diff_text must not be blank.")
         if provider not in {"mock", "openai_compatible"}:
             raise ValueError(f"Unsupported provider: {provider}")
+        if source not in {"human", "code_change_agent"}:
+            raise ValueError(f"Unsupported patch source: {source}")
 
         workflow_id = _new_workflow_id()
         workflow_dir = self.workflows_dir / workflow_id
         workflow_dir.mkdir(parents=True, exist_ok=False)
         (workflow_dir / "candidate.patch").write_text(diff_text, encoding="utf-8")
         (workflow_dir / "change_reason.txt").write_text(change_reason, encoding="utf-8")
+        if generation_evidence is not None:
+            _write_json(workflow_dir / "code_generation.json", generation_evidence)
         now = _utc_now()
         manifest: dict[str, Any] = {
             "workflow_id": workflow_id,
             "title": title,
             "provider": provider,
+            "source": source,
             "model": None,
             "status": "reviewing",
             "created_at": now,
@@ -72,7 +79,8 @@ class CodeWorkflowService:
             "error": None,
             "timeline": [],
         }
-        self._event(manifest, "Human C# diff submitted", "completed", {"provider": provider})
+        submission_step = "Code Change Agent candidate submitted" if source == "code_change_agent" else "Human C# diff submitted"
+        self._event(manifest, submission_step, "completed", {"provider": provider})
         self._write_manifest(workflow_dir, manifest)
 
         gate = inspect_csharp_patch(diff_text, self.repository_root)
@@ -261,6 +269,7 @@ class CodeWorkflowService:
         response["quality_review"] = _read_json_if_exists(workflow_dir / "quality_review.json")
         response["isolated_apply"] = _read_json_if_exists(workflow_dir / "isolated_apply.json")
         response["validation_result"] = validation_result
+        response["code_generation"] = _read_json_if_exists(workflow_dir / "code_generation.json")
         response["available_artifacts"] = [
             {"name": path.name, "size": path.stat().st_size}
             for path in sorted(workflow_dir.iterdir())
@@ -275,6 +284,7 @@ class CodeWorkflowService:
             "patch_safety_gate.json",
             "quality_review.json",
             "quality_review_report.md",
+            "code_generation.json",
             "isolated_apply.json",
             "validation_result.json",
             "validation_console.log",

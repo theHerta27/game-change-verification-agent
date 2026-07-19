@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0 单仓库迁移、Milestone 1 灰盒测试床、Milestone 2 灵梦表现层、Milestone 3A 配置变更闭环和 Milestone 3B 人工 C# Diff 质量闭环均已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色。
+**Milestone 0–4 已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色；受控 Code Change Agent 只生成候选补丁，必须经过人工审批与隔离 Unity 验证。
 
 ## 当前组成
 
@@ -34,6 +34,7 @@ cd D:\Desktop\agentic-game-rd
 - 质量审查：`POST /api/quality/review`
 - 配置变更提案：`POST /api/change-workflows`
 - 人工 C# Diff 提案：`POST /api/code-workflows`
+- Code Change Agent 候选生成：`POST /api/code-change-agent/proposals`
 
 ## 启动前端
 
@@ -68,6 +69,8 @@ cd D:\Desktop\agentic-game-rd
 Mock 不会自由创作配置：它从已提交的 Training Sword 基线出发，只应用能力清单内的明确约束。真实 Provider 仍必须经过相同的静态校验、人工审批和 Unity 运行证据。详见 `docs/MILESTONE3A_CONFIG_CHANGE_WORKFLOW.md`。
 
 开发者调试视图另提供人工 C# Diff 闭环：安全门和 Quality Review Agent 审查开发者写好的补丁，批准后只在 `runtime-artifacts/code-workflows` 的 Unity 副本中应用和验证。“接受”不会自动合并主仓库。详见 `docs/MILESTONE3B_CSHARP_DIFF_WORKFLOW.md`。
+
+Milestone 4 在这条闭环前增加受控候选生成：开发者显式选择最多 3 个运行时 C# 文件，Agent 只能基于这些文件返回结构化候选 Diff；默认 Mock 只支持一个空参数保护 recipe。详见 `docs/MILESTONE4_CONTROLLED_CODE_CHANGE_AGENT.md`。
 
 ## Unity
 
@@ -129,7 +132,7 @@ cd D:\Desktop\agentic-game-rd
 ## 当前边界
 
 - 不使用 DevQuality 旧 Go 后端、旧前端、PostgreSQL 或 Redis。
-- 不实现 Code Change Agent。
+- Code Change Agent 只生成候选 Diff，不能读取未授权文件、写主仓库或自动合并。
 - 人工 C# Diff 只在审批后的隔离 Unity 副本中应用，系统不自动生成或合并补丁。
 - 配置候选只写入 `runtime-artifacts/change_workflows` 和独立 Unity run，不覆盖已提交基线。
 - 不公开分发灵梦模型、贴图或本地音频。

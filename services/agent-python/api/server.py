@@ -14,7 +14,7 @@ from agent_service.agents.single_agent import run_single_agent
 from agent_service.schemas import ReviewRequest, ReviewResponse
 from gameconfig_agent.runtime_runs import RuntimeRunService
 from gameconfig_agent.server import create_app
-from workflow import ChangeWorkflowService, CodeWorkflowService
+from workflow import ChangeWorkflowService, CodeWorkflowService, CodeChangeAgentService
 
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
@@ -70,11 +70,19 @@ class CodeWorkflowDecisionRequest(BaseModel):
     note: str = Field(..., min_length=1)
 
 
+class CodeChangeProposalRequest(BaseModel):
+    requirement_text: str = Field(..., min_length=1)
+    target_files: list[str] = Field(..., min_length=1, max_length=3)
+    provider: str = Field("mock", pattern="^(mock|openai_compatible)$")
+    timeout_seconds: int = Field(60, ge=5, le=300)
+
+
 def create_unified_app(
     *,
     runtime_run_service: RuntimeRunService | None = None,
     change_workflow_service: ChangeWorkflowService | None = None,
     code_workflow_service: CodeWorkflowService | None = None,
+    code_change_agent_service: CodeChangeAgentService | None = None,
 ):
     runtime_runs = runtime_run_service or RuntimeRunService(
         project_root=REPOSITORY_ROOT,
@@ -89,6 +97,11 @@ def create_unified_app(
     code_workflows = code_workflow_service or CodeWorkflowService(
         repository_root=REPOSITORY_ROOT,
         workflows_dir=RUNTIME_ARTIFACTS_DIR / "code_workflows",
+    )
+    code_change_agent = code_change_agent_service or CodeChangeAgentService(
+        repository_root=REPOSITORY_ROOT,
+        proposals_dir=RUNTIME_ARTIFACTS_DIR / "code_change_agent",
+        code_workflows=code_workflows,
     )
     application = create_app(runtime_run_service=runtime_runs)
     application.title = "Agentic Game R&D Lab API"
@@ -270,6 +283,29 @@ def create_unified_app(
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return PlainTextResponse(path.read_text(encoding="utf-8-sig"))
+
+    @application.get("/api/code-change-agent/capabilities")
+    def code_change_capabilities() -> dict[str, Any]:
+        return code_change_agent.capabilities()
+
+    @application.post("/api/code-change-agent/proposals")
+    def create_code_change_proposal(request: CodeChangeProposalRequest) -> dict[str, Any]:
+        try:
+            return code_change_agent.propose(
+                requirement_text=request.requirement_text,
+                target_files=request.target_files,
+                provider=request.provider,
+                timeout_seconds=request.timeout_seconds,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @application.get("/api/code-change-agent/proposals/{proposal_id}")
+    def get_code_change_proposal(proposal_id: str) -> dict[str, Any]:
+        try:
+            return code_change_agent.get(proposal_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     return application
 

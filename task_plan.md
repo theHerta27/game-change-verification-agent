@@ -13,7 +13,7 @@
 | Milestone 2 | 灵梦角色表现层 | complete |
 | Milestone 3A | 配置变更闭环 | complete |
 | Milestone 3B | 人工 C# Diff 质量闭环 | complete |
-| Post-MVP | 受控 Code Change Agent | deferred |
+| Milestone 4 | 受控 Code Change Agent | complete |
 
 ## Milestone 3A：配置变更闭环
 
@@ -77,6 +77,30 @@
 ### 当前阶段
 
 `Milestone 3B complete。Post-MVP Code Change Agent 保持 deferred，需单独确认后才进入。`
+
+## Milestone 4：受控 Code Change Agent
+
+### 目标
+
+- [x] 接收开发者代码变更需求和显式目标文件，不让模型自行浏览整个仓库。
+- [x] 新增 Code Change Feasibility Gate；Mock 只支持确定性的运行参数空值保护 recipe。
+- [x] 新增 Code Change Generator Prompt Contract，真实 Provider 只能返回结构化 JSON 和 unified diff。
+- [x] 对 JSON 解析、输出契约、目标文件越界和 Patch Safety Gate 失败记录 badcase。
+- [x] 生成候选 Diff 后复用 Milestone 3B 的质量审查、人工审批、隔离应用和 Unity 验证。
+- [x] Web Console 开发者视图展示“需求 -> Agent 候选 Diff -> 受控审查闭环”，策划视图保持不变。
+- [x] 完成 Python、Web、Unity、浏览器和仓库清洁回归。
+
+### 状态与边界
+
+- Agent 只生成候选补丁；`patch_applied_to_repository` 仍始终为 `false`。
+- 默认 Provider 为 deterministic Mock；Mock 固定 recipe 必须明确标注，不能宣称理解任意 C# 需求。
+- 真实 Provider 只能读取用户显式选择的最多 3 个 `game-unity/Assets/Scripts/*.cs` 文件。
+- 不新增玩法，不开放 `Assets/Editor`、第三方本地资产、网络、进程、原生调用、文件删除或主仓库写权限。
+- 生成层不复制审批、Validator 或 Unity Tool；所有候选必须进入既有 `/api/code-workflows` 闭环。
+
+### 当前阶段
+
+`Milestone 4 complete。下一阶段应先建设代码变更 benchmark 与失败分类，不扩大 Agent 写权限。`
 
 ## Milestone 0：单仓库迁移与集成
 

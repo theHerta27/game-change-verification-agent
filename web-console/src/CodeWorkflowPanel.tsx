@@ -8,7 +8,7 @@ type Language = 'zh' | 'en';
 type Provider = 'mock' | 'openai_compatible';
 type Finding = { severity: string; category: string; title: string; evidence: string; suggestion: string; file_path: string; line_number: number };
 type CodeWorkflow = {
-  workflow_id: string; title: string; status: string; provider: string; model?: string | null;
+  workflow_id: string; title: string; status: string; provider: string; model?: string | null; source?: 'human' | 'code_change_agent';
   patch_safety_gate?: { passed: boolean; file_count: number; changed_line_count: number; errors: Array<{ rule_id: string; message: string; path?: string; line?: number }> } | null;
   quality_review?: { findings: Finding[]; test_suggestions: Array<{ test_name: string; description: string }>; validation_errors: string[] } | null;
   isolated_apply?: { changed_paths: string[]; baseline_unchanged: boolean } | null;
@@ -36,6 +36,7 @@ const safePatch = `diff --git a/game-unity/Assets/Scripts/RuntimeRunSettings.cs 
 const copy = {
   zh: {
     title: '人工 C# Diff 质量闭环', subtitle: '开发者提交候选补丁，系统负责安全审查和隔离验证；Agent 不生成补丁，也不会修改主仓库。',
+    agentTitle: 'Agent 候选 Diff 质量闭环', agentSubtitle: '上方 Agent 已生成候选补丁；本区域使用确定性安全门、质量审查、人工审批和隔离 Unity 验证，仍不会修改主仓库。',
     patchTitle: '变更标题', reason: '变更原因', patch: 'Unified Diff', create: '提交补丁并审查', reviewing: '正在审查',
     status: '当前状态', safety: '补丁安全门', quality: '质量审查', tests: '建议验证', approveTitle: '人工审批',
     approver: '审批人', note: '审批说明', approve: '批准进入隔离验证', prepare: '创建隔离 Unity 工作区', validate: '运行 Unity 验证',
@@ -48,6 +49,7 @@ const copy = {
   },
   en: {
     title: 'Human C# Diff Quality Loop', subtitle: 'A developer submits a candidate patch. The system reviews and validates it in isolation; the Agent neither writes the patch nor modifies the repository.',
+    agentTitle: 'Agent Candidate Diff Quality Loop', agentSubtitle: 'The Agent proposed the patch above. Deterministic safety gates, review, approval, and isolated Unity validation still apply, and the repository remains unchanged.',
     patchTitle: 'Change title', reason: 'Change reason', patch: 'Unified Diff', create: 'Submit and review patch', reviewing: 'Reviewing',
     status: 'Status', safety: 'Patch safety gate', quality: 'Quality review', tests: 'Suggested validation', approveTitle: 'Human approval',
     approver: 'Approver', note: 'Approval note', approve: 'Approve isolated validation', prepare: 'Create isolated Unity workspace', validate: 'Run Unity validation',
@@ -65,7 +67,7 @@ const statuses: Record<Language, Record<string, string>> = {
   en: { reviewing: 'Reviewing', proposed: 'Awaiting approval', approved: 'Approved', workspace_prepared: 'Workspace ready', validation_running: 'Unity validation running', evidence_ready: 'Evidence ready', accepted: 'Accepted for manual merge', revision_requested: 'Revision requested', rolled_back: 'Rolled back', rejected: 'Blocked', failed: 'Validation failed' },
 };
 
-export function CodeWorkflowPanel({ language, provider, timeoutSeconds }: { language: Language; provider: Provider; timeoutSeconds: number }) {
+export function CodeWorkflowPanel({ language, provider, timeoutSeconds, loadWorkflowId }: { language: Language; provider: Provider; timeoutSeconds: number; loadWorkflowId?: string | null }) {
   const t = copy[language];
   const [title, setTitle] = useState(language === 'zh' ? '运行参数空值保护' : 'Runtime argument null guard');
   const [reason, setReason] = useState(language === 'zh' ? '为运行参数解析增加明确失败路径，不改变玩法。' : 'Add an explicit failure path without changing gameplay.');
@@ -77,6 +79,13 @@ export function CodeWorkflowPanel({ language, provider, timeoutSeconds }: { lang
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [artifact, setArtifact] = useState('');
+  const agentCandidate = workflow?.source === 'code_change_agent';
+
+  useEffect(() => {
+    if (!loadWorkflowId) return;
+    setBusy('load'); setError('');
+    request(`/api/code-workflows/${loadWorkflowId}`).then(setWorkflow).catch((cause) => setError(String(cause))).finally(() => setBusy(''));
+  }, [loadWorkflowId]);
 
   useEffect(() => {
     if (workflow?.status !== 'validation_running') return;
@@ -103,7 +112,7 @@ export function CodeWorkflowPanel({ language, provider, timeoutSeconds }: { lang
 
   return <section className="rounded-md border border-line bg-panel p-5 shadow-sm">
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><div className="flex items-center gap-2"><FileCode2 className="h-5 w-5 text-run"/><h2 className="text-lg font-semibold">{t.title}</h2></div><p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{t.subtitle}</p></div>
+      <div><div className="flex items-center gap-2"><FileCode2 className="h-5 w-5 text-run"/><h2 className="text-lg font-semibold">{agentCandidate ? t.agentTitle : t.title}</h2></div><p className="mt-2 max-w-4xl text-sm leading-6 text-slate-400">{agentCandidate ? t.agentSubtitle : t.subtitle}</p></div>
       {workflow && <div className="rounded-md border border-line bg-slate-950 px-3 py-2 text-sm"><span className="text-slate-400">{t.status}: </span><strong className="text-run">{statuses[language][workflow.status] ?? workflow.status}</strong></div>}
     </div>
 

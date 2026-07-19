@@ -7,6 +7,7 @@ import {
 import './styles.css';
 import { ChangeWorkflowPanel } from './ChangeWorkflowPanel';
 import { CodeWorkflowPanel } from './CodeWorkflowPanel';
+import { CodeChangeAgentPanel } from './CodeChangeAgentPanel';
 
 const API_BASE = '';
 type Language = 'zh' | 'en';
@@ -237,6 +238,7 @@ function App() {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
+  const [generatedCodeWorkflowId, setGeneratedCodeWorkflowId] = useState<string | null>(null);
   const t = copy[language];
 
   useEffect(() => {
@@ -387,7 +389,8 @@ function App() {
     </div> : <div className="mx-auto grid max-w-[1800px] grid-cols-1 gap-4 p-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
       <aside className="space-y-4">{controls}<Panel title={t.workflowSummary} icon={<Activity className="h-4 w-4"/>}><KeyValue data={demo?.workflow_summary ?? { status: t.emptySummary }} language={language}/></Panel></aside>
       <section className="space-y-4">
-        <CodeWorkflowPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds}/>
+        <CodeChangeAgentPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds} onGenerated={setGeneratedCodeWorkflowId}/>
+        <CodeWorkflowPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds} loadWorkflowId={generatedCodeWorkflowId}/>
         <GuidedRuntimePanel language={language} selectedCase={selectedCase} provider={provider} demo={demo}
           runtimeRun={runtimeRun} loading={loading} onPrepare={prepareRuntimeRun} onLaunch={launchRuntimeRun}
           onArtifact={loadRuntimeArtifact}/>

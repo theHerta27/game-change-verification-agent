@@ -165,3 +165,38 @@
 ### 最终状态
 
 `Milestone 3B complete。Post-MVP Code Change Agent 保持 deferred，等待单独范围确认。`
+
+## 2026-07-19 Milestone 4
+
+### 已完成
+
+- 新增 Code Change Agent Prompt Contract，输出固定为 summary、assumptions、target_files 和 unified diff。
+- 新增目标文件最小权限清单，最多读取 3 个 `Assets/Scripts` C# 文件。
+- 新增 deterministic Mock 空参数保护 recipe，其他 Mock 需求返回 needs_clarification。
+- 新增真实 OpenAI Compatible 候选生成、JSON/字段/目标范围校验和 badcase 落盘。
+- 候选 Diff 自动进入 Milestone 3B Patch Safety Gate、Quality Review 和人工审批闭环。
+- FastAPI 新增 capabilities、proposal create/get 接口。
+- Web Console 开发者视图新增受控 Code Change Agent，并自动把成功候选载入下方 C# Diff 闭环。
+- 保留人工粘贴 Diff 的能力，策划视图不显示代码生成入口。
+
+### 当前验证
+
+- Python：126 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：1581 modules transformed，通过；CSS 21.45 kB，JS 288.15 kB。
+- 浏览器 Mock 闭环：候选生成、确定性安全门、质量审查、人工批准和隔离工作区准备通过。
+- 隔离 Unity 候选验证：Windows Build、编辑器 smoke、两次固定 seed Player 自动试玩均通过。
+- 隔离候选证据：repeatability 100%，runtime target pass rate 60%，主仓库 `RuntimeRunSettings.cs` 未被修改。
+- 响应式：390px 视口无页面级横向溢出，浏览器控制台无错误。
+
+### 最终验收
+
+- `scripts/test-all.ps1`：通过。
+- Python：126 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web：production build 通过。
+- Unity：主工程固定种子回归、灵梦表现层、Placeholder 回退和隔离候选验证全部通过。
+- 仓库清洁与两个旧来源 SHA256：通过。
+- 真实 OpenAI Compatible Provider 未消耗真实额度做 smoke；结构化契约、越界拒绝和 badcase 路径由 fake provider 自动测试覆盖。
+
+### 最终状态
+
+`Milestone 4 complete。下一步优先建立代码变更 benchmark、失败分类与可比较指标，不继续扩大 Agent 权限。`

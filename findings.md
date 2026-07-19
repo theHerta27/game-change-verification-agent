@@ -65,3 +65,16 @@
 - Windows PowerShell 5 的 `Set-Content -Encoding UTF8` 会写 BOM，Python 工作流必须用 `utf-8-sig` 读取外部 JSON。
 - 沙箱内 Unity 仍无法获得 Hub entitlement，沙箱外同一隔离工程通过，说明许可证与项目有效；脚本需要把该情况归类为许可证令牌问题。
 - 真实隔离 smoke 的固定种子重复性为 100%，运行目标通过率为 60%。前者证明代码回归稳定，后者继续暴露 Training Sword 当前平衡目标偏差，两者不能混为一个指标。
+
+## 2026-07-19 Milestone 4
+
+- Code Change Agent 不需要复制 Milestone 3B 状态机；最小正确实现是在人工 Diff 闭环前增加“受限上下文 -> 候选 Diff”生成层。
+- 浏览器实际闭环证明候选生成层可以复用同一套确定性安全门、质量审查和人工门禁；生成来源通过 `source=code_change_agent` 单独标识，避免把 Agent 输出误认为人工补丁。
+- 隔离补丁 Unity 验证通过且主仓库源文件无 diff，说明当前“模型只提议、隔离副本执行”的权限边界有效。
+- 当前真实 Provider 的最大缺口不是更多文件权限，而是缺少带预期补丁、拒绝样本和 Unity 结果的代码变更 benchmark。下一步应先量化生成质量和失败类型。
+- 自动检索整个仓库会扩大提示词、权限和错误归因范围。本阶段由开发者显式选择最多 3 个运行时 C# 文件，更适合作为可解释的最小权限原型。
+- 生成 Provider 与质量审查 Provider 应分离：真实模型负责提出候选，确定性规则和 Mock Review 负责稳定门禁，避免一次模型调用同时充当作者和批准者。
+- Mock 只有固定 recipe 时必须返回 `needs_clarification` 处理其他需求；用固定补丁响应任意需求会制造虚假的 Agent 能力。
+- 真实模型即使返回合法 JSON，也可能声明或实际修改未授权文件；必须同时检查 `target_files` 字段和 unified diff 中的真实路径。
+- 代码生成失败不是接口异常：JSON parse、Prompt Contract、目标范围和 Patch Safety Gate 失败都应形成含原始输出的 badcase。
+- 当前允许列表不包含 `Assets/Editor`，是为了防止候选补丁改变构建/校验器本身；被测运行时代码和测试工具必须保持权限分离。
