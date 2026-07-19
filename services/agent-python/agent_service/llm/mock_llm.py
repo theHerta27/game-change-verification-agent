@@ -64,6 +64,8 @@ def _finding_from_hint(hint: StaticHint) -> dict:
         "error_handling": "错误处理不完整",
         "sql_injection": "SQL 查询使用动态字符串构造",
         "security": "引入了动态代码执行",
+        "performance": "引入了每帧性能风险",
+        "determinism": "破坏了固定种子可重复性",
     }
     suggestion_by_category = {
         "timeout_missing": "使用带显式超时的客户端或调用参数，并覆盖超时行为。",
@@ -71,6 +73,8 @@ def _finding_from_hint(hint: StaticHint) -> dict:
         "error_handling": "显式检查错误，并返回或处理该错误。",
         "sql_injection": "使用参数化查询，不要拼接或格式化 SQL 字符串。",
         "security": "避免 eval/exec，改用显式解析或分发逻辑。",
+        "performance": "把 I/O、全局查找和对象创建移出每帧回调，并缓存依赖。",
+        "determinism": "使用工作流传入的固定种子和确定性随机源，并增加双跑一致性测试。",
     }
     severity_by_category = {
         "timeout_missing": "medium",
@@ -78,6 +82,8 @@ def _finding_from_hint(hint: StaticHint) -> dict:
         "error_handling": "medium",
         "sql_injection": "high",
         "security": "critical",
+        "performance": "high",
+        "determinism": "high",
     }
     return {
         "file_path": hint.file_path,

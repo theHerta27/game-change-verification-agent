@@ -32,13 +32,14 @@ REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
 OUTPUTS_DIR = Path(
     os.environ.get("AGENTIC_GAME_RD_RUNTIME_DIR", REPOSITORY_ROOT / "runtime-artifacts")
 )
-BACKEND_VERSION = "milestone3a-change-workflow"
+BACKEND_VERSION = "milestone3b-code-workflow"
 BACKEND_CAPABILITIES = {
     "real_provider_runtime_handoff": True,
     "runtime_run_polling": True,
     "planner_developer_views": True,
     "requirement_intake": True,
     "change_workflow": True,
+    "code_workflow": True,
 }
 
 

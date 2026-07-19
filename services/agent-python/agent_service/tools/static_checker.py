@@ -15,6 +15,8 @@ def run_static_checks(parsed_diff: ParsedDiff, language: str) -> list[StaticHint
         return _check_go(parsed_diff)
     if language == "python":
         return _check_python(parsed_diff)
+    if language in {"csharp", "cs", "c#"}:
+        return _check_csharp(parsed_diff)
     return []
 
 
@@ -200,3 +202,99 @@ def _check_python(parsed_diff: ParsedDiff) -> list[StaticHint]:
             )
 
     return hints
+
+
+def _check_csharp(parsed_diff: ParsedDiff) -> list[StaticHint]:
+    hints: list[StaticHint] = []
+
+    for file in parsed_diff.files:
+        current_method = ""
+        for line_number, raw_content in _file_lines(file):
+            content = raw_content.strip()
+            method_match = re.search(
+                r"\b(?:public|private|protected|internal)?\s*(?:static\s+)?(?:async\s+)?"
+                r"(?:void|[A-Za-z_][\w<>\[\],.?]*)\s+([A-Za-z_]\w*)\s*\(",
+                content,
+            )
+            if method_match:
+                current_method = method_match.group(1)
+            if line_number is None or not _is_added_line(file, line_number, raw_content):
+                continue
+
+            if re.search(r"\bProcess\.Start\s*\(|\bSystem\.Diagnostics\.Process\b|\bDllImport\s*\(", content):
+                hints.append(
+                    _hint(
+                        "csharp_external_execution",
+                        "csharp",
+                        file.new_path,
+                        line_number,
+                        "security",
+                        "C# patch introduces process or native-code execution",
+                        content,
+                        confidence=0.97,
+                    )
+                )
+
+            if re.search(r"\bcatch\s*\(\s*Exception(?:\s+\w+)?\s*\)", content) or re.match(r"catch\s*\{", content):
+                hints.append(
+                    _hint(
+                        "csharp_broad_catch",
+                        "csharp",
+                        file.new_path,
+                        line_number,
+                        "error_handling",
+                        "Broad exception handling can hide Unity runtime failures",
+                        content,
+                    )
+                )
+
+            if current_method in {"Update", "FixedUpdate", "LateUpdate"}:
+                if re.search(r"\b(?:File|Directory)\.(?:Read|Write|Open|Create)|\bResources\.Load|\bGameObject\.Find", content):
+                    hints.append(
+                        _hint(
+                            "csharp_per_frame_io_or_lookup",
+                            "csharp",
+                            file.new_path,
+                            line_number,
+                            "performance",
+                            "Per-frame I/O or global lookup can cause frame-time spikes",
+                            content,
+                        )
+                    )
+                if re.search(r"\b(?:Instantiate|Destroy)\s*\(", content):
+                    hints.append(
+                        _hint(
+                            "csharp_per_frame_allocation",
+                            "csharp",
+                            file.new_path,
+                            line_number,
+                            "performance",
+                            "Per-frame object creation or destruction can cause allocations and frame-time spikes",
+                            content,
+                        )
+                    )
+
+            if "UnityEngine.Random" in content and file.new_path.endswith("RuntimeDemoBootstrap.cs"):
+                hints.append(
+                    _hint(
+                        "csharp_unseeded_runtime_random",
+                        "csharp",
+                        file.new_path,
+                        line_number,
+                        "determinism",
+                        "Runtime demo introduces UnityEngine.Random outside the fixed-seed test contract",
+                        content,
+                    )
+                )
+
+    return hints
+
+
+def _is_added_line(file, line_number: int, content: str) -> bool:
+    return any(
+        line.line_type == "added"
+        and line.new_line_number == line_number
+        and line.content == content
+        for hunk in file.hunks
+        for line in hunk.lines
+    )

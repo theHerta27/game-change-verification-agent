@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0 单仓库迁移、Milestone 1 灰盒自动战斗测试床和 Milestone 2 灵梦角色表现层均已完成，Milestone 3A 配置变更闭环正在验收。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色。
+**Milestone 0 单仓库迁移、Milestone 1 灰盒测试床、Milestone 2 灵梦表现层、Milestone 3A 配置变更闭环和 Milestone 3B 人工 C# Diff 质量闭环均已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色。
 
 ## 当前组成
 
@@ -33,6 +33,7 @@ cd D:\Desktop\agentic-game-rd
 - 配置工作台 API：保留原 GameConfig 路由。
 - 质量审查：`POST /api/quality/review`
 - 配置变更提案：`POST /api/change-workflows`
+- 人工 C# Diff 提案：`POST /api/code-workflows`
 
 ## 启动前端
 
@@ -66,6 +67,8 @@ cd D:\Desktop\agentic-game-rd
 
 Mock 不会自由创作配置：它从已提交的 Training Sword 基线出发，只应用能力清单内的明确约束。真实 Provider 仍必须经过相同的静态校验、人工审批和 Unity 运行证据。详见 `docs/MILESTONE3A_CONFIG_CHANGE_WORKFLOW.md`。
 
+开发者调试视图另提供人工 C# Diff 闭环：安全门和 Quality Review Agent 审查开发者写好的补丁，批准后只在 `runtime-artifacts/code-workflows` 的 Unity 副本中应用和验证。“接受”不会自动合并主仓库。详见 `docs/MILESTONE3B_CSHARP_DIFF_WORKFLOW.md`。
+
 ## Unity
 
 在 Unity Hub 中添加：
@@ -88,7 +91,7 @@ cd D:\Desktop\agentic-game-rd
 .\scripts\smoke-reimu-presentation.ps1
 ```
 
-脚本使用 Blender `4.5.11 LTS` 与 MMD Tools `v4.5.10`，自动完成 PMX 导入、FBX 导出、Unity 材质绑定、本地 Prefab 创建、固定种子回归和截图像素检查。工具链、模型、FBX、贴图和 Prefab 都不会进入 Git。
+脚本使用 Blender `4.5.11 LTS` portable 与 MMD Tools `v4.5.10`，自动完成 PMX 导入、FBX 导出、Unity 材质绑定、本地 Prefab 创建、固定种子回归和截图像素检查。Portable 版本与安装版具备相同建模和转换功能，本项目不需要另装完整版。工具链、模型、FBX、贴图和 Prefab 都不会进入 Git。
 
 ### 灰盒自动战斗测试床
 
@@ -127,6 +130,7 @@ cd D:\Desktop\agentic-game-rd
 
 - 不使用 DevQuality 旧 Go 后端、旧前端、PostgreSQL 或 Redis。
 - 不实现 Code Change Agent。
+- 人工 C# Diff 只在审批后的隔离 Unity 副本中应用，系统不自动生成或合并补丁。
 - 配置候选只写入 `runtime-artifacts/change_workflows` 和独立 Unity run，不覆盖已提交基线。
 - 不公开分发灵梦模型、贴图或本地音频。
 - 单次 Unity 前后对比不宣称为统计学 A/B 实验。

@@ -76,4 +76,6 @@ def _category_label(category: str) -> str:
         "error_handling": "错误处理问题",
         "unsafe_eval": "不安全 eval/exec",
         "security": "安全风险",
+        "performance": "运行时性能风险",
+        "determinism": "可重复性风险",
     }.get(category, "其他风险")

@@ -85,3 +85,37 @@ def test_go_err_assigned_but_unused_should_trigger_ignored_err():
     rule_ids = {hint.rule_id for hint in _hints_from_text(diff, "go")}
 
     assert "go_ignored_err" in rule_ids
+
+
+def test_csharp_checker_detects_per_frame_io_and_external_execution():
+    diff = """diff --git a/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs b/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs
+--- a/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs
++++ b/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs
+@@ -10,3 +10,6 @@
+ private void Update()
+ {
++    string config = File.ReadAllText("config.json");
++    System.Diagnostics.Process.Start("cmd.exe");
+ }
+"""
+
+    rule_ids = {hint.rule_id for hint in _hints_from_text(diff, "csharp")}
+
+    assert "csharp_per_frame_io_or_lookup" in rule_ids
+    assert "csharp_external_execution" in rule_ids
+
+
+def test_csharp_checker_detects_unseeded_runtime_random():
+    diff = """diff --git a/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs b/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs
+--- a/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs
++++ b/game-unity/Assets/Scripts/RuntimeDemoBootstrap.cs
+@@ -10,3 +10,4 @@
+ private void SpawnWave()
+ {
++    int roll = UnityEngine.Random.Range(0, 10);
+ }
+"""
+
+    rule_ids = {hint.rule_id for hint in _hints_from_text(diff, "csharp")}
+
+    assert "csharp_unseeded_runtime_random" in rule_ids

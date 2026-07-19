@@ -12,14 +12,15 @@
 
 ## 当前阶段
 
-Milestone 3A 配置变更闭环已完成。下一阶段为 Milestone 3B 人工 C# Diff 质量闭环；统一 `workflow` 只负责确定性编排、人工门禁和证据持久化，不替代已有 Agent 与 Tool。
+Milestone 3B 人工 C# Diff 质量闭环已完成。Post-MVP Code Change Agent 保持 deferred；统一 `workflow` 只负责确定性编排、人工门禁、隔离应用和证据持久化，不替代已有 Agent 与 Tool。
 
 禁止：
 
 - 新增 Boss、构筑、掉落、养成或其他玩法内容。
 - 处理灵梦模型、动画、物理或正式美术表现。
 - 新增 Go 服务、数据库、Redis、Docker 或微服务。
-- 实现 Code Change Agent 或自动应用代码补丁。
+- 实现 Code Change Agent、让模型生成补丁，或向主仓库自动应用代码补丁。
+- 在隔离工作区之外应用候选 C# Diff，或绕过人工审批启动 Unity 验证。
 - 修改已有 GameConfig API、JSON artifact 和 Unity runtime contract 字段。
 - 绕过人工审批把候选配置直接送入 Unity，或覆盖已提交的 `game_config.json` 基线。
 - 提交 `.env`、密钥、第三方模型、贴图、音频、运行产物或构建缓存。

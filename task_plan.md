@@ -12,7 +12,7 @@
 | Milestone 1 | 灰盒自动战斗测试床 | complete |
 | Milestone 2 | 灵梦角色表现层 | complete |
 | Milestone 3A | 配置变更闭环 | complete |
-| Milestone 3B | 人工 C# Diff 质量闭环 | planned |
+| Milestone 3B | 人工 C# Diff 质量闭环 | complete |
 | Post-MVP | 受控 Code Change Agent | deferred |
 
 ## Milestone 3A：配置变更闭环
@@ -45,6 +45,38 @@
 ### 当前阶段
 
 `Milestone 3A complete。下一阶段为 Milestone 3B 人工 C# Diff 质量闭环。`
+
+## Milestone 3B：人工 C# Diff 质量闭环
+
+### 目标
+
+- [x] 接收开发者人工编写的 Unity C# unified diff，不由 Agent 自动生成或直接修改主仓库。
+- [x] 使用 Patch Safety Gate 限制路径、文件类型、变更规模和高风险 API，并输出结构化拒绝原因。
+- [x] 扩展 Quality Review Agent 的 C# 静态规则，生成 Finding 与 Test Suggestion。
+- [x] 增加人工批准门禁；未经批准的补丁不得创建隔离验证工作区。
+- [x] 在 `runtime-artifacts/code-workflows/` 复制最小 Unity 源工程并精确应用补丁，保证已提交基线不变。
+- [x] 对隔离工作区执行 Unity C# 编译/Windows Build、编辑器确定性 smoke、固定种子自动试玩和 telemetry 评测。
+- [x] 支持接受、要求修订和回滚三种最终决策，并保存补丁、审查、日志和运行证据。
+- [x] 在 Web Console 开发者视图提供补丁审查与验证流程，策划视图不暴露代码细节。
+- [x] 完成 Python、Web、Unity 和仓库清洁回归。
+
+### 状态机
+
+`proposed -> approved -> workspace_prepared -> validation_running -> evidence_ready -> accepted | revision_requested | rolled_back`
+
+`rejected` 和 `failed` 不得进入 Unity 验证；验证失败会保留日志和结构化失败证据，不修改主仓库。
+
+### 边界
+
+- 不实现 Code Change Agent，不让 LLM 生成或自动应用补丁，不新增游戏玩法。
+- 仅允许修改 `game-unity/Assets/**/*.cs` 中已存在的文件；禁止新增、删除、重命名、二进制补丁、路径穿越和超限变更。
+- 主仓库和已提交 Unity 基线始终只读；所有候选修改只进入 Git 忽略的隔离工作区。
+- 当前 Unity 工程没有 Unity Test Framework 套件。本阶段如实记录“编辑器确定性 smoke + 编译构建 + Player 自动试玩”，不虚构 EditMode/PlayMode 测试结果。
+- 保持现有 API、artifact 和 Unity runtime contract 兼容；Milestone 3B 使用新增命名空间。
+
+### 当前阶段
+
+`Milestone 3B complete。Post-MVP Code Change Agent 保持 deferred，需单独确认后才进入。`
 
 ## Milestone 0：单仓库迁移与集成
 

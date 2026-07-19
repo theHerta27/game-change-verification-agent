@@ -13,6 +13,8 @@ VALID_CATEGORIES = {
     "error_handling",
     "unsafe_eval",
     "security",
+    "performance",
+    "determinism",
 }
 
 

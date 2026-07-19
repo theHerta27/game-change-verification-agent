@@ -130,3 +130,38 @@
 ### 最终状态
 
 `Milestone 3A complete。下一阶段为 Milestone 3B 人工 C# Diff 质量闭环。`
+
+## 2026-07-19 Milestone 3B
+
+### 已完成
+
+- 新增 C# Patch Safety Gate，限制路径、文件生命周期、变更规模和危险 API。
+- 新增精确 hunk 应用器与最小 Unity 源工程复制器，主仓库修改文件前后 SHA256 保持一致。
+- DevQuality 静态规则新增 C# 性能、错误处理、安全和固定种子确定性检查。
+- 新增 `CodeWorkflowService` 文件状态机：提案、审批、隔离应用、后台 Unity 验证和最终人工决策。
+- FastAPI 新增 `/api/code-workflows` 命名空间，现有 API 不变。
+- Web Console 开发者视图新增“人工 C# Diff 质量闭环”，策划视图不显示代码补丁。
+- 新增安全补丁与危险补丁示例、Python/API 回归和中文说明文档。
+- 后台验证新增异常退出兜底，PowerShell BOM JSON 可正常读取。
+
+### 当前验证
+
+- Python 完整回归：118 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：1580 modules transformed，通过；CSS 21.05 kB，JS 277.48 kB。
+- 隔离 Unity C# Diff：Windows Build、编辑器确定性 smoke、两次固定 seed Player 自动试玩均通过。
+- Testbed repeatability：100%。
+- Runtime target pass rate：60%，作为既有配置效果证据保留，不误判为代码编译失败。
+- 主仓库 C# 基线未被候选补丁修改。
+
+### 最终验收
+
+- `scripts/test-all.ps1`：通过。
+- Python：118 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web：production build 通过；中文开发者视图完整走通提交、审查、审批和隔离准备，390px 无横向溢出，浏览器控制台无错误。
+- Unity：主工程灵梦表现/Placeholder 回退和固定种子双跑通过；隔离 C# 补丁 Windows Build、编辑器 smoke 和 Player 双跑通过。
+- 隔离补丁证据：repeatability 100%，runtime target pass rate 60%，主仓库基线未修改。
+- 仓库清洁与旧来源 SHA256：通过。
+
+### 最终状态
+
+`Milestone 3B complete。Post-MVP Code Change Agent 保持 deferred，等待单独范围确认。`

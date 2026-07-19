@@ -14,7 +14,7 @@ from agent_service.agents.single_agent import run_single_agent
 from agent_service.schemas import ReviewRequest, ReviewResponse
 from gameconfig_agent.runtime_runs import RuntimeRunService
 from gameconfig_agent.server import create_app
-from workflow import ChangeWorkflowService
+from workflow import ChangeWorkflowService, CodeWorkflowService
 
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
@@ -51,10 +51,30 @@ class ChangeWorkflowDecisionRequest(BaseModel):
     note: str = Field(..., min_length=1)
 
 
+class CodeWorkflowCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1)
+    change_reason: str = Field(..., min_length=1)
+    diff_text: str = Field(..., min_length=1)
+    provider: str = Field("mock", pattern="^(mock|openai_compatible)$")
+    timeout_seconds: int = Field(60, ge=5, le=300)
+
+
+class CodeWorkflowApprovalRequest(BaseModel):
+    approver: str = Field(..., min_length=1)
+    note: str = ""
+
+
+class CodeWorkflowDecisionRequest(BaseModel):
+    decision: str = Field(..., pattern="^(accept|revise|rollback)$")
+    actor: str = Field(..., min_length=1)
+    note: str = Field(..., min_length=1)
+
+
 def create_unified_app(
     *,
     runtime_run_service: RuntimeRunService | None = None,
     change_workflow_service: ChangeWorkflowService | None = None,
+    code_workflow_service: CodeWorkflowService | None = None,
 ):
     runtime_runs = runtime_run_service or RuntimeRunService(
         project_root=REPOSITORY_ROOT,
@@ -65,6 +85,10 @@ def create_unified_app(
         repository_root=REPOSITORY_ROOT,
         workflows_dir=RUNTIME_ARTIFACTS_DIR / "change_workflows",
         runtime_runs=runtime_runs,
+    )
+    code_workflows = code_workflow_service or CodeWorkflowService(
+        repository_root=REPOSITORY_ROOT,
+        workflows_dir=RUNTIME_ARTIFACTS_DIR / "code_workflows",
     )
     application = create_app(runtime_run_service=runtime_runs)
     application.title = "Agentic Game R&D Lab API"
@@ -163,6 +187,89 @@ def create_unified_app(
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return PlainTextResponse(path.read_text(encoding="utf-8"))
+
+    @application.post("/api/code-workflows")
+    def create_code_workflow(request: CodeWorkflowCreateRequest) -> dict[str, Any]:
+        try:
+            return code_workflows.create(
+                title=request.title,
+                change_reason=request.change_reason,
+                diff_text=request.diff_text,
+                provider=request.provider,
+                timeout_seconds=request.timeout_seconds,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @application.get("/api/code-workflows/{workflow_id}")
+    def get_code_workflow(workflow_id: str) -> dict[str, Any]:
+        try:
+            return code_workflows.get(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @application.post("/api/code-workflows/{workflow_id}/approve")
+    def approve_code_workflow(
+        workflow_id: str,
+        request: CodeWorkflowApprovalRequest,
+    ) -> dict[str, Any]:
+        try:
+            return code_workflows.approve(
+                workflow_id,
+                approver=request.approver,
+                note=request.note,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/code-workflows/{workflow_id}/workspace")
+    def prepare_code_workflow_workspace(workflow_id: str) -> dict[str, Any]:
+        try:
+            return code_workflows.prepare_workspace(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ValueError, FileNotFoundError, FileExistsError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/code-workflows/{workflow_id}/validate")
+    def validate_code_workflow(workflow_id: str) -> dict[str, Any]:
+        try:
+            return code_workflows.start_validation(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/code-workflows/{workflow_id}/decision")
+    def decide_code_workflow(
+        workflow_id: str,
+        request: CodeWorkflowDecisionRequest,
+    ) -> dict[str, Any]:
+        try:
+            return code_workflows.decide(
+                workflow_id,
+                decision=request.decision,
+                actor=request.actor,
+                note=request.note,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.get("/api/code-workflows/{workflow_id}/artifacts/{name}")
+    def code_workflow_artifact(workflow_id: str, name: str) -> PlainTextResponse:
+        try:
+            path = code_workflows.artifact(workflow_id, name)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return PlainTextResponse(path.read_text(encoding="utf-8-sig"))
 
     return application
 

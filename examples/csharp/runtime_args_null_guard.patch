@@ -1,0 +1,11 @@
+diff --git a/game-unity/Assets/Scripts/RuntimeRunSettings.cs b/game-unity/Assets/Scripts/RuntimeRunSettings.cs
+--- a/game-unity/Assets/Scripts/RuntimeRunSettings.cs
++++ b/game-unity/Assets/Scripts/RuntimeRunSettings.cs
+@@ -13,6 +13,8 @@ namespace GameConfig.Runtime
+         public static RuntimeRunSettings FromArgs(string[] args)
+         {
++            if (args == null)
++                throw new ArgumentNullException(nameof(args));
+             RuntimeRunSettings settings = new()
+             {
+                 AutoRun = Array.IndexOf(args, "--auto-run") >= 0,

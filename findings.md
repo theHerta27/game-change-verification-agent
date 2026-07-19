@@ -53,3 +53,15 @@
 - 只修改前端端口不能解决旧后端占用问题；Vite `/api` 代理也必须成对指向新后端端口。`start-web.ps1 -BackendPort` 现已显式完成该绑定。
 - Unity Hub 显示 Personal 许可证并不保证受限沙箱进程可以读取 Licensing Client entitlement；同一 smoke 在沙箱外通过，说明项目与许可证有效，失败来自进程隔离。
 - 完整闭环实测证明“静态校验通过”不等于策划目标通过：本次候选结构合法，但自动试玩约 16.63s，未达到 60–90s，最终被人工标记为需要修订。这正是 runtime evidence 的价值。
+
+## 2026-07-19 Milestone 3B
+
+- DevQuality 原静态规则只覆盖 Go/Python；C# Diff 可以复用 Parser、Finding、Test Suggestion 和 Validator 契约，但必须补充 Unity 特有的每帧 I/O、对象分配和固定种子风险规则。
+- 人工补丁与自动代码生成必须分开：本阶段的 Agent 只负责审查，补丁作者、审批人和最终合并者仍是人。
+- Unified diff 仅解析成功不代表可安全应用；必须同时校验路径、文件生命周期、变更规模、危险 API、审批后 SHA256 和 hunk 上下文。
+- 隔离工作区只复制 Unity 源目录，不复制缓存和本地第三方角色；这既缩小输入面，也证明没有灵梦本地资源时 Placeholder 回退仍成立。
+- Unity Test Framework 尚未接入，现有可靠证据是 C# 编译/Windows Build、编辑器确定性 smoke、Player 固定种子双跑和 telemetry；文档与 UI 不应将其称为 EditMode/PlayMode 测试。
+- 后台 PowerShell 在短生命周期父进程中可能退出且不留结果；长运行 FastAPI 能正常托管，但状态机仍需检测“进程已退出且无结果”并生成 `ValidationProcessError`。
+- Windows PowerShell 5 的 `Set-Content -Encoding UTF8` 会写 BOM，Python 工作流必须用 `utf-8-sig` 读取外部 JSON。
+- 沙箱内 Unity 仍无法获得 Hub entitlement，沙箱外同一隔离工程通过，说明许可证与项目有效；脚本需要把该情况归类为许可证令牌问题。
+- 真实隔离 smoke 的固定种子重复性为 100%，运行目标通过率为 60%。前者证明代码回归稳定，后者继续暴露 Training Sword 当前平衡目标偏差，两者不能混为一个指标。
