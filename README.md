@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0–5 已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色；受控 Code Change Agent 只生成候选补丁，必须经过人工审批与隔离 Unity 验证。
+**Milestone 0–6 已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色；受控 Code Change Agent 只生成候选补丁，必须经过人工审批与隔离 Unity 验证。首次 5 样本真实代码评测中，模型语义意图命中率为 100%，严格补丁应用率和候选就绪率为 60%。
 
 ## 当前组成
 
@@ -37,6 +37,11 @@ cd D:\Desktop\agentic-game-rd
 - Code Change Agent 候选生成：`POST /api/code-change-agent/proposals`
 - Code Change Benchmark 数据集：`GET /api/code-change-agent/benchmark/dataset`
 - 运行 Code Change Benchmark：`POST /api/code-change-agent/benchmark`
+- 真实代码评测配置：`GET /api/code-change-agent/real-evaluation/config`
+- 真实代码评测数据集：`GET /api/code-change-agent/real-evaluation/dataset`
+- 最近一次真实代码评测：`GET /api/code-change-agent/real-evaluation/latest`
+- 运行真实代码评测：`POST /api/code-change-agent/real-evaluation`
+- 离线重放最近结果：`POST /api/code-change-agent/real-evaluation/replay`
 
 ## 启动前端
 
@@ -82,6 +87,21 @@ cd D:\Desktop\agentic-game-rd\services\agent-python
 ```
 
 详见 `docs/MILESTONE5_CODE_CHANGE_BENCHMARK.md`。
+
+Milestone 6 使用 5 个小型 Unity C# 防御式需求评测真实 Provider。它记录 JSON、契约、安全、质量、补丁可应用性、固定语义证据、延迟与 usage，但不会自动审批或启动 Unity：
+
+```powershell
+cd D:\Desktop\agentic-game-rd\services\agent-python
+..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_real_code_evaluation --output ..\..\runtime-artifacts\real-code-evaluation --timeout-seconds 60
+```
+
+重新运行本地检查而不调用模型：
+
+```powershell
+..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli replay_real_code_evaluation --output ..\..\runtime-artifacts\real-code-evaluation
+```
+
+环境变量使用根目录 `.env` 中的 `GAMECONFIG_LLM_BASE_URL`、`GAMECONFIG_LLM_API_KEY` 和 `GAMECONFIG_LLM_MODEL`。详见 `docs/MILESTONE6_REAL_CODE_EVALUATION.md`。
 
 ## Unity
 

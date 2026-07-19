@@ -15,6 +15,7 @@
 | Milestone 3B | 人工 C# Diff 质量闭环 | complete |
 | Milestone 4 | 受控 Code Change Agent | complete |
 | Milestone 5 | 代码变更 Benchmark 与失败分类 | complete |
+| Milestone 6 | 真实 Provider 代码生成评测 | complete |
 
 ## Milestone 3A：配置变更闭环
 
@@ -126,6 +127,29 @@
 
 `Milestone 5 complete。下一步应单独设计真实 Provider 代码生成评测，并与脚本化护栏成绩分开报告。`
 
+## Milestone 6：真实 Provider 代码生成评测
+
+### 目标
+
+- [x] 建立 5 个小型 Unity C# 防御式改动需求，固定目标文件与可机器检查的语义要求。
+- [x] 使用 `openai_compatible` 真实 Provider，记录 provider、model、dataset、prompt、JSON/契约/安全/质量/可应用/语义阶段、latency 和 usage。
+- [x] 真实输出失败时聚合 badcase，保留原始输出和失败阶段，不因单样本异常中断整批报告。
+- [x] 输出统一 JSON、Markdown、CSV 和 badcases artifacts，并与 Milestone 5 scripted fixture 目录和指标分开。
+- [x] 新增 CLI、API 和开发者视图；环境变量缺失时生成明确失败报告，不静默等待或 traceback。
+- [x] 完成 Python、Web、Unity、浏览器和仓库清洁回归。
+
+### 状态与边界
+
+- 真实评测只读取样本显式指定的运行时 C# 文件，仍遵守最多 3 文件与 Patch Safety Gate。
+- 合法候选最多停留在 `proposed`；评测不自动审批、不创建正式隔离 Unity workflow、不合并主仓库。
+- `semantic_intent_pass_rate` 表示模型 Diff 命中关键意图；`semantic_requirement_pass_rate` 表示补丁严格应用后的固定正则语义断言通过。二者都不等于编译、Unity 试玩或玩家体验通过。
+- 未配置 `.env` 时 `run_status=blocked`，仍生成 provider configuration badcase 与报告；不得伪造 0% 为真实模型成绩。
+- 真实模型结果必须与 `code_change_guardrail_benchmark_v1` 的 scripted fixture 100% 成绩分开呈现。
+
+### 当前阶段
+
+`Milestone 6 complete：5 个真实样本已运行并离线重放；语义意图命中率 100%，严格补丁应用率与候选就绪率 60%，2 个 patch_apply 坏例均被安全拒绝。下一阶段需单独确认范围。`
+
 ## Milestone 0：单仓库迁移与集成
 
 ### 目标
@@ -234,3 +258,5 @@
 | 2026-07-18 | GitHub REST API 重跑触发匿名限额 | 1 | 安装脚本先读取本地 toolchain-lock，首次安装才访问 API |
 | 2026-07-18 | Unity FBX 材质可用但全部未绑定主贴图 | 1 | 根据 Blender 材质报告生成 12 个本地 Standard 材质并 remap |
 | 2026-07-18 | 图形 Player 完成 telemetry 后偶发 0xC0000005 | 2 | 逻辑双跑改为 -batchmode -nographics，截图独立使用 D3D11 |
+| 2026-07-19 | CLI 缺配置测试被仓库根 `.env` 改变前置条件 | 1 | 测试改为显式注入 Provider 构造失败，不再依赖开发机是否配置密钥 |
+| 2026-07-19 | 清洁脚本把已被 Git 忽略的 `.env` 也判为未忽略 | 1 | 改为逐文件调用 `git check-ignore`，仅拒绝真正未忽略的 `.env` |

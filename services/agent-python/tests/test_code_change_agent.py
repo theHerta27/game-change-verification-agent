@@ -121,6 +121,7 @@ def test_malformed_provider_json_records_badcase(tmp_path: Path):
     assert result["status"] == "failed"
     assert result["badcase"]["stage"] == "provider_or_json_parse"
     assert result["badcase"]["raw_model_output"] == "{bad json"
+    assert result["badcase"]["provider_evidence"]["latency_ms"] == 12
     assert (
         tmp_path / "code_generation" / result["proposal_id"] / "badcase.md"
     ).is_file()

@@ -299,6 +299,46 @@ Outputs:
 """
 
 
+def build_real_code_evaluation_summary(result: dict) -> str:
+    files = "\n".join(f"  {path}" for path in result["exported_files"])
+    if result["run_status"] == "blocked":
+        return f"""Real Provider Code Generation Evaluation
+
+Status: blocked
+Provider: {result['provider']}
+Reason: {result['configuration_error']['error_message']}
+
+No model call was made. Empty rates are not model scores.
+
+Outputs:
+{files}
+"""
+    metrics = result["metrics"]
+    return f"""Real Provider Code Generation Evaluation
+
+Status: completed
+Dataset: {result['dataset_id']}
+Provider: {result['provider']}
+Model: {result['model']}
+
+Evaluation:
+  Samples: {metrics['sample_count']}
+  JSON Parse Success Rate: {metrics['json_parse_success_rate']:.2%}
+  Generation Contract Pass Rate: {metrics['generation_contract_pass_rate']:.2%}
+  Patch Safety Pass Rate: {metrics['patch_safety_pass_rate']:.2%}
+  Quality Review Pass Rate: {metrics['quality_review_pass_rate']:.2%}
+  Patch Apply Success Rate: {metrics['patch_apply_success_rate']:.2%}
+  Semantic Intent Pass Rate: {metrics['semantic_intent_pass_rate']:.2%}
+  Semantic Requirement Pass Rate: {metrics['semantic_requirement_pass_rate']:.2%}
+  Candidate Ready Rate: {metrics['candidate_ready_rate']:.2%}
+  Badcases: {metrics['badcase_count']}
+  Latency Total: {metrics['latency_ms']['total']} ms
+
+Outputs:
+{files}
+"""
+
+
 def _write_json(path: Path, value: object) -> Path:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
@@ -389,6 +429,29 @@ def main(argv: list[str] | None = None) -> int:
         help="Versioned benchmark dataset path, relative to repository root by default.",
     )
 
+    real_code_parser = subparsers.add_parser(
+        "run_real_code_evaluation",
+        help="Run the small OpenAI-compatible Unity C# generation evaluation.",
+    )
+    real_code_parser.add_argument("--output", required=True, help="Real code evaluation output directory.")
+    real_code_parser.add_argument(
+        "--dataset",
+        default="evals/real_code_generation_v1.json",
+        help="Versioned real-code dataset path.",
+    )
+    real_code_parser.add_argument("--timeout-seconds", type=int, default=60, help="Per-sample provider timeout.")
+
+    replay_real_code_parser = subparsers.add_parser(
+        "replay_real_code_evaluation",
+        help="Replay local evaluators against saved real-provider outputs without API calls.",
+    )
+    replay_real_code_parser.add_argument("--output", required=True, help="Existing real code evaluation directory.")
+    replay_real_code_parser.add_argument(
+        "--dataset",
+        default="evals/real_code_generation_v1.json",
+        help="Versioned real-code dataset path.",
+    )
+
     unity_parser = subparsers.add_parser(
         "export_unity_runtime_config",
         help="Export validated final configs as a Unity runtime contract.",
@@ -437,6 +500,35 @@ def main(argv: list[str] | None = None) -> int:
         result = run_code_change_benchmark(repository_root, args.output, args.dataset)
         print(build_code_change_benchmark_summary(result))
         return 0 if result["metrics"]["expectation_match_rate"] == 1 else 1
+    if args.command == "run_real_code_evaluation":
+        from workflow.real_code_evaluation import run_real_code_evaluation
+
+        repository_root = Path(__file__).resolve().parents[3]
+        result = run_real_code_evaluation(
+            repository_root,
+            args.output,
+            dataset_path=args.dataset,
+            timeout_seconds=args.timeout_seconds,
+        )
+        print(build_real_code_evaluation_summary(result))
+        if result["run_status"] == "blocked":
+            return 2
+        return 0 if result["metrics"]["candidate_ready_rate"] == 1 else 1
+    if args.command == "replay_real_code_evaluation":
+        from workflow.real_code_evaluation import replay_real_code_evaluation
+
+        repository_root = Path(__file__).resolve().parents[3]
+        try:
+            result = replay_real_code_evaluation(
+                repository_root,
+                args.output,
+                dataset_path=args.dataset,
+            )
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"Real code evaluation replay failed: {exc}")
+            return 2
+        print(build_real_code_evaluation_summary(result))
+        return 0 if result["metrics"]["candidate_ready_rate"] == 1 else 1
     if args.command == "export_unity_runtime_config":
         destination = export_runtime_contract(args.config, args.output)
         print(f"Unity runtime contract exported: {destination}")

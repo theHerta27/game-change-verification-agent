@@ -232,3 +232,51 @@
 ### 最终状态
 
 `Milestone 5 complete。后续真实 Provider 代码评测必须单独立项并与 scripted_fixture 成绩分开。`
+
+## 2026-07-19 Milestone 6
+
+### 已完成
+
+- 新增 `real_code_generation_v1`，包含 5 个不新增玩法的 Unity C# 防御式需求。
+- 新增真实 Provider runner，记录 Provider/JSON/契约/安全/质量/补丁应用/语义阶段、latency、usage 和源码哈希。
+- 新增语义工作区，只复制样本目标源文件并精确应用候选补丁，不修改主仓库。
+- Code Change Agent badcase 新增 `provider_evidence`，JSON 解析失败仍保留 latency/usage。
+- 新增 CLI、配置/数据集/运行 API 和独立开发者面板。
+- 新增中文文档，明确 candidate_ready 不等于编译、Unity 试玩或自动合并。
+
+### 当前验证
+
+- 定向 Python：28 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：1583 modules transformed，通过；CSS 22.39 kB，JS 303.28 kB。
+- Fake Provider：合法补丁静态语义链通过；malformed JSON 生成 badcase 且保留 latency。
+- 无密钥 CLI smoke：`run_status=blocked`，5 个样本未调用，生成 JSON/Markdown/CSV/badcases，返回非零状态。
+
+### 待完成
+
+- 无。Milestone 6 已完成，下一阶段需由用户确认范围。
+
+### 框架验收
+
+- `scripts/test-all.ps1`：通过。
+- Python：137 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web：1583 modules transformed，production build 通过；CSS 22.39 kB，JS 303.33 kB。
+- 浏览器：配置缺失、blocked 报告、空指标和四份产物路径展示正确；390px 无页面级横向溢出，控制台无错误。
+- Unity：固定 seed 双跑、灵梦预览像素验证和 Placeholder 回退通过。
+- 仓库清洁与旧来源 SHA256：通过。
+
+### 真实 Provider 验收
+
+- 用户已明确授权将选中的 C# 源码和 Prompt 发送到 `.env` 配置的外部服务。
+- `.env` 已复制到新仓库并保持 Git 忽略；未打印或写入任何密钥值。
+- 模型：`deepseek-v4-flash`；样本数：5。
+- Provider、JSON、契约、安全、目标范围、质量审查和语义意图命中率：100%。
+- 严格补丁应用率、应用后语义通过率、候选就绪率：60%。
+- Badcases：2，均为 unified diff 上下文不准确导致的 `patch_apply` 拒绝；主仓库未修改。
+- 总延迟：141,578 ms；Provider usage：19,842 total tokens。
+- 新增离线 replay 后重算结果一致，未再次调用外部模型。
+- Web Console 自动读取最近一次结果，浏览器显示指标与坏例正确，控制台错误为 0，无页面级横向溢出。
+- 最终 `scripts/test-all.ps1` 退出码为 0：Python、Web、Unity、灵梦/Placeholder 和仓库清洁检查全部通过。
+
+### 最终状态
+
+`Milestone 6 complete。真实模型结果与 Milestone 5 scripted fixture 已分开记录；下一阶段必须另行确认范围。`

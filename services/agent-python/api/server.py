@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,12 @@ from gameconfig_agent.runtime_runs import RuntimeRunService
 from gameconfig_agent.server import create_app
 from workflow import ChangeWorkflowService, CodeWorkflowService, CodeChangeAgentService
 from workflow.code_change_benchmark import load_code_change_benchmark, run_code_change_benchmark
+from workflow.real_code_evaluation import (
+    load_real_code_dataset,
+    real_provider_configuration_status,
+    replay_real_code_evaluation,
+    run_real_code_evaluation,
+)
 
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
@@ -78,6 +85,10 @@ class CodeChangeProposalRequest(BaseModel):
     timeout_seconds: int = Field(60, ge=5, le=300)
 
 
+class RealCodeEvaluationRequest(BaseModel):
+    timeout_seconds: int = Field(60, ge=5, le=180)
+
+
 def create_unified_app(
     *,
     runtime_run_service: RuntimeRunService | None = None,
@@ -85,6 +96,8 @@ def create_unified_app(
     code_workflow_service: CodeWorkflowService | None = None,
     code_change_agent_service: CodeChangeAgentService | None = None,
     code_change_benchmark_dir: Path | None = None,
+    real_code_evaluation_dir: Path | None = None,
+    real_code_provider_factory: Any | None = None,
 ):
     runtime_runs = runtime_run_service or RuntimeRunService(
         project_root=REPOSITORY_ROOT,
@@ -106,6 +119,7 @@ def create_unified_app(
         code_workflows=code_workflows,
     )
     benchmark_dir = code_change_benchmark_dir or RUNTIME_ARTIFACTS_DIR / "code_change_benchmark"
+    real_evaluation_dir = real_code_evaluation_dir or RUNTIME_ARTIFACTS_DIR / "real-code-evaluation"
     application = create_app(runtime_run_service=runtime_runs)
     application.title = "Agentic Game R&D Lab API"
 
@@ -334,6 +348,56 @@ def create_unified_app(
     @application.post("/api/code-change-agent/benchmark")
     def execute_code_change_benchmark() -> dict[str, Any]:
         return run_code_change_benchmark(REPOSITORY_ROOT, benchmark_dir)
+
+    @application.get("/api/code-change-agent/real-evaluation/config")
+    def get_real_code_provider_configuration() -> dict[str, Any]:
+        if real_code_provider_factory is not None:
+            return {"configured": True, "variables": {}, "missing": [], "injected_for_test": True}
+        return real_provider_configuration_status(REPOSITORY_ROOT)
+
+    @application.get("/api/code-change-agent/real-evaluation/dataset")
+    def get_real_code_evaluation_dataset() -> dict[str, Any]:
+        dataset = load_real_code_dataset(REPOSITORY_ROOT)
+        return {
+            "dataset_id": dataset["dataset_id"],
+            "title": dataset["title"],
+            "scope": dataset["scope"],
+            "sample_count": len(dataset["samples"]),
+            "samples": [
+                {
+                    "sample_id": sample["sample_id"],
+                    "title": sample["title"],
+                    "target_files": sample["target_files"],
+                    "semantic_check_count": len(sample["semantic_checks"]),
+                }
+                for sample in dataset["samples"]
+            ],
+        }
+
+    @application.post("/api/code-change-agent/real-evaluation")
+    def execute_real_code_evaluation(request: RealCodeEvaluationRequest) -> dict[str, Any]:
+        return run_real_code_evaluation(
+            REPOSITORY_ROOT,
+            real_evaluation_dir,
+            timeout_seconds=request.timeout_seconds,
+            provider_factory=real_code_provider_factory,
+        )
+
+    @application.get("/api/code-change-agent/real-evaluation/latest")
+    def get_latest_real_code_evaluation() -> dict[str, Any]:
+        result_path = real_evaluation_dir / "real_code_evaluation.json"
+        if not result_path.is_file():
+            raise HTTPException(status_code=404, detail="No real code evaluation result is available.")
+        return json.loads(result_path.read_text(encoding="utf-8-sig"))
+
+    @application.post("/api/code-change-agent/real-evaluation/replay")
+    def replay_latest_real_code_evaluation() -> dict[str, Any]:
+        try:
+            return replay_real_code_evaluation(REPOSITORY_ROOT, real_evaluation_dir)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     return application
 

@@ -100,6 +100,7 @@ class CodeChangeAgentService:
 
         raw_output: str | None = None
         model: str | None = None
+        provider_evidence: dict[str, Any] | None = None
         try:
             sources = self._load_sources(gate["target_files"])
             if provider == "mock":
@@ -116,12 +117,12 @@ class CodeChangeAgentService:
                 )
                 raw_output = response.content
                 model = getattr(client, "model", None)
-                generation = _parse_generation(response.content, gate["target_files"])
                 provider_evidence = {
                     "latency_ms": response.latency_ms,
                     "usage": response.usage,
                     "token_estimate": response.token_estimate,
                 }
+                generation = _parse_generation(response.content, gate["target_files"])
 
             raw_output = raw_output or json.dumps(generation, ensure_ascii=False)
             generation["source_hashes"] = {
@@ -176,6 +177,7 @@ class CodeChangeAgentService:
                     provider,
                     model,
                     gate["target_files"],
+                    provider_evidence=provider_evidence,
                 )
                 _write_badcase_markdown(proposal_dir / "badcase.md", result["badcase"])
         except Exception as exc:  # noqa: BLE001 - provider and contract failures become artifacts
@@ -192,6 +194,7 @@ class CodeChangeAgentService:
                 model,
                 gate["target_files"],
                 details=exc.details if isinstance(exc, CandidateGenerationError) else None,
+                provider_evidence=provider_evidence,
             )
             _write_badcase_markdown(proposal_dir / "badcase.md", result["badcase"])
 
@@ -379,6 +382,7 @@ def _badcase(
     target_files: list[str],
     *,
     details: Any = None,
+    provider_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "proposal_id": proposal_id,
@@ -390,6 +394,7 @@ def _badcase(
         "model": model,
         "target_files": target_files,
         "details": details,
+        "provider_evidence": provider_evidence,
     }
 
 

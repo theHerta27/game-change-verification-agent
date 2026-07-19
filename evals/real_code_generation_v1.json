@@ -1,0 +1,64 @@
+{
+  "dataset_id": "real_code_generation_v1",
+  "title": "真实 Provider Unity C# 防御式改动评测 v1",
+  "prompt_name": "code_change_generator",
+  "scope": "仅评测指定运行时 C# 文件中的小型防御式改动，不新增玩法。",
+  "samples": [
+    {
+      "sample_id": "real_cc_01_args_null_guard",
+      "title": "运行参数空值保护",
+      "requirement_text": "为 RuntimeRunSettings.FromArgs 增加 args 空值保护：args 为 null 时抛出 ArgumentNullException；保持非空参数的现有行为不变。",
+      "target_files": ["game-unity/Assets/Scripts/RuntimeRunSettings.cs"],
+      "semantic_checks": [
+        {"check_id": "null_condition", "description": "检查 args 空值条件", "patterns": ["args\\s*(?:==\\s*null|is\\s+null)"]},
+        {"check_id": "argument_null_exception", "description": "抛出 ArgumentNullException", "patterns": ["ArgumentNullException"]}
+      ]
+    },
+    {
+      "sample_id": "real_cc_02_negative_attack_range",
+      "title": "负数攻击范围防护",
+      "requirement_text": "修改 CombatRangePolicy.IsInRange：当 range 小于 0 时直接返回 false；其余情况下保持当前 XZ 平面距离判断不变。",
+      "target_files": ["game-unity/Assets/Scripts/CombatRangePolicy.cs"],
+      "semantic_checks": [
+        {"check_id": "negative_range_condition", "description": "检查负数 range", "patterns": ["range\\s*<\\s*0(?:\\.0*)?f?"]},
+        {"check_id": "negative_range_returns_false", "description": "负数路径返回 false", "patterns": ["return\\s+false\\s*;"]},
+        {"check_id": "planar_distance_preserved", "description": "保留平面距离判断", "patterns": ["PlanarDistance\\s*\\("]}
+      ]
+    },
+    {
+      "sample_id": "real_cc_03_blank_config_text",
+      "title": "空配置文本防护",
+      "requirement_text": "修改 GameConfigLoader.Load：读取配置文件文本后，如果内容为空或只有空白字符，抛出 InvalidDataException；非空文本继续使用 JsonUtility 反序列化，保持现有文件缺失和结构校验。",
+      "target_files": ["game-unity/Assets/Scripts/GameConfigLoader.cs"],
+      "semantic_checks": [
+        {"check_id": "read_text", "description": "读取配置文本", "patterns": ["File\\.ReadAllText\\s*\\("]},
+        {"check_id": "blank_check", "description": "检查空白文本", "patterns": ["string\\.IsNullOrWhiteSpace\\s*\\("]},
+        {"check_id": "invalid_data_exception", "description": "抛出 InvalidDataException", "patterns": ["InvalidDataException"]},
+        {"check_id": "json_deserialize_preserved", "description": "保留 JsonUtility 反序列化", "patterns": ["JsonUtility\\.FromJson<RuntimeContract>\\s*\\("]}
+      ]
+    },
+    {
+      "sample_id": "real_cc_04_non_finite_pulse_duration",
+      "title": "非有限脉冲时长防护",
+      "requirement_text": "修改 RuntimeVisualPulse.Configure：duration 为 NaN 或正负 Infinity 时抛出 ArgumentOutOfRangeException；有限值仍使用现有 Mathf.Max 下限逻辑。",
+      "target_files": ["game-unity/Assets/Scripts/RuntimeVisualPulse.cs"],
+      "semantic_checks": [
+        {"check_id": "nan_check", "description": "检查 NaN", "patterns": ["float\\.IsNaN\\s*\\("]},
+        {"check_id": "infinity_check", "description": "检查 Infinity", "patterns": ["float\\.IsInfinity\\s*\\("]},
+        {"check_id": "range_exception", "description": "抛出 ArgumentOutOfRangeException", "patterns": ["ArgumentOutOfRangeException"]},
+        {"check_id": "minimum_duration_preserved", "description": "保留 Mathf.Max 下限", "patterns": ["Mathf\\.Max\\s*\\("]}
+      ]
+    },
+    {
+      "sample_id": "real_cc_05_invariant_seed_parse",
+      "title": "固定文化种子解析",
+      "requirement_text": "修改 RuntimeRunSettings.FromArgs 的 --seed 解析：使用 NumberStyles.Integer 和 CultureInfo.InvariantCulture，避免受系统区域设置影响；保持当前错误消息和默认 seed 行为。",
+      "target_files": ["game-unity/Assets/Scripts/RuntimeRunSettings.cs"],
+      "semantic_checks": [
+        {"check_id": "integer_number_style", "description": "指定整数格式", "patterns": ["NumberStyles\\.Integer"]},
+        {"check_id": "invariant_culture", "description": "使用固定文化", "patterns": ["CultureInfo\\.InvariantCulture"]},
+        {"check_id": "try_parse_preserved", "description": "保留 TryParse 失败路径", "patterns": ["int\\.TryParse\\s*\\("]}
+      ]
+    }
+  ]
+}

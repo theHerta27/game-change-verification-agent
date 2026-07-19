@@ -9,6 +9,7 @@ import { ChangeWorkflowPanel } from './ChangeWorkflowPanel';
 import { CodeWorkflowPanel } from './CodeWorkflowPanel';
 import { CodeChangeAgentPanel } from './CodeChangeAgentPanel';
 import { CodeChangeBenchmarkPanel } from './CodeChangeBenchmarkPanel';
+import { RealCodeEvaluationPanel } from './RealCodeEvaluationPanel';
 
 const API_BASE = '';
 type Language = 'zh' | 'en';
@@ -392,6 +393,7 @@ function App() {
       <section className="space-y-4">
         <CodeChangeAgentPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds} onGenerated={setGeneratedCodeWorkflowId}/>
         <CodeChangeBenchmarkPanel language={language}/>
+        <RealCodeEvaluationPanel language={language} timeoutSeconds={timeoutSeconds}/>
         <CodeWorkflowPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds} loadWorkflowId={generatedCodeWorkflowId}/>
         <GuidedRuntimePanel language={language} selectedCase={selectedCase} provider={provider} demo={demo}
           runtimeRun={runtimeRun} loading={loading} onPrepare={prepareRuntimeRun} onLaunch={launchRuntimeRun}

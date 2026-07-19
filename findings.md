@@ -82,9 +82,27 @@
 - 首轮 12 样本结果为 100% 预期匹配、100% badcase 捕获、100% 越权阻断、0 错误放行/拒绝，且运行前后 C# 源文件哈希一致。
 - 浏览器验收发现纯数值判断会把计数 0 错误格式化为 0%，同时中文布尔值显示为 Yes；已改为按指标 key 区分比率/计数并跟随界面语言。
 - `failure_stage_distribution` 不能混入成功候选的 `quality_workflow`；最终同时提供全量 `decision_stage_distribution` 与仅非 generated 样本的失败阶段分布。
+
+## 2026-07-19 Milestone 6
+
+- 真实代码评测不能复用 scripted fixture 的 expectation match 作为主指标；真实输出需要逐层记录 Provider、JSON、契约、安全、质量、可应用性和需求语义。
+- 生成补丁通过安全门仍可能没有满足需求，因此增加基于补丁应用后源文件的固定语义断言；该断言仍不是编译或 Unity 运行证明。
+- Provider 返回内容后即使 JSON 解析失败，也应保留 latency/usage；已将 `provider_evidence` 写入 Code Change Agent badcase。
+- 当前新仓库没有 `.env` 或进程环境变量。无密钥 smoke 正确生成 `run_status=blocked`、provider configuration badcase 和四份报告，且没有模型调用。
+- 旧 `GameConfig-Agent` 根目录存在 `.env`，但本阶段未读取或复制密钥，等待用户明确允许迁移。
 - 自动检索整个仓库会扩大提示词、权限和错误归因范围。本阶段由开发者显式选择最多 3 个运行时 C# 文件，更适合作为可解释的最小权限原型。
 - 生成 Provider 与质量审查 Provider 应分离：真实模型负责提出候选，确定性规则和 Mock Review 负责稳定门禁，避免一次模型调用同时充当作者和批准者。
 - Mock 只有固定 recipe 时必须返回 `needs_clarification` 处理其他需求；用固定补丁响应任意需求会制造虚假的 Agent 能力。
 - 真实模型即使返回合法 JSON，也可能声明或实际修改未授权文件；必须同时检查 `target_files` 字段和 unified diff 中的真实路径。
 - 代码生成失败不是接口异常：JSON parse、Prompt Contract、目标范围和 Patch Safety Gate 失败都应形成含原始输出的 badcase。
 - 当前允许列表不包含 `Assets/Editor`，是为了防止候选补丁改变构建/校验器本身；被测运行时代码和测试工具必须保持权限分离。
+
+## 2026-07-19 Milestone 6
+
+- 首次真实代码评测使用 `deepseek-v4-flash` 运行 5 个固定防御式 C# 样本。Provider 调用、JSON 解析、生成契约、安全门、目标范围和质量审查均为 100%。
+- 5 个样本的关键代码意图均能在“基线源码 + Diff”中找到，因此语义意图命中率为 100%；只有 3 个补丁能被严格应用，所以应用后语义通过率和候选就绪率均为 60%。
+- 两个失败样本不是需求理解失败，而是 unified diff hunk 行号/上下文与真实源文件不一致。严格应用器正确拒绝了候选，badcase 阶段均为 `patch_apply`。
+- “模型写出了正确代码片段”和“补丁可以安全应用”必须分开计量。后续应考虑结构化编辑或由确定性工具生成 diff，不能通过放宽上下文校验换取表面成功率。
+- 真实评测总延迟为 141,578 ms，Provider 报告总 usage 为 19,842 tokens；这些数据来自首次真实调用，后续页面刷新和 replay 不再次调用模型。
+- CLI 文档和 Web API 曾使用不同的默认产物目录（连字符与下划线），导致页面读到旧 blocked 报告；统一为 `runtime-artifacts/real-code-evaluation` 后，页面能正确加载最近一次真实结果。
+- 仓库清洁脚本原先把任何存在的 `.env` 都判为“未忽略”，没有实际调用 Git 检查规则；改为逐文件执行 `git check-ignore` 后，既能允许被忽略的本地配置，也会继续拒绝真正未忽略的密钥文件。

@@ -24,7 +24,13 @@ foreach ($forbidden in @(
 
 $realEnv = Get-ChildItem -LiteralPath $RepoRoot -Recurse -File -Force -Filter '.env' |
     Where-Object { $_.FullName -notmatch '\\node_modules\\' }
-if ($realEnv) { throw "Unignored .env files found: $($realEnv.FullName -join ', ')" }
+$unignoredEnv = @()
+foreach ($envFile in $realEnv) {
+    $relative = $envFile.FullName.Substring($RepoRoot.Length).TrimStart('\').Replace('\', '/')
+    & git -c "safe.directory=$($RepoRoot.Replace('\', '/'))" -C $RepoRoot check-ignore --quiet -- $relative
+    if ($LASTEXITCODE -ne 0) { $unignoredEnv += $envFile.FullName }
+}
+if ($unignoredEnv) { throw "Unignored .env files found: $($unignoredEnv -join ', ')" }
 
 $assets = Join-Path $RepoRoot "game-unity\Assets"
 Get-ChildItem -LiteralPath $assets -Recurse -File |
