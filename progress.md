@@ -200,3 +200,35 @@
 ### 最终状态
 
 `Milestone 4 complete。下一步优先建立代码变更 benchmark、失败分类与可比较指标，不继续扩大 Agent 权限。`
+
+## 2026-07-19 Milestone 5
+
+### 已完成
+
+- 新增 `code_change_guardrail_benchmark_v1`，固定 12 个合法、越界、契约漂移和危险补丁样本。
+- 新增脚本化 Provider 与统一 runner，明确只评测护栏和失败路由。
+- 新增预期匹配、可行性准确率、badcase 捕获、越权阻断、有效候选接受、错误放行/拒绝和仓库哈希指标。
+- 输出 `benchmark_results.json`、`evaluation_report.md`、`badcases.md` 和 `sample_summary.csv`。
+- 新增 CLI、数据集 API、运行 API 和开发者视图评测表格。
+- 修复 CLI 顶层导入引起的循环依赖，改为命令分支内延迟导入。
+
+### 当前验证
+
+- 固定样本：12。
+- 预期匹配率、门禁决策准确率、badcase 捕获率、越权阻断率、有效候选接受率：均为 100%。
+- 错误放行：0；错误拒绝：0；badcase：7；主仓库未修改。
+- 定向 Python：22 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：1582 modules transformed，通过；CSS 21.76 kB，JS 293.92 kB。
+
+### 最终验收
+
+- `scripts/test-all.ps1`：通过。
+- Python：130 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web：1582 modules transformed，production build 通过；CSS 21.76 kB，JS 293.99 kB。
+- 浏览器：实际点击运行 12 个样本并展示完整表格；390px 无页面级横向溢出，控制台无错误。
+- Unity：固定 seed 双跑、灵梦预览像素验证和 Placeholder 回退通过。
+- 仓库清洁、两个旧来源 SHA256 和 benchmark 前后 C# 源文件哈希：通过。
+
+### 最终状态
+
+`Milestone 5 complete。后续真实 Provider 代码评测必须单独立项并与 scripted_fixture 成绩分开。`

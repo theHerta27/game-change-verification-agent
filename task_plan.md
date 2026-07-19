@@ -14,6 +14,7 @@
 | Milestone 3A | 配置变更闭环 | complete |
 | Milestone 3B | 人工 C# Diff 质量闭环 | complete |
 | Milestone 4 | 受控 Code Change Agent | complete |
+| Milestone 5 | 代码变更 Benchmark 与失败分类 | complete |
 
 ## Milestone 3A：配置变更闭环
 
@@ -101,6 +102,29 @@
 ### 当前阶段
 
 `Milestone 4 complete。下一阶段应先建设代码变更 benchmark 与失败分类，不扩大 Agent 写权限。`
+
+## Milestone 5：代码变更 Benchmark 与失败分类
+
+### 目标
+
+- [x] 建立版本化固定数据集，覆盖有效候选、无关需求、目标文件缺失/超限/越界、JSON 契约漂移、目标声明越界、新增文件和危险 API。
+- [x] 使用脚本化 Provider 生成可复现候选，明确其评测对象是护栏与失败路由，不代表真实模型代码生成质量。
+- [x] 计算 expectation match、feasibility accuracy、badcase capture、unauthorized change block、valid candidate acceptance、false accept/reject 和失败阶段分布。
+- [x] 输出统一 JSON、Markdown、CSV 和 badcases artifacts，每个样本保留预期与实际证据。
+- [x] 新增 CLI、数据集/运行 API 和开发者视图入口；不影响策划视图和现有 API。
+- [x] 完成 Python、Web、Unity、浏览器和仓库清洁回归。
+
+### 状态与边界
+
+- 默认 benchmark 不调用真实 Provider、不消耗模型额度，也不启动 Unity。
+- benchmark 不执行人工审批、不创建隔离工作区、不修改主仓库；有效候选最多停留在 `proposed`。
+- 数据集中的危险候选只用于验证 Patch Safety Gate，必须被拒绝并留下 badcase。
+- 不扩大 Milestone 4 的最多 3 文件读取范围，不开放 Editor、第三方资产、网络、进程、原生调用或主仓库写权限。
+- 后续真实模型 benchmark 必须与脚本化护栏 benchmark 分开报告 provider、model、dataset_id 和运行时间。
+
+### 当前阶段
+
+`Milestone 5 complete。下一步应单独设计真实 Provider 代码生成评测，并与脚本化护栏成绩分开报告。`
 
 ## Milestone 0：单仓库迁移与集成
 

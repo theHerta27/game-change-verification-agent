@@ -275,6 +275,30 @@ Outputs:
 """
 
 
+def build_code_change_benchmark_summary(result: dict) -> str:
+    metrics = result["metrics"]
+    files = "\n".join(f"  {path}" for path in result["exported_files"])
+    return f"""Code Change Agent Guardrail Benchmark
+
+Dataset: {result['dataset_id']}
+Provider Mode: {result['provider_mode']} (not a real-model quality score)
+
+Evaluation:
+  Samples: {metrics['sample_count']}
+  Expectation Match Rate: {metrics['expectation_match_rate']:.2%}
+  Feasibility Decision Accuracy: {metrics['feasibility_decision_accuracy']:.2%}
+  Badcase Capture Rate: {metrics['badcase_capture_rate']:.2%}
+  Unauthorized Change Block Rate: {metrics['unauthorized_change_block_rate']:.2%}
+  Valid Candidate Acceptance Rate: {metrics['valid_candidate_acceptance_rate']:.2%}
+  False Accepts: {metrics['false_accept_count']}
+  False Rejects: {metrics['false_reject_count']}
+  Repository Unchanged: {metrics['repository_unchanged']}
+
+Outputs:
+{files}
+"""
+
+
 def _write_json(path: Path, value: object) -> Path:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
@@ -354,6 +378,17 @@ def main(argv: list[str] | None = None) -> int:
     phase3_parser = subparsers.add_parser("run_phase3_benchmark", help="Run Phase 3 benchmark evaluation.")
     phase3_parser.add_argument("--output", required=True, help="Phase 3 output directory.")
 
+    code_benchmark_parser = subparsers.add_parser(
+        "run_code_change_benchmark",
+        help="Run the deterministic Code Change Agent guardrail benchmark.",
+    )
+    code_benchmark_parser.add_argument("--output", required=True, help="Benchmark output directory.")
+    code_benchmark_parser.add_argument(
+        "--dataset",
+        default="evals/code_change_benchmark_v1.json",
+        help="Versioned benchmark dataset path, relative to repository root by default.",
+    )
+
     unity_parser = subparsers.add_parser(
         "export_unity_runtime_config",
         help="Export validated final configs as a Unity runtime contract.",
@@ -395,6 +430,13 @@ def main(argv: list[str] | None = None) -> int:
         result = run_phase3_benchmark(args.output)
         print(build_phase3_summary(result))
         return 0
+    if args.command == "run_code_change_benchmark":
+        from workflow.code_change_benchmark import run_code_change_benchmark
+
+        repository_root = Path(__file__).resolve().parents[3]
+        result = run_code_change_benchmark(repository_root, args.output, args.dataset)
+        print(build_code_change_benchmark_summary(result))
+        return 0 if result["metrics"]["expectation_match_rate"] == 1 else 1
     if args.command == "export_unity_runtime_config":
         destination = export_runtime_contract(args.config, args.output)
         print(f"Unity runtime contract exported: {destination}")

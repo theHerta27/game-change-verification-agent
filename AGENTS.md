@@ -12,7 +12,7 @@
 
 ## 当前阶段
 
-Milestone 4 受控 Code Change Agent 已完成。Agent 只能基于开发者显式选择的运行时 C# 文件生成候选 Diff；统一 `workflow` 继续负责确定性编排、人工门禁、隔离应用和证据持久化。下一阶段不得直接扩大写权限，应先补充代码变更 benchmark 与失败分类。
+Milestone 5 代码变更 Benchmark 与失败分类已完成。Agent 仍只能基于开发者显式选择的运行时 C# 文件生成候选 Diff；后续真实 Provider 评测必须与脚本化护栏成绩分开，不扩大权限、不自动审批、不让 benchmark 启动 Unity。
 
 禁止：
 

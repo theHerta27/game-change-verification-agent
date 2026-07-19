@@ -8,6 +8,7 @@ import './styles.css';
 import { ChangeWorkflowPanel } from './ChangeWorkflowPanel';
 import { CodeWorkflowPanel } from './CodeWorkflowPanel';
 import { CodeChangeAgentPanel } from './CodeChangeAgentPanel';
+import { CodeChangeBenchmarkPanel } from './CodeChangeBenchmarkPanel';
 
 const API_BASE = '';
 type Language = 'zh' | 'en';
@@ -390,6 +391,7 @@ function App() {
       <aside className="space-y-4">{controls}<Panel title={t.workflowSummary} icon={<Activity className="h-4 w-4"/>}><KeyValue data={demo?.workflow_summary ?? { status: t.emptySummary }} language={language}/></Panel></aside>
       <section className="space-y-4">
         <CodeChangeAgentPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds} onGenerated={setGeneratedCodeWorkflowId}/>
+        <CodeChangeBenchmarkPanel language={language}/>
         <CodeWorkflowPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds} loadWorkflowId={generatedCodeWorkflowId}/>
         <GuidedRuntimePanel language={language} selectedCase={selectedCase} provider={provider} demo={demo}
           runtimeRun={runtimeRun} loading={loading} onPrepare={prepareRuntimeRun} onLaunch={launchRuntimeRun}

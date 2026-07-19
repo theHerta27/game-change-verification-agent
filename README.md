@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0–4 已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色；受控 Code Change Agent 只生成候选补丁，必须经过人工审批与隔离 Unity 验证。
+**Milestone 0–5 已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色；受控 Code Change Agent 只生成候选补丁，必须经过人工审批与隔离 Unity 验证。
 
 ## 当前组成
 
@@ -35,6 +35,8 @@ cd D:\Desktop\agentic-game-rd
 - 配置变更提案：`POST /api/change-workflows`
 - 人工 C# Diff 提案：`POST /api/code-workflows`
 - Code Change Agent 候选生成：`POST /api/code-change-agent/proposals`
+- Code Change Benchmark 数据集：`GET /api/code-change-agent/benchmark/dataset`
+- 运行 Code Change Benchmark：`POST /api/code-change-agent/benchmark`
 
 ## 启动前端
 
@@ -71,6 +73,15 @@ Mock 不会自由创作配置：它从已提交的 Training Sword 基线出发�
 开发者调试视图另提供人工 C# Diff 闭环：安全门和 Quality Review Agent 审查开发者写好的补丁，批准后只在 `runtime-artifacts/code-workflows` 的 Unity 副本中应用和验证。“接受”不会自动合并主仓库。详见 `docs/MILESTONE3B_CSHARP_DIFF_WORKFLOW.md`。
 
 Milestone 4 在这条闭环前增加受控候选生成：开发者显式选择最多 3 个运行时 C# 文件，Agent 只能基于这些文件返回结构化候选 Diff；默认 Mock 只支持一个空参数保护 recipe。详见 `docs/MILESTONE4_CONTROLLED_CODE_CHANGE_AGENT.md`。
+
+Milestone 5 使用 12 个固定样本验证需求门禁、JSON 契约、目标范围、安全门和 badcase 路由。默认 `scripted_fixture` 只评测工程护栏，不代表真实模型代码能力。运行：
+
+```powershell
+cd D:\Desktop\agentic-game-rd\services\agent-python
+..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_code_change_benchmark --output ..\..\runtime-artifacts\code-change-benchmark
+```
+
+详见 `docs/MILESTONE5_CODE_CHANGE_BENCHMARK.md`。
 
 ## Unity
 

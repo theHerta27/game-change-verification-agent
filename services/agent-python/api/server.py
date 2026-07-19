@@ -15,6 +15,7 @@ from agent_service.schemas import ReviewRequest, ReviewResponse
 from gameconfig_agent.runtime_runs import RuntimeRunService
 from gameconfig_agent.server import create_app
 from workflow import ChangeWorkflowService, CodeWorkflowService, CodeChangeAgentService
+from workflow.code_change_benchmark import load_code_change_benchmark, run_code_change_benchmark
 
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
@@ -83,6 +84,7 @@ def create_unified_app(
     change_workflow_service: ChangeWorkflowService | None = None,
     code_workflow_service: CodeWorkflowService | None = None,
     code_change_agent_service: CodeChangeAgentService | None = None,
+    code_change_benchmark_dir: Path | None = None,
 ):
     runtime_runs = runtime_run_service or RuntimeRunService(
         project_root=REPOSITORY_ROOT,
@@ -103,6 +105,7 @@ def create_unified_app(
         proposals_dir=RUNTIME_ARTIFACTS_DIR / "code_change_agent",
         code_workflows=code_workflows,
     )
+    benchmark_dir = code_change_benchmark_dir or RUNTIME_ARTIFACTS_DIR / "code_change_benchmark"
     application = create_app(runtime_run_service=runtime_runs)
     application.title = "Agentic Game R&D Lab API"
 
@@ -306,6 +309,31 @@ def create_unified_app(
             return code_change_agent.get(proposal_id)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @application.get("/api/code-change-agent/benchmark/dataset")
+    def get_code_change_benchmark_dataset() -> dict[str, Any]:
+        dataset = load_code_change_benchmark(REPOSITORY_ROOT)
+        return {
+            "dataset_id": dataset["dataset_id"],
+            "title": dataset["title"],
+            "evaluation_subject": dataset["evaluation_subject"],
+            "provider_mode": dataset["provider_mode"],
+            "disclaimer": dataset["disclaimer"],
+            "sample_count": len(dataset["samples"]),
+            "samples": [
+                {
+                    "sample_id": sample["sample_id"],
+                    "category": sample["category"],
+                    "expected_status": sample["expected_status"],
+                    "expected_stage": sample["expected_stage"],
+                }
+                for sample in dataset["samples"]
+            ],
+        }
+
+    @application.post("/api/code-change-agent/benchmark")
+    def execute_code_change_benchmark() -> dict[str, Any]:
+        return run_code_change_benchmark(REPOSITORY_ROOT, benchmark_dir)
 
     return application
 
