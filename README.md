@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0 单仓库迁移、Milestone 1 灰盒自动战斗测试床和 Milestone 2 灵梦角色表现层均已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色。
+**Milestone 0 单仓库迁移、Milestone 1 灰盒自动战斗测试床和 Milestone 2 灵梦角色表现层均已完成，Milestone 3A 配置变更闭环正在验收。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色。
 
 ## 当前组成
 
@@ -22,8 +22,8 @@ cd D:\Desktop\agentic-game-rd
 ## 启动后端
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
-..\..\.venv\Scripts\python.exe -m uvicorn api.server:app --host 127.0.0.1 --port 8000
+cd D:\Desktop\agentic-game-rd
+.\scripts\start-backend.ps1
 ```
 
 后端入口：
@@ -32,15 +32,39 @@ cd D:\Desktop\agentic-game-rd\services\agent-python
 - OpenAPI：`http://127.0.0.1:8000/docs`
 - 配置工作台 API：保留原 GameConfig 路由。
 - 质量审查：`POST /api/quality/review`
+- 配置变更提案：`POST /api/change-workflows`
 
 ## 启动前端
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\web-console
-npm run dev -- --host 127.0.0.1 --port 5173
+cd D:\Desktop\agentic-game-rd
+.\scripts\start-web.ps1
 ```
 
 打开 `http://127.0.0.1:5173`。
+
+端口被占用时可以成对指定，例如：
+
+```powershell
+.\scripts\start-backend.ps1 -Port 8001
+.\scripts\start-web.ps1 -Port 5174 -BackendPort 8001
+```
+
+策划视图的推荐流程：
+
+```text
+填写需求 -> 创建变更提案 -> 查看 Config Diff 与质量审查 -> 人工批准
+-> 准备隔离 Unity 测试 -> 手动试玩或固定种子自动试玩
+-> 查看 telemetry 证据 -> 接受 / 要求修订 / 回滚
+```
+
+可直接使用以下需求验证字段变化：
+
+```text
+将新手试炼武器基础攻击力改为 45，通关目标 60-90 秒，击败 5 个敌人，技能至少使用 1 次。
+```
+
+Mock 不会自由创作配置：它从已提交的 Training Sword 基线出发，只应用能力清单内的明确约束。真实 Provider 仍必须经过相同的静态校验、人工审批和 Unity 运行证据。详见 `docs/MILESTONE3A_CONFIG_CHANGE_WORKFLOW.md`。
 
 ## Unity
 
@@ -103,6 +127,7 @@ cd D:\Desktop\agentic-game-rd
 
 - 不使用 DevQuality 旧 Go 后端、旧前端、PostgreSQL 或 Redis。
 - 不实现 Code Change Agent。
+- 配置候选只写入 `runtime-artifacts/change_workflows` 和独立 Unity run，不覆盖已提交基线。
 - 不公开分发灵梦模型、贴图或本地音频。
 - 单次 Unity 前后对比不宣称为统计学 A/B 实验。
 

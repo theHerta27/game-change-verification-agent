@@ -94,3 +94,39 @@
 ### 最终状态
 
 `Milestone 2 complete。下一阶段为 Milestone 3A 配置变更闭环。`
+
+## 2026-07-19 Milestone 3A
+
+### 已开始
+
+- 核对现有 Requirement Intake、Mock 生成、Schema/Reference/Rule 校验、RuntimeRunService 和统一 FastAPI 入口。
+- 确认现有 MockLLM 是固定 Training Sword 样例，Milestone 3A 需要增加确定性的约束映射和逐字段 Config Diff，不能把固定输出包装成按需生成。
+- 确认 RuntimeRunService 已提供隔离配置快照、Unity 启动、telemetry 回收和运行评测能力，可作为审批后的执行层复用。
+- 冻结 Milestone 3A 状态机、人工审批门禁和隔离回滚语义。
+
+### 进行中
+
+- 实现 Change Feasibility Gate、候选配置映射、配置差异、质量审查和文件状态机。
+
+### 已完成
+
+- 新增 `workflow/config_change.py`，实现能力门禁、受支持约束映射、逐字段 Config Diff、静态校验、需求覆盖审查和测试建议。
+- 新增 `workflow/change_workflow.py`，实现文件状态机、人工审批、隔离 Unity run、telemetry 同步与接受/修订/回滚决策。
+- RuntimeRunService 新增已审批精确快照入口，不重新调用 Mock，不覆盖已提交基线。
+- FastAPI 新增 `/api/change-workflows` 提案、审批、运行、启动、决策和 artifact 接口。
+- 策划视图收敛为一条配置变更闭环；旧 Phase 0/1/2/3 控件保留在开发者调试视图。
+- 新增可指定端口的 `start-backend.ps1` 和 `start-web.ps1`；前端端口变化时可同步指定后端代理端口。
+- 新增中文原理与操作文档 `docs/MILESTONE3A_CONFIG_CHANGE_WORKFLOW.md`。
+
+### 最终验收
+
+- Python：`101 passed`，1 条既有 Starlette/httpx 弃用告警。
+- Web：1579 modules transformed，production build 通过，最终复测 3.41s；CSS 20.54 kB，JS 260.98 kB。
+- API：8001 实进程 health 返回 `milestone3a-change-workflow`，策划页面通过 5174 代理访问。
+- 页面全流程：创建 Mock 提案、人工审批、隔离准备、Unity 固定种子自动试玩、telemetry 回收、风险展示和“要求修订”决策全部通过。
+- Unity：沙箱外 Windows Build 与固定种子双跑通过，repeatability 100%。本次约 16.63s，不满足 60–90s 目标，系统正确建议修订。
+- 响应式：390px 视口无横向溢出。
+
+### 最终状态
+
+`Milestone 3A complete。下一阶段为 Milestone 3B 人工 C# Diff 质量闭环。`

@@ -11,9 +11,40 @@
 | Milestone 0 | 单仓库迁移与集成 | complete |
 | Milestone 1 | 灰盒自动战斗测试床 | complete |
 | Milestone 2 | 灵梦角色表现层 | complete |
-| Milestone 3A | 配置变更闭环 | planned |
+| Milestone 3A | 配置变更闭环 | complete |
 | Milestone 3B | 人工 C# Diff 质量闭环 | planned |
 | Post-MVP | 受控 Code Change Agent | deferred |
+
+## Milestone 3A：配置变更闭环
+
+### 目标
+
+- [x] 将策划需求转换为可审查的配置变更提案，而不是直接覆盖运行配置。
+- [x] 使用 Change Feasibility Gate 拒绝超出 Starter Trial 能力清单的需求，并要求不完整需求补充信息。
+- [x] 生成逐字段 Config Diff、需求一致性审查、测试建议和确定性静态校验结果。
+- [x] 增加人工审批门禁；未经批准的候选配置不得进入 Unity 运行验证。
+- [x] 将批准后的候选配置复制到独立 runtime run，完成 Unity 编译/试玩、telemetry 评测和证据审查。
+- [x] 支持接受、要求修订和回滚三种最终决策，并保留完整时间线与不可变快照。
+- [x] 在 Web Console 中以策划可理解的步骤展示提案、变化、审批、试玩和结论。
+- [x] 完成 Python、Web、Unity 和仓库清洁回归。
+
+### 状态机
+
+`proposed -> approved -> runtime_prepared -> runtime_launched -> evidence_ready -> accepted | revision_requested | rolled_back`
+
+`needs_clarification`、`rejected` 和 `failed` 为不可进入 Unity 的终止或人工处理状态。
+
+### 边界
+
+- 不新增游戏玩法、Code Change Agent、Go 服务、数据库、微服务或自动代码修改。
+- 不重构已有 GameConfig、Quality Review 和 RuntimeRun 主流程；统一 workflow 只负责编排和持久化状态。
+- Mock 仍是确定性 Training Sword 基线；需求中的受支持约束由确定性映射器落到候选配置，不伪装成自由生成模型。
+- 不覆盖 `game-unity/Assets/StreamingAssets/game_config.json`；候选配置只进入忽略目录中的独立运行快照。
+- 所有现有 API、artifact 和 Unity runtime contract 字段保持兼容；Milestone 3A 使用新增命名空间。
+
+### 当前阶段
+
+`Milestone 3A complete。下一阶段为 Milestone 3B 人工 C# Diff 质量闭环。`
 
 ## Milestone 0：单仓库迁移与集成
 

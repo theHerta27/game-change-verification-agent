@@ -42,3 +42,14 @@
 - 原高位镜头能够展示场地但角色过小；降低镜头后角色与两名敌人同时可辨认，固定种子 telemetry 未发生回退。
 - MMD 物理存在稳定性和迁移成本，本阶段明确不导入；表现层只做可替换角色、轻量摆动和命中反馈。
 - Windows Development Player 在完成 telemetry 后偶发于图形设备清理阶段返回 `0xC0000005`，即使延迟退出也不能完全消除；将逻辑双跑改为 `-batchmode -nographics` 后退出稳定，视觉截图继续独立使用 D3D11。
+
+## 2026-07-19 Milestone 3A
+
+- 当前 MockLLM 会忽略输入细节并固定生成 Training Sword 草稿；它适合回归，不足以证明需求驱动的配置变更。Milestone 3A 保留该基线，同时用白名单约束映射器显式修改支持字段。
+- RuntimeRunService 已经具备隔离运行目录和精确 config hash，适合作为批准后执行层；缺失的是提案、审批、最终决策和跨阶段审计状态。
+- DevQuality 的现有 Review Agent 面向代码 Diff，不能直接拿配置 JSON Diff 冒充代码审查。配置质量审查应在统一 workflow 中形成独立结构化契约，代码 Diff 审查保留给 Milestone 3B。
+- 隔离执行意味着“回滚”不需要覆盖生产文件：丢弃候选运行并把工作流决策指向基线快照即可，风险小且证据可追溯。
+- Windows PowerShell 通过 `npm run dev -- --host ... --port ...` 传参时，本机 npm/Vite 组合会把 host 和 port 变成位置参数并回退到 5173；启动脚本应直接调用 `node_modules/.bin/vite.cmd`。
+- 只修改前端端口不能解决旧后端占用问题；Vite `/api` 代理也必须成对指向新后端端口。`start-web.ps1 -BackendPort` 现已显式完成该绑定。
+- Unity Hub 显示 Personal 许可证并不保证受限沙箱进程可以读取 Licensing Client entitlement；同一 smoke 在沙箱外通过，说明项目与许可证有效，失败来自进程隔离。
+- 完整闭环实测证明“静态校验通过”不等于策划目标通过：本次候选结构合法，但自动试玩约 16.63s，未达到 60–90s，最终被人工标记为需要修订。这正是 runtime evidence 的价值。

@@ -5,6 +5,7 @@ import {
   Gamepad2, Languages, Play, RefreshCw, Server, Target, UserRound, Wrench, XCircle
 } from 'lucide-react';
 import './styles.css';
+import { ChangeWorkflowPanel } from './ChangeWorkflowPanel';
 
 const API_BASE = '';
 type Language = 'zh' | 'en';
@@ -353,7 +354,7 @@ function App() {
   const controls = <RunControls
     language={language} cases={cases} selectedCase={selectedCase} requirement={requirement}
     provider={provider} timeoutSeconds={timeoutSeconds} loading={loading} error={error}
-    showBenchmark={viewMode === 'developer'} onChooseCase={chooseCase}
+    showDemo={viewMode === 'developer'} showBenchmark={viewMode === 'developer'} onChooseCase={chooseCase}
     onRequirement={(value) => { setRequirement(value); setDemo(null); setRuntimeRun(null); if (selectedCase !== 'manual') setSelectedCase('manual'); }}
     onProvider={(value) => { setProvider(value); setDemo(null); setRuntimeRun(null); setError(''); }} onTimeout={setTimeoutSeconds} onRunDemo={runDemo} onBenchmark={runBenchmark}
   />;
@@ -380,11 +381,7 @@ function App() {
     {viewMode === 'planner' ? <div className="mx-auto grid max-w-[1600px] grid-cols-1 gap-4 p-4 xl:grid-cols-[360px_minmax(0,1fr)]">
       <aside>{controls}</aside>
       <section className="space-y-4">
-        <BusinessConclusion language={language} demo={demo} runtimeRun={runtimeRun} evidence={evidence} selectedCase={selectedCase} activeCase={activeCase}/>
-        <GuidedRuntimePanel language={language} selectedCase={selectedCase} provider={provider} demo={demo}
-          runtimeRun={runtimeRun} loading={loading} onPrepare={prepareRuntimeRun} onLaunch={launchRuntimeRun}
-          onArtifact={loadRuntimeArtifact} businessMode/>
-        <PlannerResults language={language} activeCase={activeCase} selectedCase={selectedCase} demo={demo} runtimeRun={runtimeRun} evidence={evidence}/>
+        <ChangeWorkflowPanel language={language} requirement={requirement} caseId={selectedCase} provider={provider} timeoutSeconds={timeoutSeconds}/>
       </section>
     </div> : <div className="mx-auto grid max-w-[1800px] grid-cols-1 gap-4 p-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
       <aside className="space-y-4">{controls}<Panel title={t.workflowSummary} icon={<Activity className="h-4 w-4"/>}><KeyValue data={demo?.workflow_summary ?? { status: t.emptySummary }} language={language}/></Panel></aside>
@@ -415,9 +412,9 @@ function App() {
   </main>;
 }
 
-function RunControls({ language, cases, selectedCase, requirement, provider, timeoutSeconds, loading, error, showBenchmark, onChooseCase, onRequirement, onProvider, onTimeout, onRunDemo, onBenchmark }: {
+function RunControls({ language, cases, selectedCase, requirement, provider, timeoutSeconds, loading, error, showDemo, showBenchmark, onChooseCase, onRequirement, onProvider, onTimeout, onRunDemo, onBenchmark }: {
   language: Language; cases: ClassicCase[]; selectedCase: string; requirement: string; provider: Provider;
-  timeoutSeconds: number; loading: string | null; error: string; showBenchmark: boolean;
+  timeoutSeconds: number; loading: string | null; error: string; showDemo: boolean; showBenchmark: boolean;
   onChooseCase: (caseId: string) => void; onRequirement: (value: string) => void;
   onProvider: (provider: Provider) => void; onTimeout: (value: number) => void;
   onRunDemo: () => void; onBenchmark: () => void;
@@ -436,7 +433,7 @@ function RunControls({ language, cases, selectedCase, requirement, provider, tim
       <div><label className="label" htmlFor="timeout">{t.timeout}</label><input id="timeout" className="input" type="number" min={5} max={300} value={timeoutSeconds} onChange={(event) => onTimeout(Number(event.target.value))}/></div>
     </div>
     <div className="mt-4 grid gap-2">
-      <button className="button-primary" disabled={loading !== null} onClick={onRunDemo}>{loading === 'demo' ? <RefreshCw className="h-4 w-4 animate-spin"/> : <Play className="h-4 w-4"/>}{t.runDemo}</button>
+      {showDemo && <button className="button-primary" disabled={loading !== null} onClick={onRunDemo}>{loading === 'demo' ? <RefreshCw className="h-4 w-4 animate-spin"/> : <Play className="h-4 w-4"/>}{t.runDemo}</button>}
       {showBenchmark && <><button className="button-secondary" disabled={loading !== null} onClick={onBenchmark}>{loading === 'benchmark' ? <RefreshCw className="h-4 w-4 animate-spin"/> : <GitBranch className="h-4 w-4"/>}{t.runBenchmark}</button><p className="text-xs leading-5 text-slate-400">{t.benchmarkHint}</p></>}
     </div>
     {error && <div className="mt-4 rounded-md border border-bad/50 bg-bad/10 p-3 text-sm text-red-100">{error}</div>}

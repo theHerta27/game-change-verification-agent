@@ -143,7 +143,14 @@ def _missing_information(signal_count: int, constraints: list[dict], normalized:
 def _extract_constraints(text: str) -> list[dict]:
     constraints: list[dict] = []
     constraints.extend(_extract_time_range(text))
-    constraints.extend(_extract_integer_constraint(text, r"(?:基础)?攻击力\s*(?:为|=|:)?\s*(\d+)", "weapon_config.base_attack", "eq"))
+    constraints.extend(
+        _extract_integer_constraint(
+            text,
+            r"(?:基础)?攻击力\s*(?:改为|设置为|调整为|为|=|:)?\s*(\d+)",
+            "weapon_config.base_attack",
+            "eq",
+        )
+    )
     constraints.extend(_extract_integer_constraint(text, r"升级\s*(\d+)\s*次", "structured_requirement.upgrade_times", "eq"))
     constraints.extend(_extract_integer_constraint(text, r"击败\s*(\d+)\s*(?:个)?敌人", "runtime_target_config.enemies_defeated", "eq"))
     constraints.extend(_extract_integer_constraint(text, r"技能(?:至少)?使用\s*(\d+)\s*次", "runtime_target_config.skill_uses_min", "gte"))

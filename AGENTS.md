@@ -12,7 +12,7 @@
 
 ## 当前阶段
 
-Milestone 2 灵梦角色表现层已完成。下一阶段为 Milestone 3A 配置变更闭环；在用户确认前，不提前重构 Agent 工作流。
+Milestone 3A 配置变更闭环已完成。下一阶段为 Milestone 3B 人工 C# Diff 质量闭环；统一 `workflow` 只负责确定性编排、人工门禁和证据持久化，不替代已有 Agent 与 Tool。
 
 禁止：
 
@@ -21,6 +21,7 @@ Milestone 2 灵梦角色表现层已完成。下一阶段为 Milestone 3A 配置
 - 新增 Go 服务、数据库、Redis、Docker 或微服务。
 - 实现 Code Change Agent 或自动应用代码补丁。
 - 修改已有 GameConfig API、JSON artifact 和 Unity runtime contract 字段。
+- 绕过人工审批把候选配置直接送入 Unity，或覆盖已提交的 `game_config.json` 基线。
 - 提交 `.env`、密钥、第三方模型、贴图、音频、运行产物或构建缓存。
 
 发现架构冲突、契约不兼容或需要扩大范围时，停止并记录到 `findings.md`，不要自行大规模重构。

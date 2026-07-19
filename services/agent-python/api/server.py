@@ -1,14 +1,20 @@
-"""Single FastAPI entry point for the migrated Agent capabilities."""
+"""Single FastAPI entry point for the unified Agent capabilities."""
 
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
+
+from fastapi import HTTPException
+from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel, Field
 
 from agent_service.agents.dual_agent import run_dual_agent
 from agent_service.agents.single_agent import run_single_agent
 from agent_service.schemas import ReviewRequest, ReviewResponse
 from gameconfig_agent.runtime_runs import RuntimeRunService
 from gameconfig_agent.server import create_app
+from workflow import ChangeWorkflowService
 
 
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
@@ -23,23 +29,142 @@ UNITY_EXECUTABLE = (
 )
 
 
-runtime_run_service = RuntimeRunService(
-    project_root=REPOSITORY_ROOT,
-    runs_dir=RUNTIME_ARTIFACTS_DIR / "runtime_runs",
-    unity_executable=UNITY_EXECUTABLE,
-)
-app = create_app(runtime_run_service=runtime_run_service)
-app.title = "Agentic Game R&D Lab API"
+class ChangeWorkflowCreateRequest(BaseModel):
+    requirement_text: str = Field(..., min_length=1)
+    case_id: str = Field("case_01_baseline_trial", min_length=1)
+    provider: str = Field("mock", pattern="^(mock|openai_compatible)$")
+    timeout_seconds: int = Field(60, ge=5, le=300)
 
 
-@app.get("/api/quality/health")
-def quality_health() -> dict[str, str]:
-    return {"status": "ok", "capability": "quality_review"}
+class ChangeWorkflowApprovalRequest(BaseModel):
+    approver: str = Field(..., min_length=1)
+    note: str = ""
 
 
-@app.post("/api/quality/review", response_model=ReviewResponse)
-def quality_review(request: ReviewRequest) -> ReviewResponse:
-    if request.workflow == "dual_agent":
-        return run_dual_agent(request)
-    return run_single_agent(request)
+class ChangeWorkflowLaunchRequest(BaseModel):
+    mode: str = Field("manual", pattern="^(manual|auto)$")
 
+
+class ChangeWorkflowDecisionRequest(BaseModel):
+    decision: str = Field(..., pattern="^(accept|revise|rollback)$")
+    actor: str = Field(..., min_length=1)
+    note: str = Field(..., min_length=1)
+
+
+def create_unified_app(
+    *,
+    runtime_run_service: RuntimeRunService | None = None,
+    change_workflow_service: ChangeWorkflowService | None = None,
+):
+    runtime_runs = runtime_run_service or RuntimeRunService(
+        project_root=REPOSITORY_ROOT,
+        runs_dir=RUNTIME_ARTIFACTS_DIR / "runtime_runs",
+        unity_executable=UNITY_EXECUTABLE,
+    )
+    change_workflows = change_workflow_service or ChangeWorkflowService(
+        repository_root=REPOSITORY_ROOT,
+        workflows_dir=RUNTIME_ARTIFACTS_DIR / "change_workflows",
+        runtime_runs=runtime_runs,
+    )
+    application = create_app(runtime_run_service=runtime_runs)
+    application.title = "Agentic Game R&D Lab API"
+
+    @application.get("/api/quality/health")
+    def quality_health() -> dict[str, str]:
+        return {"status": "ok", "capability": "quality_review"}
+
+    @application.post("/api/quality/review", response_model=ReviewResponse)
+    def quality_review(request: ReviewRequest) -> ReviewResponse:
+        if request.workflow == "dual_agent":
+            return run_dual_agent(request)
+        return run_single_agent(request)
+
+    @application.post("/api/change-workflows")
+    def create_change_workflow(request: ChangeWorkflowCreateRequest) -> dict[str, Any]:
+        try:
+            return change_workflows.create(
+                requirement_text=request.requirement_text,
+                case_id=request.case_id,
+                provider=request.provider,
+                timeout_seconds=request.timeout_seconds,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @application.get("/api/change-workflows/{workflow_id}")
+    def get_change_workflow(workflow_id: str) -> dict[str, Any]:
+        try:
+            return change_workflows.get(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @application.post("/api/change-workflows/{workflow_id}/approve")
+    def approve_change_workflow(
+        workflow_id: str,
+        request: ChangeWorkflowApprovalRequest,
+    ) -> dict[str, Any]:
+        try:
+            return change_workflows.approve(
+                workflow_id,
+                approver=request.approver,
+                note=request.note,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/change-workflows/{workflow_id}/runtime")
+    def prepare_change_workflow_runtime(workflow_id: str) -> dict[str, Any]:
+        try:
+            return change_workflows.prepare_runtime(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/change-workflows/{workflow_id}/launch")
+    def launch_change_workflow_runtime(
+        workflow_id: str,
+        request: ChangeWorkflowLaunchRequest,
+    ) -> dict[str, Any]:
+        try:
+            return change_workflows.launch_runtime(workflow_id, mode=request.mode)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/change-workflows/{workflow_id}/decision")
+    def decide_change_workflow(
+        workflow_id: str,
+        request: ChangeWorkflowDecisionRequest,
+    ) -> dict[str, Any]:
+        try:
+            return change_workflows.decide(
+                workflow_id,
+                decision=request.decision,
+                actor=request.actor,
+                note=request.note,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.get("/api/change-workflows/{workflow_id}/artifacts/{name}")
+    def change_workflow_artifact(workflow_id: str, name: str) -> PlainTextResponse:
+        try:
+            path = change_workflows.artifact(workflow_id, name)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return PlainTextResponse(path.read_text(encoding="utf-8"))
+
+    return application
+
+
+app = create_unified_app()

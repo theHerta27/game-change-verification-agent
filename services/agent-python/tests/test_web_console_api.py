@@ -31,8 +31,9 @@ def test_health_endpoint():
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "ok"
-    assert payload["backend_version"] == "phase6g-real-runtime-handoff"
+    assert payload["backend_version"] == "milestone3a-change-workflow"
     assert payload["capabilities"]["real_provider_runtime_handoff"] is True
+    assert payload["capabilities"]["change_workflow"] is True
 
 
 def test_classic_cases_endpoint_returns_fixed_registry():

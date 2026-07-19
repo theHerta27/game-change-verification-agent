@@ -140,6 +140,89 @@ class RuntimeRunService:
         self._write_manifest(run_dir, manifest)
         return self.get(run_id)
 
+    def prepare_snapshot(
+        self,
+        *,
+        case_id: str,
+        requirement_text: str,
+        source_provider: str,
+        structured_requirement: dict[str, Any],
+        final_configs: dict[str, Any],
+        model: str | None = None,
+        source_workflow_id: str,
+    ) -> dict[str, Any]:
+        """Prepare an already approved exact config snapshot without regenerating it."""
+        case = load_classic_case(case_id)
+        if case_id in STATIC_ONLY_CASES:
+            raise ValueError("This classic case uses static validation evidence and does not launch Unity.")
+
+        schema_errors = SchemaValidatorTool().validate(structured_requirement, final_configs)
+        reference_errors = ReferenceCheckerTool().check(final_configs) if not schema_errors else []
+        rule_errors = (
+            RuleEngineTool().evaluate(structured_requirement, final_configs)["violations"]
+            if not schema_errors
+            else []
+        )
+        static_validation = {
+            "passed": not (schema_errors or reference_errors or rule_errors),
+            "schema_errors": schema_errors,
+            "reference_errors": reference_errors,
+            "rule_errors": rule_errors,
+        }
+        if not static_validation["passed"]:
+            error_count = sum(
+                len(static_validation[key])
+                for key in ("schema_errors", "reference_errors", "rule_errors")
+            )
+            raise ValueError(
+                f"Approved snapshot failed final static validation with {error_count} errors."
+            )
+
+        validated_configs = deepcopy(final_configs)
+        run_id = _new_run_id()
+        run_dir = self.runs_dir / run_id
+        run_dir.mkdir(parents=True, exist_ok=False)
+        (run_dir / "requirement.txt").write_text(requirement_text.strip(), encoding="utf-8")
+        _write_json(run_dir / "final_configs.json", validated_configs)
+        scenario = None if has_starter_trial_runtime_configs(validated_configs) else _scenario_for_case(case)
+        _write_json(run_dir / "unity_contract.json", build_runtime_contract(validated_configs, scenario))
+
+        now = _utc_now()
+        manifest = {
+            "run_id": run_id,
+            "case_id": case_id,
+            "case_title": case["title"],
+            "provider": "workflow_snapshot",
+            "source_provider": source_provider,
+            "source_workflow_id": source_workflow_id,
+            "model": model,
+            "config_hash": hashlib.sha256(
+                json.dumps(
+                    validated_configs,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest(),
+            "status": "prepared",
+            "mode": None,
+            "process_id": None,
+            "created_at": now,
+            "updated_at": now,
+            "steps": {
+                "requirement": "completed",
+                "static_validation": "completed",
+                "unity_play": "ready",
+                "runtime_evaluation": "pending",
+                "improvement_suggestions": "pending",
+            },
+            "artifacts": _artifact_paths(run_id),
+            "static_validation": static_validation,
+            "error": None,
+        }
+        self._write_manifest(run_dir, manifest)
+        return self.get(run_id)
+
     def launch(self, run_id: str, *, mode: str = "manual") -> dict[str, Any]:
         if mode not in {"manual", "auto"}:
             raise ValueError("mode must be 'manual' or 'auto'.")
