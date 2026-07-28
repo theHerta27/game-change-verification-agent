@@ -9,5 +9,7 @@
 - Milestone 5 只增加版本化 benchmark、失败分类和只读报告；脚本化 Provider 成绩不得表述为真实模型质量。
 - Milestone 6 真实评测必须逐样本保存 provider/model/prompt/latency/usage、原始坏例和语义断言；环境缺失时生成 blocked 报告而不是 traceback。
 - 已保存的真实输出只允许通过离线 replay 重算本地指标；不得把 replay 伪装为新的模型调用。
+- Milestone 7 弹幕工作流使用独立 `/api/bullet-hell` 命名空间和 contract；一次人工授权后最多自动运行三个候选，最终仍需人工接受或回滚。
+- 弹幕自动修复只能从有限动作中选择，并由确定性调参器修改候选 JSON；不得修改 C# 或正式基线。
 - 不直接写数据库，不引入 Go、Redis、队列或主仓库自动代码修改。
 - 变更后必须在本目录运行 `python -m pytest tests`。

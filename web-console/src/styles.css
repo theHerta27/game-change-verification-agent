@@ -11,6 +11,87 @@ body {
   background: #0f172a;
 }
 
+.bullet-workbench {
+  display: grid;
+  min-height: 720px;
+  overflow: hidden;
+  border: 1px solid #263447;
+  border-radius: 6px;
+  background: #101a2a;
+}
+
+.bullet-command {
+  padding: 24px;
+  border-bottom: 1px solid #263447;
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.94)),
+    repeating-linear-gradient(90deg, transparent 0, transparent 31px, rgba(34, 211, 238, 0.08) 32px);
+}
+
+.bullet-evidence {
+  min-width: 0;
+  padding: 24px;
+  background: #0b1220;
+}
+
+.evidence-rail {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(112px, 1fr));
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.evidence-stop {
+  position: relative;
+  min-height: 64px;
+  border-top: 2px solid #334155;
+  padding: 14px 10px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.evidence-stop span {
+  position: absolute;
+  top: -13px;
+  left: 0;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 2px solid #334155;
+  border-radius: 50%;
+  background: #0b1220;
+  font-size: 11px;
+}
+
+.evidence-stop-active {
+  border-color: #22d3ee;
+  color: #e2e8f0;
+}
+
+.evidence-stop-active span {
+  border-color: #22d3ee;
+  color: #67e8f9;
+}
+
+@media (min-width: 1100px) {
+  .bullet-workbench {
+    grid-template-columns: minmax(340px, 0.72fr) minmax(0, 1.45fr);
+  }
+
+  .bullet-command {
+    border-right: 1px solid #263447;
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .bullet-command,
+  .bullet-evidence {
+    padding: 18px;
+  }
+}
+
 @layer components {
   .label {
     @apply mb-1 block text-sm font-medium text-slate-300;

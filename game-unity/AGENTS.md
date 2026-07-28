@@ -2,7 +2,7 @@
 
 - Unity Editor 锁定为 `6000.3.19f1`。
 - `Assets`、`Packages`、`ProjectSettings` 和所有 `.meta` 必须成对保留。
-- Milestone 1 只允许圆形灰盒场地、固定种子自动战斗、分波次 telemetry 和 smoke 修复，不新增玩法。
+- Milestone 7 允许新增独立 `BulletHellDemo` 场景、四种有限弹幕 Pattern、对象池、固定轨迹自动玩家和弹幕 telemetry；旧 Training Sword 场景保持兼容。
 - 自动测试必须显式记录 seed 和 run mode；同一 contract 与 seed 的稳定计数必须可重复。
 - 配置字段必须通过现有 runtime contract 进入 C#，不得在 Scene 中复制另一套目标值。
 - `Assets/Resources/LocalThirdParty/` 是本地忽略目录。

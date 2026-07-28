@@ -8,5 +8,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/RuntimeDemo.unity
     guid: 2e06eedb64798be45b3b6c9adc95596e
+  - enabled: 1
+    path: Assets/Scenes/BulletHellDemo.unity
+    guid: 7b32c4f16fd64260a20e11804014a10d
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

@@ -24,9 +24,13 @@ namespace GameConfig.Editor
             Directory.CreateDirectory("Assets/Scenes");
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             EditorSceneManager.SaveScene(scene, "Assets/Scenes/RuntimeDemo.unity");
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene("Assets/Scenes/RuntimeDemo.unity", true) };
-            PlayerSettings.productName = "GameConfig Runtime Demo";
-            PlayerSettings.companyName = "GameConfig Agent";
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene("Assets/Scenes/RuntimeDemo.unity", true),
+                new EditorBuildSettingsScene("Assets/Scenes/BulletHellDemo.unity", true),
+            };
+            PlayerSettings.productName = "Agentic Game R&D Lab Runtime Demos";
+            PlayerSettings.companyName = "Agentic Game R&D Lab";
             AssetDatabase.SaveAssets();
             Debug.Log("GameConfig runtime demo configured.");
         }
@@ -121,7 +125,7 @@ namespace GameConfig.Editor
             ConfigureProject();
             Directory.CreateDirectory("Builds/Windows");
             BuildReport report = BuildPipeline.BuildPlayer(
-                EditorBuildSettings.scenes,
+                new[] { "Assets/Scenes/RuntimeDemo.unity" },
                 "Builds/Windows/GameConfigRuntimeDemo.exe",
                 BuildTarget.StandaloneWindows64,
                 BuildOptions.Development

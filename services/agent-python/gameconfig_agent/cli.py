@@ -339,6 +339,28 @@ Outputs:
 """
 
 
+def build_bullet_hell_benchmark_summary(result: dict) -> str:
+    metrics = result["metrics"]
+    return f"""Bullet Hell Config Change Offline Benchmark
+
+Dataset: {result['dataset_id']}
+Provider Mode: {result['provider_mode']}
+
+Evaluation:
+  Samples: {metrics['sample_count']}
+  Expectation Match Rate: {metrics['expectation_match_rate']:.2%}
+  Schema Pass Rate: {metrics['schema_pass_rate']:.2%}
+  Single-shot Runtime Pass Rate: {metrics['single_shot_runtime_pass_rate']:.2%}
+  Full-loop Runtime Pass Rate: {metrics['full_loop_runtime_pass_rate']:.2%}
+  Repair Success Rate: {metrics['repair_success_rate']:.2%}
+  Unsafe Request Block Rate: {metrics['unsafe_request_block_rate']:.2%}
+  False Accepts: {metrics['false_accept_count']}
+  Average Candidate Runs: {metrics['average_candidate_runs']}
+
+This is deterministic offline regression evidence, not real-model or live-Unity quality.
+"""
+
+
 def _write_json(path: Path, value: object) -> Path:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
@@ -452,6 +474,12 @@ def main(argv: list[str] | None = None) -> int:
         help="Versioned real-code dataset path.",
     )
 
+    bullet_benchmark_parser = subparsers.add_parser(
+        "run_bullet_hell_benchmark",
+        help="Run the deterministic offline Bullet Hell config-change benchmark.",
+    )
+    bullet_benchmark_parser.add_argument("--output", required=True, help="Benchmark output directory.")
+
     unity_parser = subparsers.add_parser(
         "export_unity_runtime_config",
         help="Export validated final configs as a Unity runtime contract.",
@@ -529,6 +557,13 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         print(build_real_code_evaluation_summary(result))
         return 0 if result["metrics"]["candidate_ready_rate"] == 1 else 1
+    if args.command == "run_bullet_hell_benchmark":
+        from workflow.bullet_hell_benchmark import run_bullet_hell_benchmark
+
+        repository_root = Path(__file__).resolve().parents[3]
+        result = run_bullet_hell_benchmark(repository_root, Path(args.output))
+        print(build_bullet_hell_benchmark_summary(result))
+        return 0 if result["metrics"]["expectation_match_rate"] == 1 else 1
     if args.command == "export_unity_runtime_config":
         destination = export_runtime_contract(args.config, args.output)
         print(f"Unity runtime contract exported: {destination}")

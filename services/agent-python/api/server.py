@@ -15,8 +15,9 @@ from agent_service.agents.single_agent import run_single_agent
 from agent_service.schemas import ReviewRequest, ReviewResponse
 from gameconfig_agent.runtime_runs import RuntimeRunService
 from gameconfig_agent.server import create_app
-from workflow import ChangeWorkflowService, CodeWorkflowService, CodeChangeAgentService
+from workflow import BulletHellWorkflowService, ChangeWorkflowService, CodeWorkflowService, CodeChangeAgentService
 from workflow.code_change_benchmark import load_code_change_benchmark, run_code_change_benchmark
+from workflow.bullet_hell_benchmark import load_bullet_hell_benchmark, run_bullet_hell_benchmark
 from workflow.real_code_evaluation import (
     load_real_code_dataset,
     real_provider_configuration_status,
@@ -34,6 +35,13 @@ UNITY_EXECUTABLE = (
     / "Builds"
     / "Windows"
     / "GameConfigRuntimeDemo.exe"
+)
+BULLET_HELL_EXECUTABLE = (
+    REPOSITORY_ROOT
+    / "game-unity"
+    / "Builds"
+    / "BulletHellWindows"
+    / "BulletHellDemo.exe"
 )
 
 
@@ -89,6 +97,23 @@ class RealCodeEvaluationRequest(BaseModel):
     timeout_seconds: int = Field(60, ge=5, le=180)
 
 
+class BulletHellWorkflowCreateRequest(BaseModel):
+    requirement_text: str = Field(..., min_length=1)
+    provider: str = Field("mock", pattern="^(mock|openai_compatible)$")
+    timeout_seconds: int = Field(60, ge=5, le=300)
+
+
+class BulletHellAuthorizationRequest(BaseModel):
+    actor: str = Field(..., min_length=1)
+    note: str = ""
+
+
+class BulletHellDecisionRequest(BaseModel):
+    decision: str = Field(..., pattern="^(accept|revise|rollback)$")
+    actor: str = Field(..., min_length=1)
+    note: str = Field(..., min_length=1)
+
+
 def create_unified_app(
     *,
     runtime_run_service: RuntimeRunService | None = None,
@@ -98,6 +123,8 @@ def create_unified_app(
     code_change_benchmark_dir: Path | None = None,
     real_code_evaluation_dir: Path | None = None,
     real_code_provider_factory: Any | None = None,
+    bullet_hell_workflow_service: BulletHellWorkflowService | None = None,
+    bullet_hell_benchmark_dir: Path | None = None,
 ):
     runtime_runs = runtime_run_service or RuntimeRunService(
         project_root=REPOSITORY_ROOT,
@@ -120,6 +147,12 @@ def create_unified_app(
     )
     benchmark_dir = code_change_benchmark_dir or RUNTIME_ARTIFACTS_DIR / "code_change_benchmark"
     real_evaluation_dir = real_code_evaluation_dir or RUNTIME_ARTIFACTS_DIR / "real-code-evaluation"
+    bullet_hell_workflows = bullet_hell_workflow_service or BulletHellWorkflowService(
+        repository_root=REPOSITORY_ROOT,
+        workflows_dir=RUNTIME_ARTIFACTS_DIR / "bullet-hell-workflows",
+        unity_executable=BULLET_HELL_EXECUTABLE,
+    )
+    bullet_benchmark_dir = bullet_hell_benchmark_dir or RUNTIME_ARTIFACTS_DIR / "bullet-hell-benchmark"
     application = create_app(runtime_run_service=runtime_runs)
     application.title = "Agentic Game R&D Lab API"
 
@@ -132,6 +165,117 @@ def create_unified_app(
         if request.workflow == "dual_agent":
             return run_dual_agent(request)
         return run_single_agent(request)
+
+    @application.get("/api/bullet-hell/capabilities")
+    def bullet_hell_capabilities() -> dict[str, Any]:
+        return bullet_hell_workflows.capabilities()
+
+    @application.get("/api/bullet-hell/benchmark/dataset")
+    def bullet_hell_benchmark_dataset() -> dict[str, Any]:
+        dataset = load_bullet_hell_benchmark(REPOSITORY_ROOT)
+        return {
+            "dataset_id": dataset["dataset_id"],
+            "title": dataset["title"],
+            "provider_mode": dataset["provider_mode"],
+            "disclaimer": dataset["disclaimer"],
+            "sample_count": len(dataset["samples"]),
+            "samples": [
+                {
+                    "sample_id": row["sample_id"],
+                    "category": row["category"],
+                    "expected_decision": row["expected_decision"],
+                }
+                for row in dataset["samples"]
+            ],
+        }
+
+    @application.post("/api/bullet-hell/benchmark")
+    def execute_bullet_hell_benchmark() -> dict[str, Any]:
+        return run_bullet_hell_benchmark(REPOSITORY_ROOT, bullet_benchmark_dir)
+
+    @application.post("/api/bullet-hell/workflows")
+    def create_bullet_hell_workflow(request: BulletHellWorkflowCreateRequest) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.create(
+                requirement_text=request.requirement_text,
+                provider=request.provider,
+                timeout_seconds=request.timeout_seconds,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @application.get("/api/bullet-hell/workflows/latest")
+    def latest_bullet_hell_workflow() -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.latest()
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @application.get("/api/bullet-hell/workflows/{workflow_id}")
+    def get_bullet_hell_workflow(workflow_id: str) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.get(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @application.post("/api/bullet-hell/workflows/{workflow_id}/authorize")
+    def authorize_bullet_hell_workflow(
+        workflow_id: str,
+        request: BulletHellAuthorizationRequest,
+    ) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.authorize(workflow_id, actor=request.actor, note=request.note)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/bullet-hell/workflows/{workflow_id}/run")
+    def run_bullet_hell_workflow(workflow_id: str) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.start(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/bullet-hell/workflows/{workflow_id}/play")
+    def play_bullet_hell_workflow(workflow_id: str) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.launch_manual(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/bullet-hell/workflows/{workflow_id}/decision")
+    def decide_bullet_hell_workflow(
+        workflow_id: str,
+        request: BulletHellDecisionRequest,
+    ) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.decide(
+                workflow_id,
+                decision=request.decision,
+                actor=request.actor,
+                note=request.note,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.get("/api/bullet-hell/workflows/{workflow_id}/artifacts/{name}")
+    def bullet_hell_workflow_artifact(workflow_id: str, name: str) -> PlainTextResponse:
+        try:
+            path = bullet_hell_workflows.artifact(workflow_id, name)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return PlainTextResponse(path.read_text(encoding="utf-8-sig"))
 
     @application.post("/api/change-workflows")
     def create_change_workflow(request: ChangeWorkflowCreateRequest) -> dict[str, Any]:

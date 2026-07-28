@@ -280,3 +280,35 @@
 ### 最终状态
 
 `Milestone 6 complete。真实模型结果与 Milestone 5 scripted fixture 已分开记录；下一阶段必须另行确认范围。`
+
+## 2026-07-27 Milestone 7 启动
+
+- 用户批准将项目主线收敛为面向 Unity 2.5D 弹幕玩法的 Game Change Verification Agent。
+- 已确认配置变更优先、Training Sword 并行保留、固定轨迹加手动试玩、一次授权后隔离自动验证、Agent 选修复策略并由确定性工具调参。
+- 已更新根路线图和各子系统 AGENTS 约束；当前进入 Milestone 7A。
+- 新增 Bullet Hell 1.0 Pydantic 契约、基线配置、确定性需求映射、安全校验、Telemetry 评估和有限修复工具；定向测试 6 passed。
+- 新增独立 Unity Bullet Hell 场景、四种 Pattern 计算、对象池、Boss 阶段、固定轨迹玩家和 Telemetry 记录模块。
+- 首次 Unity batch build 被本机许可证令牌阻塞：日志为 `Access token is unavailable`，未生成 EXE；已记录并继续非 Unity 实现。
+- 完成 Bullet Hell 工作流状态机、一次授权与三轮预算、baseline/candidate 双跑编排、有限修复动作、最终人工决策和工作流 artifacts。
+- 新增 `/api/bullet-hell` 工作流、手动试玩、artifact、能力清单和 benchmark 接口。
+- Web 策划视图默认进入“弹幕变更验证”，可直接切换 Mock/真实 Provider、设置超时、查看 Config Diff、授权、运行证据、修复历史和人工决策。
+- 新增 20 样本离线工程回归；预期匹配、完整闭环、自动修复和危险需求拦截均为 100%，错误接受为 0，平均候选运行 1.308 次。该结果明确不代表真实 Unity 或真实模型质量。
+- 新增 `scripts/smoke-bullet-hell.ps1`，能够识别 Unity 返回成功码但未生成 Player 的假成功，并执行固定 seed 双跑稳定字段比较。
+- Python 全量测试：150 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：1585 modules transformed，通过；CSS 24.65 kB，JS 328.30 kB。
+- 浏览器 smoke：默认中文弹幕页、Provider/超时控件、Mock 候选、结构化目标、Config Diff、授权门和 artifact 链接均正常。
+- 本地 API smoke：`/api/health`、Web 首页和 `/api/bullet-hell/capabilities` 均可访问。
+- Unity 最终验收仍阻塞：Licensing Client 报告 `Access token is unavailable`、`0 free entitlements` 和 `No valid Unity Editor license found`，C# 编译与 Bullet Hell Player 双跑尚未得到证据。
+- 同一 Unity smoke 已在受限环境外重试，仍在编译前被相同 Hub entitlement 问题阻断，排除本轮命令等待或端口占用。
+- Unity 退出前曾把默认 Build Settings 改成仅 Bullet Hell；已收紧 Builder，使项目设置同时保留 RuntimeDemo 与 BulletHellDemo，而弹幕 Build 只显式构建自己的场景。
+- 用户从 Unity Hub 打开项目后，日志成功识别 Unity Personal；修复 smoke 对瞬时 access-token warning 的误判，并在构建前删除旧 Player，防止复用陈旧 EXE。
+- Bullet Hell C# 编译、Windows Player、固定 seed 双跑和逐阶段稳定字段全部通过；总子弹 592、峰值 66、受击 2、三个阶段结果一致。
+- 修复工作流把 `status=failed` 的有效玩法 telemetry 错当作基础设施异常的问题；Player 非零退出但存在可用 telemetry 时继续进入 Evaluator 和自动修复。
+- 自动模式从渲染帧 `Update()` 迁移到固定 60Hz `FixedUpdate()`；两次运行的总计和逐阶段玩法数据一致，真实 FPS 继续独立采集。
+- 真实 Web/API 主案例完成 baseline + 3 次 candidate Unity 运行；两轮 `REDUCE_BULLET_SPEED` 后进入 `evidence_ready`，最终峰值 196、受击 0、生存 36 秒、低分位 FPS 约 58.8，并完成人工接受。
+- 新增“加载最近验证”，刷新页面后可从磁盘恢复最新 workflow，不依赖数据库。
+- 最终 Python：151 passed；Web production build 通过；Training Sword 固定 seed 回归重复率 100%。
+
+### 最终状态
+
+`Milestone 7 complete。当前版本可从 Web Console 执行配置提案、静态校验、人工授权、Unity 前后双跑、有限自动修复、证据展示和人工决策。`

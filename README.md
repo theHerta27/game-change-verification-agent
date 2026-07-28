@@ -2,7 +2,7 @@
 
 AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
 
-**Milestone 0–6 已完成。** 测试床能够对同一配置执行固定种子双跑，并在本机存在第三方模型时动态替换占位角色；受控 Code Change Agent 只生成候选补丁，必须经过人工审批与隔离 Unity 验证。首次 5 样本真实代码评测中，模型语义意图命中率为 100%，严格补丁应用率和候选就绪率为 60%。
+**Milestone 0–7 已完成。** 当前主线是面向 Unity 2.5D 弹幕玩法的 Game Change Verification Agent：自然语言需求先形成候选弹幕配置，经过静态安全门、人工授权和 Unity 前后双跑，再根据 telemetry 有限修复并由人决定接受或回滚。Training Sword 旧流程继续保留。
 
 ## 当前组成
 
@@ -42,6 +42,10 @@ cd D:\Desktop\agentic-game-rd
 - 最近一次真实代码评测：`GET /api/code-change-agent/real-evaluation/latest`
 - 运行真实代码评测：`POST /api/code-change-agent/real-evaluation`
 - 离线重放最近结果：`POST /api/code-change-agent/real-evaluation/replay`
+- 弹幕能力清单：`GET /api/bullet-hell/capabilities`
+- 创建弹幕变更工作流：`POST /api/bullet-hell/workflows`
+- 加载最近一次弹幕验证：`GET /api/bullet-hell/workflows/latest`
+- 运行弹幕离线回归：`POST /api/bullet-hell/benchmark`
 
 ## 启动前端
 
@@ -59,21 +63,21 @@ cd D:\Desktop\agentic-game-rd
 .\scripts\start-web.ps1 -Port 5174 -BackendPort 8001
 ```
 
-策划视图的推荐流程：
+策划视图默认进入弹幕变更验证，推荐流程：
 
 ```text
-填写需求 -> 创建变更提案 -> 查看 Config Diff 与质量审查 -> 人工批准
--> 准备隔离 Unity 测试 -> 手动试玩或固定种子自动试玩
--> 查看 telemetry 证据 -> 接受 / 要求修订 / 回滚
+填写弹幕需求 -> 生成候选并静态校验 -> 人工授权最多三轮隔离运行
+-> Unity 同条件运行 baseline / candidate -> 查看 telemetry 和自动修复
+-> 接受 / 要求修订 / 回滚
 ```
 
-可直接使用以下需求验证字段变化：
+可直接使用以下主演示需求：
 
 ```text
-将新手试炼武器基础攻击力改为 45，通关目标 60-90 秒，击败 5 个敌人，技能至少使用 1 次。
+第二阶段改为双向螺旋弹，提高密度，但同时存在的子弹不能超过350发，最低帧率不能低于55 FPS。
 ```
 
-Mock 不会自由创作配置：它从已提交的 Training Sword 基线出发，只应用能力清单内的明确约束。真实 Provider 仍必须经过相同的静态校验、人工审批和 Unity 运行证据。详见 `docs/MILESTONE3A_CONFIG_CHANGE_WORKFLOW.md`。
+弹幕 Mock 不会自由创作：它从已提交的弹幕基线出发，只应用支持范围内的确定性映射。真实 Provider 只负责提出候选 JSON，仍必须经过同一套静态校验、人工授权和 Unity 运行证据。详见 `docs/MILESTONE7_BULLET_HELL_CHANGE_VERIFICATION.md`。
 
 开发者调试视图另提供人工 C# Diff 闭环：安全门和 Quality Review Agent 审查开发者写好的补丁，批准后只在 `runtime-artifacts/code-workflows` 的 Unity 副本中应用和验证。“接受”不会自动合并主仓库。详见 `docs/MILESTONE3B_CSHARP_DIFF_WORKFLOW.md`。
 
@@ -145,6 +149,28 @@ cd D:\Desktop\agentic-game-rd
 
 该证据证明自动测试可重复，不等同于真实玩家体验或统计学平衡结论。详细说明见 `docs/MILESTONE1_GREYBOX_TESTBED.md`。
 
+### 弹幕自动验证测试床
+
+运行 Bullet Hell Windows Build 和固定种子双跑：
+
+```powershell
+cd D:\Desktop\agentic-game-rd
+.\scripts\smoke-bullet-hell.ps1
+```
+
+证据保存到 `runtime-artifacts/bullet-hell-smoke/`。Unity 批处理没有拿到 Hub 许可证令牌时，脚本会明确失败；即使 Unity 进程返回 0，只要没有生成 `BulletHellDemo.exe` 就不会误报成功。
+
+离线 20 样本工程回归：
+
+```powershell
+cd D:\Desktop\agentic-game-rd\services\agent-python
+..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_bullet_hell_benchmark --output ..\..\runtime-artifacts\bullet-hell-benchmark
+```
+
+该 benchmark 使用脚本化故障验证路由、护栏和有限修复，不代表真实 Unity 或真实模型质量。
+
+当前主演示实测中，候选双向螺旋首次未满足固定轨迹受击目标，系统两次降低弹速并自动复测；最终峰值存活子弹 `196/350`、玩家受击 `0/3`、生存 `36/36s`、低分位 FPS 约 `58.8/55`，随后由人工接受。页面刷新后可使用“加载最近验证”恢复该证据。
+
 ## 验证
 
 ```powershell
@@ -157,6 +183,7 @@ cd D:\Desktop\agentic-game-rd
 .\scripts\test-python.ps1
 .\scripts\test-web.ps1
 .\scripts\smoke-unity.ps1
+.\scripts\smoke-bullet-hell.ps1
 .\scripts\verify-repo-clean.ps1
 ```
 
@@ -166,6 +193,7 @@ cd D:\Desktop\agentic-game-rd
 - Code Change Agent 只生成候选 Diff，不能读取未授权文件、写主仓库或自动合并。
 - 人工 C# Diff 只在审批后的隔离 Unity 副本中应用，系统不自动生成或合并补丁。
 - 配置候选只写入 `runtime-artifacts/change_workflows` 和独立 Unity run，不覆盖已提交基线。
+- 弹幕候选只写入 `runtime-artifacts/bullet-hell-workflows`；人工“接受”当前只记录决策，不自动覆盖 `configs/bullet-hell/baseline.json`。
 - 不公开分发灵梦模型、贴图或本地音频。
 - 单次 Unity 前后对比不宣称为统计学 A/B 实验。
 

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace GameConfig.Runtime
 {
@@ -53,6 +54,9 @@ namespace GameConfig.Runtime
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
+            if (Environment.GetCommandLineArgs().Contains("--bullet-hell") ||
+                SceneManager.GetActiveScene().name == "BulletHellDemo")
+                return;
             if (FindFirstObjectByType<RuntimeDemoBootstrap>() == null)
             {
                 new GameObject("GameConfig Runtime Demo").AddComponent<RuntimeDemoBootstrap>();

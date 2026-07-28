@@ -32,7 +32,7 @@ REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
 OUTPUTS_DIR = Path(
     os.environ.get("AGENTIC_GAME_RD_RUNTIME_DIR", REPOSITORY_ROOT / "runtime-artifacts")
 )
-BACKEND_VERSION = "milestone6-real-code-evaluation"
+BACKEND_VERSION = "milestone7-bullet-hell-verification"
 BACKEND_CAPABILITIES = {
     "real_provider_runtime_handoff": True,
     "runtime_run_polling": True,
@@ -40,9 +40,11 @@ BACKEND_CAPABILITIES = {
     "requirement_intake": True,
     "change_workflow": True,
     "code_workflow": True,
-            "code_change_agent": True,
-            "code_change_benchmark": True,
-            "real_code_evaluation": True,
+    "code_change_agent": True,
+    "code_change_benchmark": True,
+    "real_code_evaluation": True,
+    "bullet_hell_workflow": True,
+    "bullet_hell_benchmark": True,
 }
 
 

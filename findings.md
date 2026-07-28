@@ -1,5 +1,13 @@
 # Findings
 
+## 2026-07-27 Milestone 7
+
+- 现有 Unity Training Sword 运行时集中在单个 `RuntimeDemoBootstrap`，无法仅通过替换 JSON 迁移为弹幕；最小风险方案是独立 Bullet Hell contract、场景和运行时模块，旧路径只增加模式隔离保护。
+- 现有 `ChangeWorkflowService` 已具备文件状态机、候选快照、人工审批、隔离运行和最终决策，可复用其工程模式，但弹幕需要 baseline/candidate 双跑和多轮自动修复，因此使用独立 `/api/bullet-hell` 工作流。
+- 固定轨迹只能形成相同轨迹下的可重复碰撞与生存证据，不能证明一般意义上的“可躲避”或“好玩”。
+- 首次 Bullet Hell Unity batch build 未生成 EXE。日志显示 `LicensingClient has failed validation` 与 `Access token is unavailable`，进程却返回 0；该问题属于本机 Hub/batchmode 许可证令牌，不是已确认的 C# 编译错误。后续验收必须同时检查 EXE 是否存在，不能只相信退出码。
+- 后台工作流初版直接覆盖 JSON，API 轮询可能在文件截断和写入之间读到空内容；已改为同目录临时文件写完后原子替换。
+
 ## 2026-07-18 来源核对
 
 - `GameConfig-Agent` 与 `DevQuality-Agent` 均无 `.git`，不能记录源 commit；使用逐文件 SHA256、源路径和迁移时间建立可复现来源清单。
@@ -96,6 +104,22 @@
 - 真实模型即使返回合法 JSON，也可能声明或实际修改未授权文件；必须同时检查 `target_files` 字段和 unified diff 中的真实路径。
 - 代码生成失败不是接口异常：JSON parse、Prompt Contract、目标范围和 Patch Safety Gate 失败都应形成含原始输出的 badcase。
 - 当前允许列表不包含 `Assets/Editor`，是为了防止候选补丁改变构建/校验器本身；被测运行时代码和测试工具必须保持权限分离。
+
+## 2026-07-28 Milestone 7
+
+- 弹幕配置必须使用独立 contract，不能把 Training Sword 的武器、升级和奖励字段继续扩张成通用游戏 Schema。
+- Mock 的价值是稳定复现候选与失败路径，不是模拟真实模型的自由理解能力；真实 Provider 也只能提出候选，不能跳过同一静态校验和 Unity 证据。
+- baseline/candidate 的公平比较依赖相同 Player、配置外环境、随机种子、固定轨迹和时长。固定轨迹受击结果不能扩大解释为所有玩家体验。
+- 自动修复应把“策略选择”和“数值计算”分开：Agent 只能选有限动作，确定性工具计算新值并重新校验。
+- 离线脚本化 telemetry 适合验证状态机、预算和失败路由，但不能作为实时 Unity 性能、玩家体验或真实模型生成质量证据。
+- Unity `-batchmode` 可能返回进程结果但没有完成构建；验收脚本必须同时检查许可证日志和目标 EXE 是否存在。
+- 当前本机失败发生在 Unity 项目加载和 C# 编译之前：Licensing Client signature validation 后没有获得 access token/entitlement，因此不能由该日志推断弹幕 C# 成功或失败。
+- 策划页面必须直接提供 Provider 和超时控件；只在开发者侧边栏设置会让主流程看起来不可控。
+- 后端版本标识必须跟随当前演示主线更新，否则即使功能已上线，页头仍会误导为旧 Milestone。
+- 新场景 Builder 不应让 `BuildPlayer` 复用全局 `EditorBuildSettings.scenes`，否则会把旧 Training Sword 场景一起打入弹幕 Player，或为了弹幕构建覆盖旧场景；应在构建调用中显式传入目标场景，同时让编辑器 Build Settings 保留两个入口。
+- Unity Player 退出码 1 不一定代表基础设施崩溃；在本项目中它也表示自动轨迹未能存活。只要 telemetry 完整且状态为 `failed/completed`，就应交给 Evaluator，而不是提前中止修复闭环。
+- 固定 seed 不能修复基于 `Update()` 的时间步波动。自动模式的弹幕、碰撞、轨迹和攻击必须在固定 60Hz 步长推进；FPS 采集则保持独立，避免把模拟帧率伪装成机器性能。
+- 文件持久化工作流如果没有“最近一次”读取入口，浏览器刷新就会让演示证据看似消失；只读 latest API 足以解决本地单用户 demo，不需要引入数据库。
 
 ## 2026-07-19 Milestone 6
 

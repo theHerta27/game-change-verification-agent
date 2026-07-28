@@ -10,6 +10,8 @@ import { CodeWorkflowPanel } from './CodeWorkflowPanel';
 import { CodeChangeAgentPanel } from './CodeChangeAgentPanel';
 import { CodeChangeBenchmarkPanel } from './CodeChangeBenchmarkPanel';
 import { RealCodeEvaluationPanel } from './RealCodeEvaluationPanel';
+import { BulletHellWorkflowPanel } from './BulletHellWorkflowPanel';
+import { BulletHellBenchmarkPanel } from './BulletHellBenchmarkPanel';
 
 const API_BASE = '';
 type Language = 'zh' | 'en';
@@ -226,6 +228,7 @@ const checkLabels: Record<Language, Record<string, string>> = {
 function App() {
   const [language, setLanguage] = useState<Language>('zh');
   const [viewMode, setViewMode] = useState<'planner' | 'developer'>('planner');
+  const [plannerTool, setPlannerTool] = useState<'bullet' | 'legacy'>('bullet');
   const [cases, setCases] = useState<ClassicCase[]>([]);
   const [selectedCase, setSelectedCase] = useState('case_01_baseline_trial');
   const [requirement, setRequirement] = useState(fallbackRequirement);
@@ -383,14 +386,29 @@ function App() {
       </div>
     </header>
 
-    {viewMode === 'planner' ? <div className="mx-auto grid max-w-[1600px] grid-cols-1 gap-4 p-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-      <aside>{controls}</aside>
-      <section className="space-y-4">
-        <ChangeWorkflowPanel language={language} requirement={requirement} caseId={selectedCase} provider={provider} timeoutSeconds={timeoutSeconds}/>
-      </section>
+    {viewMode === 'planner' ? <div className="mx-auto max-w-[1700px] p-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
+        <div className="flex rounded-md border border-line bg-panel p-1">
+          <button className={plannerTool === 'bullet' ? 'tab-active' : 'tab'} onClick={() => setPlannerTool('bullet')}>弹幕变更验证</button>
+          <button className={plannerTool === 'legacy' ? 'tab-active' : 'tab'} onClick={() => setPlannerTool('legacy')}>Training Sword 旧回归</button>
+        </div>
+        {plannerTool === 'bullet' && <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+          <span>Provider: {provider}</span><span>Timeout: {timeoutSeconds}s</span>
+        </div>}
+      </div>
+      {plannerTool === 'bullet'
+        ? <BulletHellWorkflowPanel
+            language={language}
+            provider={provider}
+            timeoutSeconds={timeoutSeconds}
+            onProvider={setProvider}
+            onTimeout={setTimeoutSeconds}
+          />
+        : <div className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)]"><aside>{controls}</aside><section><ChangeWorkflowPanel language={language} requirement={requirement} caseId={selectedCase} provider={provider} timeoutSeconds={timeoutSeconds}/></section></div>}
     </div> : <div className="mx-auto grid max-w-[1800px] grid-cols-1 gap-4 p-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
       <aside className="space-y-4">{controls}<Panel title={t.workflowSummary} icon={<Activity className="h-4 w-4"/>}><KeyValue data={demo?.workflow_summary ?? { status: t.emptySummary }} language={language}/></Panel></aside>
       <section className="space-y-4">
+        <BulletHellBenchmarkPanel language={language}/>
         <CodeChangeAgentPanel language={language} provider={provider} timeoutSeconds={timeoutSeconds} onGenerated={setGeneratedCodeWorkflowId}/>
         <CodeChangeBenchmarkPanel language={language}/>
         <RealCodeEvaluationPanel language={language} timeoutSeconds={timeoutSeconds}/>

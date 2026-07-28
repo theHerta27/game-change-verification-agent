@@ -38,15 +38,15 @@
 
 ## 当前演示
 
-当前游戏演示是 Training Sword 新手试炼关卡：
+当前主线演示是 Unity 2.5D 弹幕配置变更验证：
 
-- 三波敌人，共 5 个敌人；
-- 支持移动、普通攻击、技能和武器升级；
-- 可以手动试玩，也可以固定随机种子自动试玩；
-- Unity 输出通关时间、攻击次数、技能次数、击败数等 telemetry；
-- Web Console 展示配置变化、Agent Trace、风险、Badcase 和运行评测。
+- 支持环形、瞄准扇形、螺旋和花瓣四种配置化弹幕；
+- Agent 只能提出候选 JSON，不能改 C# 或正式基线；
+- 人工授权后，Unity 使用固定种子和轨迹运行修改前与修改后；
+- 指标不通过时，Agent 从有限修复策略中选择，确定性工具负责调参；
+- 最多运行三个候选，最后由人接受、修订或回滚。
 
-本地可以使用博丽灵梦模型作为角色表现；没有模型时自动使用占位角色，不影响测试逻辑。
+Training Sword 新手试炼作为旧回归流程继续保留。本地可以使用博丽灵梦模型作为角色表现；没有模型时自动使用占位角色，不影响测试逻辑。
 
 ## 主要能力
 
@@ -74,9 +74,9 @@
 - Scripted benchmark 用于验证工程护栏，不代表真实模型质量；
 - OpenAI Compatible Provider 才是真实模型调用，但输出仍必须经过相同校验。
 
-## 当前结果
+## 当前结果与证据边界
 
-- Python：137 tests passed；
+- Python：151 tests passed；
 - 前端 production build：通过；
 - Unity 固定种子双跑可重复率：100%；
 - Code Change 护栏 benchmark：12 个固定样本，预期匹配率 100%；
@@ -84,6 +84,9 @@
 - 真实模型语义意图命中率：100%；
 - 补丁严格应用率和候选就绪率：60%；
 - 两个失败案例都是代码意图基本正确，但 unified diff 上下文不准确。
+- 弹幕离线 benchmark 有 20 个固定样本，只用于验证需求路由、Schema、安全门、有限修复和失败路由，不代表真实 Unity 或真实模型质量。
+- 弹幕 Unity Build 与双跑必须由 `scripts/smoke-bullet-hell.ps1` 单独验收；未生成 Player 时不能声称 Unity 通过。
+- Milestone 7 最终已通过 Bullet Hell Windows Build、固定 60Hz 玩法模拟双跑、真实 Web/API 自动修复闭环和人工接受。
 
 ## 当前不足
 

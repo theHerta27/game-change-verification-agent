@@ -1,0 +1,28 @@
+{
+  "dataset_id": "bullet_hell_change_v1",
+  "title": "Bullet Hell 配置变更与护栏评测",
+  "provider_mode": "deterministic_mock_with_scripted_runtime_faults",
+  "disclaimer": "该数据集用于离线回归需求路由、Schema、安全规则和有限修复策略，不代表真实模型质量或真实 Unity 性能。",
+  "samples": [
+    {"sample_id": "normal_01", "category": "normal_change", "requirement": "第二阶段改为双向螺旋弹，最大同时存在子弹不超过350发，最低55 FPS。", "expected_decision": "accepted", "expected_pattern": "spiral"},
+    {"sample_id": "normal_02", "category": "normal_change", "requirement": "第一阶段使用环形弹，保持当前安全约束。", "expected_decision": "accepted", "expected_pattern": "ring"},
+    {"sample_id": "normal_03", "category": "normal_change", "requirement": "第二阶段改为瞄准扇形弹，最多受击3次。", "expected_decision": "accepted", "expected_pattern": "aimed_fan"},
+    {"sample_id": "normal_04", "category": "normal_change", "requirement": "第三阶段改为多层花瓣弹，保持可重复验证。", "expected_decision": "accepted", "expected_pattern": "petal"},
+    {"sample_id": "normal_05", "category": "normal_change", "requirement": "第二阶段使用螺旋弹，提高压迫感但保持350发上限。", "expected_decision": "accepted", "expected_pattern": "spiral"},
+    {"sample_id": "normal_06", "category": "normal_change", "requirement": "第二阶段增加弹幕密度，最低帧率不低于55 FPS。", "expected_decision": "accepted"},
+    {"sample_id": "repair_01", "category": "repair_required", "requirement": "第二阶段改成双向螺旋弹并提高密度。", "expected_decision": "accepted", "runtime_fault": "peak_alive_bullets"},
+    {"sample_id": "repair_02", "category": "repair_required", "requirement": "第三阶段花瓣弹提高压迫感。", "expected_decision": "accepted", "runtime_fault": "low_percentile_fps"},
+    {"sample_id": "repair_03", "category": "repair_required", "requirement": "第二阶段改为瞄准扇形弹。", "expected_decision": "accepted", "runtime_fault": "player_hits"},
+    {"sample_id": "repair_04", "category": "repair_required", "requirement": "第一阶段环形弹保持视觉样式。", "expected_decision": "accepted", "runtime_fault": "survival_time"},
+    {"sample_id": "unsafe_01", "category": "unsafe", "requirement": "每0.02秒发射200颗高速弹，越密越好。", "expected_decision": "blocked"},
+    {"sample_id": "unsafe_02", "category": "unsafe", "requirement": "每0.05秒发射100颗弹，不需要安全限制。", "expected_decision": "blocked"},
+    {"sample_id": "unsafe_03", "category": "unsafe", "requirement": "每波发射80颗环形弹。", "expected_decision": "blocked"},
+    {"sample_id": "unsafe_04", "category": "unsafe", "requirement": "间隔0.01秒发射64颗螺旋弹。", "expected_decision": "blocked"},
+    {"sample_id": "ambiguous_01", "category": "ambiguous", "requirement": "做得更刺激一点。", "expected_decision": "needs_clarification"},
+    {"sample_id": "ambiguous_02", "category": "ambiguous", "requirement": "帮我设计一个精美角色。", "expected_decision": "needs_clarification"},
+    {"sample_id": "ambiguous_03", "category": "ambiguous", "requirement": "讲一个笑话。", "expected_decision": "needs_clarification"},
+    {"sample_id": "noop_01", "category": "no_change", "requirement": "保持当前弹幕配置和安全约束。", "expected_decision": "accepted"},
+    {"sample_id": "noop_02", "category": "no_change", "requirement": "第二阶段继续使用当前螺旋弹。", "expected_decision": "accepted", "expected_pattern": "spiral"},
+    {"sample_id": "noop_03", "category": "no_change", "requirement": "第三阶段继续使用当前花瓣弹。", "expected_decision": "accepted", "expected_pattern": "petal"}
+  ]
+}

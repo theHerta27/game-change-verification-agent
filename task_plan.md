@@ -16,6 +16,34 @@
 | Milestone 4 | 受控 Code Change Agent | complete |
 | Milestone 5 | 代码变更 Benchmark 与失败分类 | complete |
 | Milestone 6 | 真实 Provider 代码生成评测 | complete |
+| Milestone 7 | 弹幕变更自动验证闭环 | complete |
+
+## Milestone 7：弹幕变更自动验证闭环
+
+### 目标
+
+- [x] 7A：新增独立 2.5D `BulletHellDemo` 运行时，保留 Training Sword 回归路径。
+- [x] 7A：支持手动试玩、固定轨迹自动试玩、四种配置化弹幕和结构化 telemetry。
+- [x] 7B：新增独立 Bullet Hell 1.0 契约、Schema、引用/规则校验和候选 Config Diff。
+- [x] 7B：增加 Pattern 数学、对象池、配置加载和 Unity smoke 验证。
+- [x] 7C：新增一次授权、最多三轮运行的自动验证与修复状态机。
+- [x] 7C：完成 baseline/candidate 同条件双跑、有限修复动作和确定性调参。
+- [x] 7C：新增 `/api/bullet-hell` 接口与面向策划的 Web 主页面。
+- [x] 7D：固定三个主演示案例和约 20 个评测样本，输出统一评测证据。
+- [x] 完成 Python、Web、Unity 和仓库清洁全量回归。
+
+### 状态与边界
+
+- 第一版只修改候选弹幕 JSON，不自动修改 C#、Scene、Prefab、项目设置或正式基线。
+- 人工一次授权隔离测试预算；Agent 可在预算内自动运行和修复，最终接受或回滚仍需人工决策。
+- 自动修复由 Agent 选择有限策略，确定性工具计算数值；不得让模型直接覆盖正式配置。
+- Training Sword API、artifact 与 Unity contract 保持兼容；弹幕使用独立 contract 和 API 命名空间。
+- 灵梦只作为本机可选表现层，仓库始终保留无第三方资产可运行的占位角色。
+- 固定轨迹证据只表示相同轨迹下的可重复结果，不宣称完整衡量可玩性或所有玩家体验。
+
+### 当前阶段
+
+`Milestone 7 complete。Bullet Hell Windows Build、固定 60Hz 玩法模拟双跑、Training Sword 回归、真实 Web/API 自动修复闭环和人工接受均已通过。`
 
 ## Milestone 3A：配置变更闭环
 
