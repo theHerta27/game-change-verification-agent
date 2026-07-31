@@ -163,3 +163,7 @@
 - UE5 首期只实现 spiral 是合理垂直切片，但当前正式 baseline 同时含 ring、spiral、petal。Runner 必须明确验证能力：首期 UE5 运行应使用从正式只读 baseline 派生、仅保留/聚焦 phase_2 spiral 的兼容快照，或者在工作流层明确拒绝完整三 Pattern 运行，不能静默忽略 phase_1/phase_3。
 - “进程返回 0”不足以判定引擎运行成功。跨引擎 Runner 必须同时验证可执行文件、超时、Telemetry JSON、配置哈希、完成状态、必要截图和关键错误日志。
 - 仅“从 Hub 打开并关闭 Editor”仍不足以保证命令行 batchmode 获得许可证。本次日志显示 `LicenseClient-Administrator` IPC 通道拒绝连接，随后每轮重连等待约 60 秒；再次验收时应保持 Unity Hub 登录且进程处于运行状态，并把 Licensing Client 初始化单独纳入环境检查。
+- 简历中的“双 Agent Workflow”在本轮之前不成立：弹幕主流程只有候选生成模型调用，修复策略由确定性函数直接选择。现在 Requirement Agent 与 Quality Review Agent 已有独立 Prompt、模型调用记录、输出契约和失败坏例，但仍应准确称为“中央状态机编排的有界双 Agent”，而非自治多智能体系统。
+- “A/B 测试”容易被理解为统计实验。当前证据是同一 Player、seed、固定轨迹和时长下的一组受控 Before/After 回归对比，简历和面试应使用后者。
+- Quality Review Agent 不能凌驾于硬指标。即使真实模型输出 `accept`，只要确定性运行检查失败，策略门就会拒绝并转人工复核；模型也不能直接给出替换数值。
+- 统一 Telemetry 应采用新增包装层：Unity 原始 `telemetry.json` 保留旧字段，规范化证据增加 `engine_name/config_hash/run_id/completed`，避免为了跨引擎改坏已验证 artifact。

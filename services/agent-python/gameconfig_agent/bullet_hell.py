@@ -176,6 +176,111 @@ def validate_bullet_hell_contract(value: Any) -> dict[str, Any]:
     }
 
 
+def validate_bullet_hell_proposal(
+    *,
+    baseline: dict[str, Any],
+    candidate: Any,
+    structured_goal: Any,
+) -> dict[str, Any]:
+    """Run the four explicit validation layers used before engine execution."""
+    contract_validation = validate_bullet_hell_contract(candidate)
+    schema_errors = contract_validation["schema_errors"]
+    rule_errors = contract_validation["rule_errors"]
+    reference_errors: list[dict[str, Any]] = []
+    safety_errors: list[dict[str, Any]] = []
+
+    if not schema_errors:
+        parsed_candidate = BulletHellContract.model_validate(candidate).model_dump(mode="json")
+        parsed_baseline = BulletHellContract.model_validate(baseline).model_dump(mode="json")
+        phase_ids = [row["phase_id"] for row in parsed_candidate["phases"]]
+        target_phase = structured_goal.get("target_phase_id") if isinstance(structured_goal, dict) else None
+        requested_pattern = structured_goal.get("requested_pattern") if isinstance(structured_goal, dict) else None
+        if not isinstance(structured_goal, dict):
+            reference_errors.append(
+                {
+                    "reference_id": "structured_goal_required",
+                    "path": "structured_goal",
+                    "message": "structured_goal must be an object.",
+                }
+            )
+        if target_phase not in phase_ids:
+            reference_errors.append(
+                {
+                    "reference_id": "target_phase_exists",
+                    "path": "structured_goal.target_phase_id",
+                    "actual": target_phase,
+                    "available": phase_ids,
+                    "message": "目标阶段不存在于候选配置。",
+                }
+            )
+        if requested_pattern not in {"ring", "aimed_fan", "spiral", "petal"}:
+            reference_errors.append(
+                {
+                    "reference_id": "pattern_capability",
+                    "path": "structured_goal.requested_pattern",
+                    "actual": requested_pattern,
+                    "message": "需求引用了 Bullet Hell 1.0 未支持的 Pattern。",
+                }
+            )
+        elif target_phase in phase_ids:
+            target = next(row for row in parsed_candidate["phases"] if row["phase_id"] == target_phase)
+            if target["pattern"]["type"] != requested_pattern:
+                reference_errors.append(
+                    {
+                        "reference_id": "goal_candidate_alignment",
+                        "path": f"phases[{target_phase}].pattern.type",
+                        "expected": requested_pattern,
+                        "actual": target["pattern"]["type"],
+                        "message": "候选 Pattern 与结构化需求不一致。",
+                    }
+                )
+
+        baseline_phase_ids = [row["phase_id"] for row in parsed_baseline["phases"]]
+        if phase_ids != baseline_phase_ids:
+            safety_errors.append(
+                {
+                    "safety_id": "phase_identity_immutable",
+                    "path": "phases",
+                    "expected": baseline_phase_ids,
+                    "actual": phase_ids,
+                    "message": "配置变更不得新增、删除或重命名阶段。",
+                }
+            )
+        allowed_prefixes = ("phases[", "constraints.", "runtime_targets.")
+        for change in build_config_diff(parsed_baseline, parsed_candidate):
+            path = change["path"]
+            phase_pattern_change = path.startswith("phases[") and "].pattern." in path
+            allowed = phase_pattern_change or path.startswith(allowed_prefixes[1:])
+            if not allowed:
+                safety_errors.append(
+                    {
+                        "safety_id": "candidate_write_scope",
+                        "path": path,
+                        "message": "候选只能修改 Pattern、约束和运行目标。",
+                    }
+                )
+
+    layers = {
+        "schema": {"passed": not schema_errors, "errors": schema_errors},
+        "reference": {"passed": not reference_errors, "errors": reference_errors},
+        "rule_engine": {
+            "passed": not rule_errors,
+            "errors": rule_errors,
+            "estimates": contract_validation["estimates"],
+        },
+        "safety_gate": {"passed": not safety_errors, "errors": safety_errors},
+    }
+    return {
+        "passed": all(layer["passed"] for layer in layers.values()),
+        "schema_errors": schema_errors,
+        "reference_errors": reference_errors,
+        "rule_errors": rule_errors,
+        "safety_errors": safety_errors,
+        "estimates": contract_validation["estimates"],
+        "layers": layers,
+    }
+
+
 def estimate_peak_alive(pattern: PatternConfig | dict[str, Any]) -> int:
     row = pattern if isinstance(pattern, PatternConfig) else PatternConfig.model_validate(pattern)
     waves_alive = ceil(row.bullet_lifetime_seconds * 1000 / row.wave_interval_ms)

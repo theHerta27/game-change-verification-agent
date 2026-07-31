@@ -1,9 +1,10 @@
-# Agentic Game R&D Lab 工程约束
+# Game Change Verification Agent 工程约束
 
 ## 权威目录
 
 - Python Agent、API、校验和评测：`services/agent-python/`
 - Unity 运行时与自动试玩：`game-unity/`
+- Unreal Engine 最小验证切片：`game-unreal/`
 - React 控制台：`web-console/`
 - 稳定数据契约：`contracts/`
 - 固定配置、场景和评测：`configs/`、`scenarios/`、`evals/`
@@ -12,7 +13,7 @@
 
 ## 当前阶段
 
-Milestone 7 弹幕变更自动验证闭环已获用户批准。允许新增独立 Bullet Hell contract、2.5D Unity 测试场景、确定性弹幕工具、隔离自动验证/修复工作流、评测集和 Web 页面；Training Sword 旧路径必须保持可用。
+Milestone 7 弹幕变更自动验证闭环已完成。当前进入 Milestone 8：在保留 Unity 与 Training Sword 回归的前提下，增加统一 EngineRunner 和真实 UE5 最小验证切片。
 
 禁止：
 
@@ -22,6 +23,8 @@ Milestone 7 弹幕变更自动验证闭环已获用户批准。允许新增独�
 - 让模型浏览未授权文件，或向主仓库自动应用代码补丁。
 - 在隔离工作区之外应用候选 C# Diff，或绕过人工审批启动 Unity 验证。
 - 修改已有 GameConfig API、JSON artifact 和 Unity runtime contract 字段。
+- 用 Mock、Unity 产物或编辑器手工截图冒充 UE5 Build、Telemetry 或自动截图。
+- 在真实 UE5 Baseline/Candidate 双跑完成前将 Unreal Runner 标为 `verified`。
 - 未经一次明确授权启动弹幕隔离测试，或绕过最终人工决策覆盖任何已提交基线。
 - 提交 `.env`、密钥、第三方模型、贴图、音频、运行产物或构建缓存。
 
@@ -54,5 +57,6 @@ Milestone 2 本地资产通路可单独执行：
 ## 本地资产
 
 - `local-assets/` 和 `game-unity/Assets/Resources/LocalThirdParty/` 永不提交。
+- `game-unreal/**/Binaries`、`DerivedDataCache`、`Intermediate`、`Saved` 和本地 UE Build 永不提交。
 - 已提交的 Scene 或 Prefab 不得序列化引用本地角色 Prefab。
 - 角色表现通过运行时路径解析，缺少本地模型时必须回退到已提交占位角色。

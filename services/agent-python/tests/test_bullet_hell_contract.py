@@ -10,6 +10,7 @@ from gameconfig_agent.bullet_hell import (
     propose_mock_change,
     simulate_telemetry,
     validate_bullet_hell_contract,
+    validate_bullet_hell_proposal,
 )
 
 
@@ -85,3 +86,53 @@ def test_invalid_pattern_and_limit_return_structured_errors():
 
     assert not result["passed"]
     assert result["schema_errors"]
+
+
+def test_proposal_validation_exposes_four_explicit_layers():
+    baseline = load_bullet_hell_contract(BASELINE_PATH)
+    candidate, goal, gate = propose_mock_change(
+        baseline,
+        "第二阶段改为双向螺旋弹，提高密度，但同时存在的子弹不能超过350发。",
+    )
+
+    result = validate_bullet_hell_proposal(
+        baseline=baseline,
+        candidate=candidate,
+        structured_goal=goal,
+    )
+
+    assert gate["decision"] == "accepted"
+    assert set(result["layers"]) == {"schema", "reference", "rule_engine", "safety_gate"}
+    assert all(layer["passed"] for layer in result["layers"].values())
+
+
+def test_proposal_reference_layer_rejects_missing_target_phase():
+    baseline = load_bullet_hell_contract(BASELINE_PATH)
+    candidate, goal, _ = propose_mock_change(baseline, "第二阶段改为双向螺旋弹。")
+    goal["target_phase_id"] = "phase_missing"
+
+    result = validate_bullet_hell_proposal(
+        baseline=baseline,
+        candidate=candidate,
+        structured_goal=goal,
+    )
+
+    assert not result["passed"]
+    assert not result["layers"]["reference"]["passed"]
+    assert result["reference_errors"][0]["reference_id"] == "target_phase_exists"
+
+
+def test_proposal_safety_gate_rejects_out_of_scope_candidate_change():
+    baseline = load_bullet_hell_contract(BASELINE_PATH)
+    candidate, goal, _ = propose_mock_change(baseline, "第二阶段改为双向螺旋弹。")
+    candidate["boss"]["max_health"] = 7200
+
+    result = validate_bullet_hell_proposal(
+        baseline=baseline,
+        candidate=candidate,
+        structured_goal=goal,
+    )
+
+    assert not result["passed"]
+    assert not result["layers"]["safety_gate"]["passed"]
+    assert any(error["path"] == "boss.max_health" for error in result["safety_errors"])

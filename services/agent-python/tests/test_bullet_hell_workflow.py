@@ -7,19 +7,21 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.server import create_unified_app
-from gameconfig_agent.bullet_hell import simulate_telemetry
+from gameconfig_agent.bullet_hell import propose_mock_change, simulate_telemetry
+from gameconfig_agent.providers.base import LLMResponse
 from workflow.bullet_hell_workflow import BulletHellWorkflowService
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 
-def _service(tmp_path: Path, runner=None) -> BulletHellWorkflowService:
+def _service(tmp_path: Path, runner=None, provider_factory=None) -> BulletHellWorkflowService:
     return BulletHellWorkflowService(
         repository_root=REPOSITORY_ROOT,
         workflows_dir=tmp_path / "bullet-workflows",
         unity_executable=tmp_path / "BulletHellDemo.exe",
         telemetry_runner=runner or (lambda config, _directory, seed: simulate_telemetry(config, seed=seed)),
+        provider_factory=provider_factory,
     )
 
 
@@ -71,6 +73,12 @@ def test_authorized_workflow_runs_paired_evidence_and_can_be_accepted(tmp_path):
     assert completed["baseline_telemetry"]
     assert completed["candidate_telemetry"]
     assert completed["comparison_report"]["passed"]
+    assert [run["agent_name"] for run in completed["agent_runs"]] == [
+        "requirement_agent",
+        "quality_review_agent",
+    ]
+    assert completed["quality_reviews"][0]["policy_gate"]["effective_decision"] == "accept"
+    assert completed["budget"]["model_calls_used"] == 0
     assert accepted["status"] == "accepted"
     assert accepted["final_decision"]["baseline_overwritten"] is False
 
@@ -162,7 +170,7 @@ def test_gameplay_failure_exit_code_keeps_valid_telemetry(tmp_path, monkeypatch)
         )
         return SimpleNamespace(returncode=1)
 
-    monkeypatch.setattr("workflow.bullet_hell_workflow.subprocess.run", fake_run)
+    monkeypatch.setattr("workflow.engines.unity.subprocess.run", fake_run)
     baseline = json.loads(
         (REPOSITORY_ROOT / "configs" / "bullet-hell" / "baseline.json").read_text(encoding="utf-8")
     )
@@ -181,7 +189,7 @@ def test_visual_comparison_uses_fixed_variants_and_strict_artifacts(tmp_path, mo
     completed = _wait(service, created["workflow_id"])
     assert completed["status"] == "evidence_ready"
 
-    def fake_capture(config_path, output_dir, variant, seed):
+    def fake_capture(config_path, output_dir, variant, seed, **_kwargs):
         output_dir.mkdir(parents=True, exist_ok=True)
         captures = []
         for second in (10, 20, 30):
@@ -249,7 +257,7 @@ def test_manual_play_is_restricted_to_workflow_snapshots(tmp_path, monkeypatch):
         commands.append(command)
         return SimpleNamespace(pid=1234)
 
-    monkeypatch.setattr("workflow.bullet_hell_workflow.subprocess.Popen", fake_popen)
+    monkeypatch.setattr("workflow.engines.unity.subprocess.Popen", fake_popen)
     before = service.launch_manual(created["workflow_id"], variant="baseline")
     after = service.launch_manual(created["workflow_id"], variant="candidate")
 
@@ -259,3 +267,97 @@ def test_manual_play_is_restricted_to_workflow_snapshots(tmp_path, monkeypatch):
     assert commands[1][commands[1].index("--config-input") + 1].endswith("candidate_config.json")
     with pytest.raises(ValueError, match="Unsupported manual play variant"):
         service.launch_manual(created["workflow_id"], variant="../../arbitrary.exe")
+
+
+def test_real_provider_uses_distinct_requirement_and_quality_review_calls(tmp_path):
+    baseline = json.loads(
+        (REPOSITORY_ROOT / "configs" / "bullet-hell" / "baseline.json").read_text(encoding="utf-8")
+    )
+    candidate, goal, _ = propose_mock_change(baseline, _requirement())
+    provider = _QueueProvider(
+        {
+            "bullet_hell_requirement_agent": json.dumps(
+                {"structured_goal": goal, "candidate_config": candidate},
+                ensure_ascii=False,
+            ),
+            "bullet_hell_quality_review_agent": json.dumps(
+                {
+                    "decision": "accept",
+                    "repair_action": None,
+                    "reason": "所有确定性运行检查均已通过。",
+                    "evidence_refs": ["comparison_report.json.evaluation.checks"],
+                },
+                ensure_ascii=False,
+            ),
+        }
+    )
+    service = _service(tmp_path, provider_factory=lambda _timeout: provider)
+
+    created = service.create(
+        requirement_text=_requirement(),
+        provider="openai_compatible",
+    )
+    service.authorize(created["workflow_id"], actor="designer")
+    service.start(created["workflow_id"])
+    completed = _wait(service, created["workflow_id"])
+
+    assert completed["status"] == "evidence_ready"
+    assert provider.calls == [
+        "bullet_hell_requirement_agent",
+        "bullet_hell_quality_review_agent",
+    ]
+    assert completed["budget"]["model_calls_used"] == 2
+    assert [run["agent_name"] for run in completed["agent_runs"]] == [
+        "requirement_agent",
+        "quality_review_agent",
+    ]
+    assert all(run["provider"] == "openai_compatible" for run in completed["agent_runs"])
+
+
+def test_malformed_quality_review_is_blocked_and_recorded_as_badcase(tmp_path):
+    baseline = json.loads(
+        (REPOSITORY_ROOT / "configs" / "bullet-hell" / "baseline.json").read_text(encoding="utf-8")
+    )
+    candidate, goal, _ = propose_mock_change(baseline, _requirement())
+    provider = _QueueProvider(
+        {
+            "bullet_hell_requirement_agent": json.dumps(
+                {"structured_goal": goal, "candidate_config": candidate},
+                ensure_ascii=False,
+            ),
+            "bullet_hell_quality_review_agent": "{not valid json",
+        }
+    )
+    service = _service(tmp_path, provider_factory=lambda _timeout: provider)
+
+    created = service.create(
+        requirement_text=_requirement(),
+        provider="openai_compatible",
+    )
+    service.authorize(created["workflow_id"], actor="designer")
+    service.start(created["workflow_id"])
+    completed = _wait(service, created["workflow_id"])
+
+    assert completed["status"] == "blocked"
+    assert completed["error"]["stage"] == "quality_review_agent"
+    assert completed["badcases"][0]["raw_model_output"] == "{not valid json"
+    assert completed["budget"]["model_calls_used"] == 2
+    assert completed["agent_runs"][-1]["status"] == "failed"
+
+
+class _QueueProvider:
+    model = "test-model"
+
+    def __init__(self, responses: dict[str, str]) -> None:
+        self.responses = responses
+        self.calls: list[str] = []
+
+    def complete_json(self, *, prompt_name: str, system_prompt: str, user_prompt: str) -> LLMResponse:
+        assert system_prompt
+        assert user_prompt
+        self.calls.append(prompt_name)
+        return LLMResponse(
+            content=self.responses[prompt_name],
+            latency_ms=7,
+            usage={"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+        )

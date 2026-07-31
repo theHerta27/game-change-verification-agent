@@ -399,3 +399,22 @@
 - Unity Editor batchmode 在 300 秒后超时；`build.log` 显示 Licensing Client IPC 连续重连失败，并多次等待 60 秒。
 - 本次仍未进入有效 Windows Build，也未生成新的 Player；问题属于本机 Hub/批处理许可证会话阻塞，不是端口占用或已确认的 C# 编译错误。
 - Milestone 7 的 2026-07-28 真实运行证据继续保留，但不得冒充 2026-07-31 的新复测结果。
+
+## 2026-07-31 Milestone 8A 实现
+
+### 已完成
+
+- 将 Milestone 7 Visual 冻结为本地提交 `fd7aa55`，创建 `feature/ue5-runtime-adapter` 分支。
+- 主弹幕闭环新增独立 `RequirementAgent` 与 `QualityReviewAgent`；两者使用不同 Prompt、输入输出契约和 `agent_runs.json` 证据。
+- Quality Review Agent 只输出接受、有限修复或人工复核意图；建议必须通过确定性策略门，数值仍由原 `apply_repair` 工具计算。
+- 新增 Schema、引用、规则引擎和安全门四层候选校验；越权修改 Boss 等非允许字段会被阻断。
+- 新增统一 `EngineRunner` 接口、`UnityEngineRunner`、跨引擎规范化 Telemetry 包装和诚实的 UE 不可用状态。
+- `POST /api/bullet-hell/workflows` 新增可选 `engine` 字段，省略时仍默认 `unity`。
+
+### 验收
+
+- 双 Agent/四层校验/EngineRunner 定向测试：`22 passed`。
+- Python 全量：`162 passed`，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：`1585 modules transformed`，CSS 29.75 kB，JS 353.17 kB。
+- Unity 真实复测仍受 Licensing Client IPC 阻塞；本轮没有新增 Unity Build 或运行证据。
+- UE5 尚未安装完成，`UnrealEngineRunner` 只报告 `unavailable`，没有伪造 Build、Telemetry 或截图。

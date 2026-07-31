@@ -35,6 +35,14 @@ game-unity/Builds/
 game-unity/UserSettings/
 game-unity/obj/
 
+# Unreal Engine generated state
+game-unreal/**/Binaries/
+game-unreal/**/DerivedDataCache/
+game-unreal/**/Intermediate/
+game-unreal/**/Saved/
+game-unreal/**/*.sln
+game-unreal/**/*.VC.db
+
 # Local-only Unity assets
 game-unity/Assets/Resources/LocalThirdParty/
 game-unity/Assets/Resources/LocalThirdParty.meta

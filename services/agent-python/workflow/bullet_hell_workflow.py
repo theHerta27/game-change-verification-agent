@@ -9,22 +9,24 @@ from threading import RLock, Thread
 from typing import Any, Callable
 import hashlib
 import json
-import subprocess
 import uuid
 
 from gameconfig_agent.bullet_hell import (
-    BulletHellContract,
     apply_repair,
     build_config_diff,
-    choose_repair_action,
     evaluate_bullet_hell_telemetry,
     load_bullet_hell_contract,
-    propose_mock_change,
     validate_bullet_hell_contract,
+    validate_bullet_hell_proposal,
     write_json,
 )
-from gameconfig_agent.env_loader import load_dotenv
+from gameconfig_agent.agents.bullet_hell_agents import (
+    BulletHellAgentError,
+    QualityReviewAgent,
+    RequirementAgent,
+)
 from gameconfig_agent.providers import OpenAICompatibleProvider
+from workflow.engines import EngineRunner, UnityEngineRunner, UnrealEngineRunner
 
 
 TelemetryRunner = Callable[[dict[str, Any], Path, int], dict[str, Any]]
@@ -41,6 +43,7 @@ class BulletHellWorkflowService:
         unity_executable: Path | None = None,
         telemetry_runner: TelemetryRunner | None = None,
         provider_factory: ProviderFactory | None = None,
+        engine_runners: dict[str, EngineRunner] | None = None,
     ) -> None:
         self.repository_root = repository_root
         self.workflows_dir = workflows_dir
@@ -48,8 +51,17 @@ class BulletHellWorkflowService:
             repository_root / "game-unity" / "Builds" / "BulletHellWindows" / "BulletHellDemo.exe"
         )
         self.baseline_path = repository_root / "configs" / "bullet-hell" / "baseline.json"
-        self.telemetry_runner = telemetry_runner or self._run_unity
+        self.telemetry_runner = telemetry_runner
         self.provider_factory = provider_factory or self._provider
+        self.engine_runners = engine_runners or {
+            "unity": UnityEngineRunner(
+                repository_root=repository_root,
+                executable=self.unity_executable,
+            ),
+            "unreal": UnrealEngineRunner(repository_root=repository_root),
+        }
+        self.requirement_agent = RequirementAgent(repository_root, self.provider_factory)
+        self.quality_review_agent = QualityReviewAgent(repository_root, self.provider_factory)
         self._lock = RLock()
 
     def capabilities(self) -> dict[str, Any]:
@@ -72,6 +84,11 @@ class BulletHellWorkflowService:
                 "STOP",
             ],
             "evidence_scope": "固定种子与固定轨迹结果，不代表所有玩家体验或完整可玩性。",
+            "default_engine": "unity",
+            "engines": {
+                name: runner.capabilities()
+                for name, runner in self.engine_runners.items()
+            },
         }
 
     def create(
@@ -80,9 +97,12 @@ class BulletHellWorkflowService:
         requirement_text: str,
         provider: str = "mock",
         timeout_seconds: int = 60,
+        engine: str = "unity",
     ) -> dict[str, Any]:
         if provider not in {"mock", "openai_compatible"}:
             raise ValueError(f"Unsupported provider: {provider}")
+        if engine not in self.engine_runners:
+            raise ValueError(f"Unsupported engine: {engine}")
         requirement = requirement_text.strip()
         if not requirement:
             raise ValueError("requirement_text must not be blank")
@@ -91,15 +111,40 @@ class BulletHellWorkflowService:
         directory.mkdir(parents=True, exist_ok=False)
         baseline = load_bullet_hell_contract(self.baseline_path)
         model_evidence: dict[str, Any] = {"provider": provider, "model": None, "latency_ms": 0, "usage": None}
+        agent_runs: list[dict[str, Any]] = []
+        badcases: list[dict[str, Any]] = []
         try:
-            if provider == "mock":
-                candidate, goal, gate = propose_mock_change(baseline, requirement)
-            else:
-                candidate, goal, gate, model_evidence = self._real_candidate(
-                    baseline,
-                    requirement,
-                    timeout_seconds,
-                )
+            candidate, goal, gate, requirement_run = self.requirement_agent.run(
+                baseline=baseline,
+                requirement=requirement,
+                provider_name=provider,
+                timeout_seconds=timeout_seconds,
+            )
+            agent_runs.append(requirement_run)
+            model_evidence = _legacy_model_evidence(requirement_run)
+        except BulletHellAgentError as exc:
+            agent_runs.append(exc.evidence)
+            model_evidence = _legacy_model_evidence(exc.evidence)
+            badcase = {
+                "workflow_id": workflow_id,
+                "stage": exc.stage,
+                "error_type": exc.evidence.get("error_type", type(exc).__name__),
+                "error_message": str(exc),
+                "raw_model_output": exc.raw_output,
+                "provider": provider,
+                "model": exc.evidence.get("model"),
+            }
+            badcases.append(badcase)
+            gate = {
+                "gate": "bullet_hell_provider",
+                "decision": "blocked",
+                "reason": str(exc),
+                "issues": [{"error_type": badcase["error_type"], "message": str(exc)}],
+                "config_only": True,
+                "requires_code_change": False,
+            }
+            candidate, goal = deepcopy(baseline), {}
+            self._save(directory / "badcase.json", badcase)
         except Exception as exc:
             gate = {
                 "gate": "bullet_hell_provider",
@@ -110,36 +155,56 @@ class BulletHellWorkflowService:
                 "requires_code_change": False,
             }
             candidate, goal = deepcopy(baseline), {}
-            self._save(
-                directory / "badcase.json",
-                {
-                    "workflow_id": workflow_id,
-                    "stage": "candidate_generation",
-                    "error_type": type(exc).__name__,
-                    "error_message": str(exc),
-                    "provider": provider,
-                    "model": model_evidence.get("model"),
-                },
-            )
+            badcase = {
+                "workflow_id": workflow_id,
+                "stage": "requirement_agent",
+                "error_type": type(exc).__name__,
+                "error_message": str(exc),
+                "raw_model_output": None,
+                "provider": provider,
+                "model": model_evidence.get("model"),
+            }
+            badcases.append(badcase)
+            self._save(directory / "badcase.json", badcase)
 
-        static_validation = validate_bullet_hell_contract(candidate)
+        static_validation = (
+            validate_bullet_hell_proposal(
+                baseline=baseline,
+                candidate=candidate,
+                structured_goal=goal,
+            )
+            if gate["decision"] == "accepted"
+            else validate_bullet_hell_contract(candidate)
+        )
         if gate["decision"] == "accepted" and not static_validation["passed"]:
             gate = {
                 **gate,
                 "decision": "blocked",
-                "reason": "候选配置未通过 Bullet Hell Schema 或确定性安全规则。",
-                "issues": static_validation["schema_errors"] + static_validation["rule_errors"],
+                "reason": "候选配置未通过 Schema、引用、规则引擎或安全门。",
+                "issues": (
+                    static_validation["schema_errors"]
+                    + static_validation.get("reference_errors", [])
+                    + static_validation["rule_errors"]
+                    + static_validation.get("safety_errors", [])
+                ),
             }
         now = _utc_now()
         manifest = {
             "workflow_id": workflow_id,
             "provider": provider,
             "model": model_evidence.get("model"),
+            "engine": engine,
+            "timeout_seconds": timeout_seconds,
             "status": "awaiting_authorization" if gate["decision"] == "accepted" else gate["decision"],
             "created_at": now,
             "updated_at": now,
             "authorization": None,
-            "budget": {"max_unity_runs": 3, "max_model_calls": 4, "unity_runs_used": 0, "model_calls_used": 1 if provider == "openai_compatible" else 0},
+            "budget": {
+                "max_unity_runs": 3,
+                "max_model_calls": 4,
+                "unity_runs_used": 0,
+                "model_calls_used": sum(1 for run in agent_runs if run.get("model_call")),
+            },
             "current_iteration": 0,
             "final_decision": None,
             "error": None,
@@ -156,6 +221,9 @@ class BulletHellWorkflowService:
         self._save(directory / "validation_results.json", static_validation)
         self._save(directory / "feasibility_gate.json", gate)
         self._save(directory / "model_evidence.json", model_evidence)
+        self._save(directory / "agent_runs.json", agent_runs)
+        self._save(directory / "quality_reviews.json", [])
+        self._save(directory / "badcases.json", badcases)
         self._save(directory / "repair_history.json", [])
         self._write_manifest(directory, manifest)
         return self.get(workflow_id)
@@ -182,8 +250,14 @@ class BulletHellWorkflowService:
         directory, manifest = self._load(workflow_id)
         if manifest["status"] != "authorized":
             raise ValueError(f"Workflow cannot run from status {manifest['status']!r}.")
+        if self.telemetry_runner is None:
+            environment = self.engine_runners[manifest.get("engine", "unity")].validate_environment()
+            if environment["status"] not in {"available", "verified"}:
+                raise ValueError(
+                    f"Engine {manifest.get('engine', 'unity')!r} cannot run: {environment['reason']}"
+                )
         manifest["status"] = "running_baseline"
-        self._event(manifest, "Baseline Unity run", "running", {})
+        self._event(manifest, "Baseline engine run", "running", {"engine": manifest.get("engine", "unity")})
         self._write_manifest(directory, manifest)
         Thread(target=self._execute, args=(workflow_id,), daemon=True).start()
         return self.get(workflow_id)
@@ -216,8 +290,10 @@ class BulletHellWorkflowService:
         allowed_statuses = {"evidence_ready", "budget_exhausted", "accepted", "revision_requested", "rolled_back"}
         if manifest["status"] not in allowed_statuses:
             raise ValueError(f"Visual comparison cannot run from status {manifest['status']!r}.")
-        if not self.unity_executable.is_file():
-            raise FileNotFoundError(f"Bullet Hell Unity player not found: {self.unity_executable}")
+        runner = self.engine_runners[manifest.get("engine", "unity")]
+        environment = runner.validate_environment()
+        if environment["status"] not in {"available", "verified"}:
+            raise FileNotFoundError(environment["reason"])
         status_path = directory / "visual_comparison.json"
         current = _read_json_if_exists(status_path)
         if current and current.get("status") == "running":
@@ -247,38 +323,33 @@ class BulletHellWorkflowService:
             raise ValueError(f"Manual play cannot launch from status {manifest['status']!r}.")
         if variant not in {"baseline", "candidate"}:
             raise ValueError(f"Unsupported manual play variant: {variant!r}.")
-        if not self.unity_executable.is_file():
-            raise FileNotFoundError(f"Bullet Hell Unity player not found: {self.unity_executable}")
+        runner = self.engine_runners[manifest.get("engine", "unity")]
+        environment = runner.validate_environment()
+        if environment["status"] not in {"available", "verified"}:
+            raise FileNotFoundError(environment["reason"])
         config_path = directory / f"{variant}_config.json"
         telemetry_path = directory / f"manual_{variant}_telemetry.json"
         log_path = directory / f"manual_{variant}_player.log"
-        command = [
-            str(self.unity_executable),
-            "--bullet-hell",
-            "--seed",
-            "20260727",
-            "--config-input",
-            str(config_path),
-            "--telemetry-output",
-            str(telemetry_path),
-            "-logFile",
-            str(log_path),
-        ]
-        process = subprocess.Popen(command, cwd=self.unity_executable.parent)
+        launch = runner.manual_play(
+            config_path=config_path,
+            telemetry_path=telemetry_path,
+            log_path=log_path,
+            seed=20260727,
+            run_id=workflow_id,
+            variant=variant,
+        )
         self._event(
             manifest,
-            "Manual Unity playtest",
+            "Manual engine playtest",
             "launched",
-            {"process_id": process.pid, "variant": variant},
+            {
+                "process_id": launch["process_id"],
+                "variant": variant,
+                "engine": manifest.get("engine", "unity"),
+            },
         )
         self._write_manifest(directory, manifest)
-        return {
-            "workflow_id": workflow_id,
-            "process_id": process.pid,
-            "status": "launched",
-            "variant": variant,
-            "config_artifact": config_path.name,
-        }
+        return launch
 
     def get(self, workflow_id: str) -> dict[str, Any]:
         with self._lock:
@@ -291,8 +362,13 @@ class BulletHellWorkflowService:
                 ("config_diff.json", "config_diff"),
                 ("candidate_history.json", "candidate_history"),
                 ("repair_history.json", "repair_history"),
+                ("agent_runs.json", "agent_runs"),
+                ("quality_reviews.json", "quality_reviews"),
+                ("badcases.json", "badcases"),
                 ("baseline_telemetry.json", "baseline_telemetry"),
                 ("candidate_telemetry.json", "candidate_telemetry"),
+                ("baseline_engine_evidence.json", "baseline_engine_evidence"),
+                ("candidate_engine_evidence.json", "candidate_engine_evidence"),
                 ("comparison_report.json", "comparison_report"),
                 ("visual_comparison.json", "visual_comparison"),
             ):
@@ -320,7 +396,9 @@ class BulletHellWorkflowService:
             "requirement.json", "structured_goal.json", "baseline_config.json", "candidate_config.json",
             "candidate_history.json", "config_diff.json", "validation_results.json", "baseline_telemetry.json",
             "candidate_telemetry.json", "comparison_report.json", "repair_history.json", "workflow_manifest.json",
+            "baseline_engine_evidence.json", "candidate_engine_evidence.json",
             "feasibility_gate.json", "model_evidence.json", "badcase.json", "baseline_player.log",
+            "agent_runs.json", "quality_reviews.json", "badcases.json",
             "candidate_player.log", "manual_telemetry.json", "manual_player.log",
             "manual_baseline_telemetry.json", "manual_candidate_telemetry.json",
             "manual_baseline_player.log", "manual_candidate_player.log", "visual_comparison.json",
@@ -347,23 +425,40 @@ class BulletHellWorkflowService:
         directory, manifest = self._load(workflow_id)
         try:
             baseline = _read_json(directory / "baseline_config.json")
-            baseline_telemetry = self.telemetry_runner(baseline, directory / "baseline", 20260727)
+            engine = manifest.get("engine", "unity")
+            baseline_telemetry = self._run_automated(
+                baseline,
+                directory / "baseline",
+                20260727,
+                workflow_id=workflow_id,
+                variant="baseline",
+                engine=engine,
+            )
             self._save(directory / "baseline_telemetry.json", baseline_telemetry)
-            self._event(manifest, "Baseline Unity run", "completed", {"seed": 20260727})
+            self._event(manifest, "Baseline engine run", "completed", {"seed": 20260727, "engine": engine})
 
             candidate = _read_json(directory / "candidate_config.json")
             history = _read_json(directory / "candidate_history.json")
             repairs = _read_json(directory / "repair_history.json")
+            agent_runs = _read_json(directory / "agent_runs.json")
+            quality_reviews = _read_json(directory / "quality_reviews.json")
+            badcases = _read_json(directory / "badcases.json")
+            requirement = _read_json(directory / "requirement.json")["requirement_text"]
+            structured_goal = _read_json(directory / "structured_goal.json")
             previous_score: tuple[int, float, float] | None = None
             stagnant_rounds = 0
             max_runs = manifest["budget"]["max_unity_runs"]
             for iteration in range(1, max_runs + 1):
                 manifest["status"] = "running_candidate"
                 manifest["current_iteration"] = iteration
-                self._event(manifest, "Candidate Unity run", "running", {"iteration": iteration})
+                self._event(manifest, "Candidate engine run", "running", {"iteration": iteration, "engine": engine})
                 self._write_manifest(directory, manifest)
 
-                validation = validate_bullet_hell_contract(candidate)
+                validation = validate_bullet_hell_proposal(
+                    baseline=baseline,
+                    candidate=candidate,
+                    structured_goal=structured_goal,
+                )
                 self._save(directory / "validation_results.json", validation)
                 if not validation["passed"]:
                     manifest["status"] = "blocked"
@@ -374,7 +469,14 @@ class BulletHellWorkflowService:
                     }
                     break
 
-                telemetry = self.telemetry_runner(candidate, directory / f"candidate_{iteration}", 20260727)
+                telemetry = self._run_automated(
+                    candidate,
+                    directory / f"candidate_{iteration}",
+                    20260727,
+                    workflow_id=workflow_id,
+                    variant=f"candidate_{iteration}",
+                    engine=engine,
+                )
                 manifest["budget"]["unity_runs_used"] = iteration
                 self._save(directory / "candidate_telemetry.json", telemetry)
                 evaluation = evaluate_bullet_hell_telemetry(candidate, telemetry)
@@ -382,11 +484,78 @@ class BulletHellWorkflowService:
                 self._save(directory / "comparison_report.json", comparison)
                 history.append({"iteration": iteration, "source": "unity_evidence", "config": deepcopy(candidate), "evaluation": evaluation})
                 self._save(directory / "candidate_history.json", history)
-                self._event(manifest, "Candidate Unity run", "completed", {"iteration": iteration, "passed": evaluation["passed"]})
+                self._event(
+                    manifest,
+                    "Candidate engine run",
+                    "completed",
+                    {"iteration": iteration, "passed": evaluation["passed"], "engine": engine},
+                )
 
-                if evaluation["passed"]:
+                try:
+                    review, review_run = self.quality_review_agent.review(
+                        requirement=requirement,
+                        structured_goal=structured_goal,
+                        config_diff=build_config_diff(baseline, candidate),
+                        evaluation=evaluation,
+                        repair_history=repairs,
+                        provider_name=manifest["provider"],
+                        timeout_seconds=int(manifest.get("timeout_seconds", 60)),
+                        iteration=iteration,
+                    )
+                    agent_runs.append(review_run)
+                    quality_reviews.append(review)
+                    if review_run.get("model_call"):
+                        manifest["budget"]["model_calls_used"] += 1
+                    self._save(directory / "agent_runs.json", agent_runs)
+                    self._save(directory / "quality_reviews.json", quality_reviews)
+                except BulletHellAgentError as exc:
+                    agent_runs.append(exc.evidence)
+                    if exc.evidence.get("model_call"):
+                        manifest["budget"]["model_calls_used"] += 1
+                    badcase = {
+                        "workflow_id": workflow_id,
+                        "stage": exc.stage,
+                        "iteration": iteration,
+                        "error_type": exc.evidence.get("error_type", type(exc).__name__),
+                        "error_message": str(exc),
+                        "raw_model_output": exc.raw_output,
+                        "provider": manifest["provider"],
+                        "model": exc.evidence.get("model"),
+                    }
+                    badcases.append(badcase)
+                    self._save(directory / "agent_runs.json", agent_runs)
+                    self._save(directory / "badcases.json", badcases)
+                    self._save(directory / "badcase.json", badcase)
+                    manifest["status"] = "blocked"
+                    manifest["error"] = {
+                        "stage": exc.stage,
+                        "type": badcase["error_type"],
+                        "message": str(exc),
+                    }
+                    self._event(manifest, "Quality Review Agent", "failed", {"iteration": iteration})
+                    break
+
+                policy = review["policy_gate"]
+                self._event(
+                    manifest,
+                    "Quality Review Agent",
+                    policy["effective_decision"],
+                    {
+                        "iteration": iteration,
+                        "recommended_action": review["agent_output"]["repair_action"],
+                        "policy_gate_passed": policy["passed"],
+                    },
+                )
+                if policy["effective_decision"] == "accept":
                     manifest["status"] = "evidence_ready"
-                    self._event(manifest, "Evidence review", "passed", {"iteration": iteration})
+                    break
+                if policy["effective_decision"] == "human_review":
+                    manifest["status"] = "blocked"
+                    manifest["error"] = {
+                        "stage": "quality_review_policy_gate",
+                        "type": "HumanReviewRequired",
+                        "message": policy["reason"],
+                    }
                     break
 
                 score = _score(evaluation)
@@ -398,7 +567,7 @@ class BulletHellWorkflowService:
                     break
 
                 manifest["status"] = "repairing"
-                action = choose_repair_action(evaluation)
+                action = policy["effective_action"]
                 repaired, repair_evidence = apply_repair(candidate, action, evaluation)
                 repairs.append({"iteration": iteration, **repair_evidence})
                 self._save(directory / "repair_history.json", repairs)
@@ -428,14 +597,21 @@ class BulletHellWorkflowService:
             self._write_manifest(directory, manifest)
 
     def _execute_visual_comparison(self, workflow_id: str) -> None:
-        directory, _ = self._load(workflow_id)
+        directory, manifest = self._load(workflow_id)
         status_path = directory / "visual_comparison.json"
         try:
             variants: dict[str, Any] = {}
             for variant in ("baseline", "candidate"):
                 config_path = directory / f"{variant}_config.json"
                 output_dir = directory / "visual-comparison" / variant
-                result = self._run_visual_capture(config_path, output_dir, variant, 20260727)
+                result = self._run_visual_capture(
+                    config_path,
+                    output_dir,
+                    variant,
+                    20260727,
+                    engine=manifest.get("engine", "unity"),
+                    workflow_id=workflow_id,
+                )
                 result["config_sha256"] = hashlib.sha256(config_path.read_bytes()).hexdigest()
                 variants[variant] = result
             self._save(
@@ -472,31 +648,27 @@ class BulletHellWorkflowService:
         output_dir: Path,
         variant: str,
         seed: int,
+        *,
+        engine: str = "unity",
+        workflow_id: str = "visual",
     ) -> dict[str, Any]:
-        output_dir.mkdir(parents=True, exist_ok=True)
+        contract = _read_json(config_path)
+        result = self.engine_runners[engine].automated_run(
+            contract=contract,
+            run_dir=output_dir,
+            seed=seed,
+            run_id=workflow_id,
+            variant=variant,
+            capture_times=(10, 20, 30),
+        )
         telemetry_path = output_dir / "telemetry.json"
         log_path = output_dir / "player.log"
-        command = [
-            str(self.unity_executable),
-            "-force-d3d11",
-            "-screen-fullscreen", "0",
-            "-screen-width", "960",
-            "-screen-height", "540",
-            "--bullet-hell",
-            "--auto-run",
-            "--seed", str(seed),
-            "--config-input", str(config_path),
-            "--telemetry-output", str(telemetry_path),
-            "--screenshot-output-dir", str(output_dir),
-            "-logFile", str(log_path),
-        ]
-        result = subprocess.run(command, cwd=self.unity_executable.parent, timeout=90, check=False)
         manifest_path = output_dir / "capture_manifest.json"
         expected = [output_dir / f"capture_{second:02d}s.png" for second in (10, 20, 30)]
         missing = [path.name for path in expected if not path.is_file()]
         if missing or not manifest_path.is_file() or not telemetry_path.is_file():
             raise RuntimeError(
-                f"{variant} visual capture exited with code {result.returncode}; "
+                f"{variant} visual capture exited with code {result.exit_code}; "
                 f"missing artifacts: {missing or ['capture_manifest.json or telemetry.json']}. See {log_path}"
             )
         capture_manifest = _read_json(manifest_path)
@@ -508,88 +680,52 @@ class BulletHellWorkflowService:
             "fixed_trajectory": capture_manifest["fixed_trajectory"],
             "captures": capture_manifest["captures"],
             "telemetry_file": str(telemetry_path.relative_to(self.workflows_dir / config_path.parent.name)).replace("\\", "/"),
-            "player_exit_code": result.returncode,
+            "player_exit_code": result.exit_code,
+            "engine": engine,
         }
 
     def _run_unity(self, contract: dict[str, Any], run_dir: Path, seed: int) -> dict[str, Any]:
-        if not self.unity_executable.is_file():
-            raise FileNotFoundError(
-                f"Bullet Hell Unity player not found: {self.unity_executable}. "
-                "Run scripts/smoke-bullet-hell.ps1 first."
-            )
-        run_dir.mkdir(parents=True, exist_ok=True)
-        config_path = run_dir / "config.json"
-        telemetry_path = run_dir / "telemetry.json"
-        log_path = run_dir / "player.log"
-        self._save(config_path, contract)
-        command = [
-            str(self.unity_executable),
-            "-batchmode",
-            "-nographics",
-            "--bullet-hell",
-            "--auto-run",
-            "--seed",
-            str(seed),
-            "--config-input",
-            str(config_path),
-            "--telemetry-output",
-            str(telemetry_path),
-            "-logFile",
-            str(log_path),
-        ]
-        result = subprocess.run(command, cwd=self.unity_executable.parent, timeout=90, check=False)
-        if not telemetry_path.is_file():
-            raise RuntimeError(
-                f"Bullet Hell Unity player exited with code {result.returncode} "
-                f"without telemetry. See {log_path}"
-            )
-        telemetry = _read_json(telemetry_path)
-        if result.returncode != 0 and telemetry.get("status") not in {"failed", "completed"}:
-            raise RuntimeError(
-                f"Bullet Hell Unity player exited with code {result.returncode} "
-                f"and unusable telemetry status {telemetry.get('status')!r}. See {log_path}"
-            )
-        return telemetry
+        result = self.engine_runners["unity"].automated_run(
+            contract=contract,
+            run_dir=run_dir,
+            seed=seed,
+            run_id=run_dir.parent.name,
+            variant=run_dir.name,
+        )
+        return result.telemetry
 
-    def _real_candidate(
+    def _run_automated(
         self,
-        baseline: dict[str, Any],
-        requirement: str,
-        timeout_seconds: int,
-    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
-        load_dotenv(self.repository_root / ".env")
-        provider = self.provider_factory(timeout_seconds)
-        system = (
-            "You propose a candidate for Bullet Hell contract 1.0. Return one JSON object with "
-            "structured_goal and candidate_config. Preserve every unspecified field. Never add fields. "
-            "Allowed patterns: ring, aimed_fan, spiral, petal. Hard limits: bullets_per_wave 1..64, "
-            "wave_interval_ms 100..5000, bullet_speed 0.5..12, lifetime 0.5..12, max_alive_bullets <=350."
-        )
-        user = json.dumps({"requirement": requirement, "baseline": baseline}, ensure_ascii=False)
-        response = provider.complete_json(
-            prompt_name="bullet_hell_candidate",
-            system_prompt=system,
-            user_prompt=user,
-        )
-        payload = json.loads(response.content)
-        candidate = BulletHellContract.model_validate(payload["candidate_config"]).model_dump(mode="json")
-        goal = payload.get("structured_goal") or {"source_text": requirement}
-        gate = {
-            "gate": "bullet_hell_feasibility",
-            "decision": "accepted",
-            "reason": "真实 Provider 候选已解析，等待确定性校验。",
-            "issues": [],
-            "config_only": True,
-            "requires_code_change": False,
-        }
-        evidence = {
-            "provider": "openai_compatible",
-            "model": getattr(provider, "model", None),
-            "latency_ms": response.latency_ms,
-            "usage": response.usage,
-            "token_estimate": response.token_estimate,
-        }
-        return candidate, goal, gate, evidence
+        contract: dict[str, Any],
+        run_dir: Path,
+        seed: int,
+        *,
+        workflow_id: str,
+        variant: str,
+        engine: str,
+    ) -> dict[str, Any]:
+        if self.telemetry_runner is not None:
+            telemetry = self.telemetry_runner(contract, run_dir, seed)
+            normalized = {
+                "engine_name": engine,
+                "run_id": workflow_id,
+                "seed": seed,
+                "completed": telemetry.get("status") == "completed",
+                "evidence_source": "injected_test_runner",
+            }
+        else:
+            result = self.engine_runners[engine].automated_run(
+                contract=contract,
+                run_dir=run_dir,
+                seed=seed,
+                run_id=workflow_id,
+                variant=variant,
+            )
+            telemetry = result.telemetry
+            normalized = result.normalized_evidence
+        evidence_name = "baseline_engine_evidence.json" if variant == "baseline" else "candidate_engine_evidence.json"
+        self._save(run_dir.parent / evidence_name, normalized)
+        return telemetry
 
     def _provider(self, timeout_seconds: int) -> OpenAICompatibleProvider:
         return OpenAICompatibleProvider(timeout_seconds=timeout_seconds)
@@ -679,3 +815,13 @@ def _utc_now() -> str:
 
 def hash_json(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def _legacy_model_evidence(agent_run: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "provider": agent_run.get("provider"),
+        "model": agent_run.get("model"),
+        "latency_ms": agent_run.get("latency_ms", 0),
+        "usage": agent_run.get("usage"),
+        "token_estimate": agent_run.get("token_estimate"),
+    }

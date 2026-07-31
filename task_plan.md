@@ -1,8 +1,8 @@
-# Agentic Game R&D Lab 项目计划
+# Game Change Verification Agent 项目计划
 
 ## 项目目标
 
-构建一个由统一 Python Agent 运行时、Unity 可控战斗测试床和 React 控制台组成的本地游戏研发 Agent 实验室。系统以配置变更、质量审查、确定性自动试玩和 telemetry 证据形成可回放闭环。
+构建一个由统一 Python Agent 运行时、可控游戏引擎测试床和 React 控制台组成的游戏研发变更验证系统。系统以候选配置、质量审查、确定性自动运行和 Telemetry 证据形成可回放闭环。
 
 ## High-Level Roadmap
 
@@ -19,7 +19,7 @@
 | Milestone 7 | 弹幕变更自动验证闭环 | complete |
 | Milestone 7 UX | 策划视图新手演示与可理解性优化 | complete |
 | Milestone 7 Visual | 固定轨迹自动画面对比与受限手动启动 | complete |
-| Milestone 8 | UE5 跨引擎最小垂直切片 | blocked：等待 UE5 安装与 Unity 基线重新授权 |
+| Milestone 8 | UE5 跨引擎最小垂直切片 | in progress：8A 代码完成，等待 Unity/UE 本机验证 |
 
 ## Milestone 8：UE5 跨引擎最小垂直切片
 
@@ -32,11 +32,14 @@
 - [x] 审计 Git、现有 Unity 启动、配置读取、Telemetry、截图、工作流和 Web 页面。
 - [x] 检查 UE5、Visual Studio C++、MSVC、Windows SDK 与 MSBuild 环境。
 - [x] 记录改造前 Python、Web 和 Unity 基线结果。
-- [ ] 冻结当前未提交的 Milestone 7 Visual 改动，并在干净工作树创建 `feature/ue5-runtime-adapter`。
-- [ ] 新增统一 `EngineRunner` 抽象与结果模型。
-- [ ] 将现有 Unity 启动逻辑等价封装为 `UnityEngineRunner`，旧请求未传 `engine` 时继续默认 `unity`。
-- [ ] 增加 EngineRunner、命令构造、路径白名单和失败状态单元测试。
-- [ ] 原有 Python、Web 与 Unity smoke 全部通过。
+- [x] 冻结 Milestone 7 Visual 为 `fd7aa55`，并创建 `feature/ue5-runtime-adapter`。
+- [x] 新增统一 `EngineRunner` 抽象、结果模型和不改原始字段的跨引擎 Telemetry 包装。
+- [x] 将现有 Unity 启动逻辑等价封装为 `UnityEngineRunner`，旧请求未传 `engine` 时继续默认 `unity`。
+- [x] 主弹幕闭环新增独立 Requirement Agent 与 Quality Review Agent Prompt/输出契约和调用证据。
+- [x] 将候选运行前校验显式拆为 Schema、引用、规则引擎和安全门四层。
+- [x] 增加 EngineRunner、环境状态、规范化证据、双 Agent 和输出漂移坏例单元测试。
+- [x] Python `162 passed`，Web production build 通过。
+- [ ] Unity smoke 等价迁移真实复验；当前仍被 Licensing Client IPC 阻塞。
 
 ### Milestone 8B：UE5 C++ 垂直切片
 
@@ -89,10 +92,9 @@
 
 ### 当前阻塞
 
-- 当前 `main` 有 11 个 Milestone 7 Visual 未提交文件，不能在未冻结成功基线时直接创建功能分支。
-- 本机没有检测到 UE5；Epic Launcher 安装清单为空，无法创建、编译或运行真实 UE5 工程。
-- 本轮 Unity 重建因 Hub access token/entitlement 失败，且验收脚本已删除旧 Player，需从 Unity Hub 打开项目恢复批处理许可证后重新构建。
-- 在以上阻塞解除前，Milestone 8 保持 `blocked`，不得把 UE5 写成 available 或 verified。
+- UE5 正在由用户安装，尚无确定的 Editor 路径与精确版本，无法真实编译或运行 UE5 工程。
+- Unity Editor 可手动打开，但 batchmode 的 Licensing Client IPC 连续重连失败；本轮没有新的 Windows Player。
+- 在 UE5 Build、Baseline/Candidate、Telemetry 和截图真实通过前，Unreal Runner 必须保持 `unavailable/build_required`，不得标记为 `verified`。
 
 ## Milestone 7：弹幕变更自动验证闭环
 

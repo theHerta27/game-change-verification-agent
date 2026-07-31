@@ -101,6 +101,7 @@ class BulletHellWorkflowCreateRequest(BaseModel):
     requirement_text: str = Field(..., min_length=1)
     provider: str = Field("mock", pattern="^(mock|openai_compatible)$")
     timeout_seconds: int = Field(60, ge=5, le=300)
+    engine: str = Field("unity", pattern="^(unity|unreal)$")
 
 
 class BulletHellAuthorizationRequest(BaseModel):
@@ -200,6 +201,7 @@ def create_unified_app(
                 requirement_text=request.requirement_text,
                 provider=request.provider,
                 timeout_seconds=request.timeout_seconds,
+                engine=request.engine,
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
