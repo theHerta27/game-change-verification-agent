@@ -1,0 +1,99 @@
+{
+  "bullet_hell_contract_version": "1.0",
+  "source": "Game Change Verification Agent verified demo candidate",
+  "scenario": {
+    "scenario_id": "scenario_original_shrine_trial",
+    "display_name": "原创结界试炼",
+    "duration_seconds": 36.0,
+    "arena_width": 14.0,
+    "arena_height": 20.0
+  },
+  "player": {
+    "max_health": 5,
+    "move_speed": 5.5,
+    "focus_speed_multiplier": 0.45,
+    "hit_radius": 0.28,
+    "start_x": 0.0,
+    "start_z": -7.0,
+    "auto_fire_damage": 10,
+    "auto_fire_interval_seconds": 0.1
+  },
+  "boss": {
+    "boss_id": "boss_boundary_keeper",
+    "display_name": "结界守卫",
+    "max_health": 3600,
+    "position_x": 0.0,
+    "position_z": 7.0
+  },
+  "phases": [
+    {
+      "phase_id": "phase_1",
+      "display_name": "环形试探",
+      "trigger": {
+        "type": "boss_hp_below",
+        "value": 1.0
+      },
+      "pattern": {
+        "type": "ring",
+        "bullets_per_wave": 16,
+        "wave_interval_ms": 1200,
+        "bullet_speed": 3.0,
+        "bullet_lifetime_seconds": 5.0,
+        "rotation_per_wave_deg": 0.0,
+        "spread_angle_deg": 360.0,
+        "layer_count": 1,
+        "bidirectional": false
+      }
+    },
+    {
+      "phase_id": "phase_2",
+      "display_name": "螺旋压迫",
+      "trigger": {
+        "type": "boss_hp_below",
+        "value": 0.67
+      },
+      "pattern": {
+        "type": "spiral",
+        "bullets_per_wave": 16,
+        "wave_interval_ms": 700,
+        "bullet_speed": 2.6,
+        "bullet_lifetime_seconds": 5.2,
+        "rotation_per_wave_deg": 17.0,
+        "spread_angle_deg": 360.0,
+        "layer_count": 1,
+        "bidirectional": true
+      }
+    },
+    {
+      "phase_id": "phase_3",
+      "display_name": "花瓣终幕",
+      "trigger": {
+        "type": "boss_hp_below",
+        "value": 0.34
+      },
+      "pattern": {
+        "type": "petal",
+        "bullets_per_wave": 8,
+        "wave_interval_ms": 850,
+        "bullet_speed": 4.0,
+        "bullet_lifetime_seconds": 5.0,
+        "rotation_per_wave_deg": 11.0,
+        "spread_angle_deg": 360.0,
+        "layer_count": 2,
+        "bidirectional": false
+      }
+    }
+  ],
+  "constraints": {
+    "max_alive_bullets": 350,
+    "min_fps": 55.0,
+    "max_player_hits": 3
+  },
+  "runtime_targets": {
+    "max_alive_bullets": 350,
+    "max_player_hits": 3,
+    "min_survival_seconds": 36.0,
+    "min_fps": 55.0,
+    "require_all_phases": true
+  }
+}

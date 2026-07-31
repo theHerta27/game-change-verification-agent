@@ -2,13 +2,13 @@
 
 面向游戏研发策划变更的有界 Agent 与自动化验证系统。项目在自建 Unity 2.5D 弹幕 Boss 战测试床中，把自然语言需求、候选配置、确定性校验、人工授权、引擎运行和 Telemetry 证据串成可回放闭环。
 
-**Milestone 0–7 已完成，Milestone 8 进行中。** Requirement Agent 负责生成结构化目标与候选，Quality Review Agent 负责基于需求、Diff 和运行证据选择接受、有限修复或人工复核；Schema、引用、规则引擎和安全门始终由确定性代码执行。Unity 已有完整闭环，Unreal Engine 5 正在建设真实 C++ 最小验证切片。
+**Milestone 0–8 已完成。** Requirement Agent 负责生成结构化目标与候选，Quality Review Agent 负责基于需求、Diff 和运行证据选择接受、有限修复或人工复核；Schema、引用、规则引擎和安全门始终由确定性代码执行。Unity 已有完整闭环，Unreal Engine 5 已通过真实 C++ Windows Player 跨引擎验证。
 
 ## 当前组成
 
 - `services/agent-python`：唯一 Python 运行时，包含 GameConfig 配置能力与 DevQuality Python 质量审查能力。
 - `game-unity`：从 GameConfig Runtime Demo 迁移的 Unity 6 测试床。
-- `game-unreal`：UE5 C++ 最小垂直切片；真实 Build 通过前不标记为可用。
+- `game-unreal`：UE5 C++ 最小垂直切片；真实 Windows Player、Telemetry 与 10/20/30 秒截图已验证。
 - `web-console`：唯一 React 控制台。
 - `runtime-artifacts`：本地运行证据，不提交 Git。
 - `local-assets`：灵梦 PMX、转换文件和其他第三方本地资产，不提交 Git。
@@ -180,7 +180,16 @@ cd D:\Desktop\game-change-verification-agent\services\agent-python
 
 ## Unreal Engine 5
 
-后端已提供统一 `EngineRunner` 接口和 `engine: unity | unreal` 请求字段；省略时仍默认 Unity。当前 UE5 正在本机安装，Web 会如实显示 `unavailable`，并禁用运行按钮。只有 C++ 工程真实编译、Windows Player 生成、Baseline/Candidate 双跑、Telemetry 与 10/20/30 秒截图全部通过后，才会更新为 `verified`。
+后端已提供统一 `EngineRunner` 接口和 `engine: unity | unreal` 请求字段；省略时仍默认 Unity。UE 5.8.1 C++ Windows Player 已完成真实 Baseline/Candidate 双跑，`UnrealEngineRunner` 当前返回 `verified`。
+
+构建与验证：
+
+```powershell
+.\scripts\build-unreal.ps1
+.\scripts\smoke-unreal.ps1
+```
+
+最新真实证据位于 `runtime-artifacts/ue5-verification/ue5_smoke_20260731_231202/`。Baseline/Candidate 使用同一 Bullet Hell 1.0 契约、seed `20260727`、固定轨迹、36 秒时长和 10/20/30 秒截图；峰值存活子弹为 `70 → 192`，玩家受击为 `1 → 0`，低分位 FPS 为 `59.8874 → 59.9995`，异常日志为 `0`。真实 Web/API workflow `bullet_20260731_230825_8c13b17d` 也已用 `engine=unreal` 跑通 `candidate_1`。详细说明见 `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md`。
 
 ## 验证
 
@@ -195,10 +204,11 @@ cd D:\Desktop\game-change-verification-agent\services\agent-python
 .\scripts\test-web.ps1
 .\scripts\smoke-unity.ps1
 .\scripts\smoke-bullet-hell.ps1
+.\scripts\smoke-unreal.ps1
 .\scripts\verify-repo-clean.ps1
 ```
 
-当前 Python 全量基线为 `162 passed`；前端 production build 为 `1585 modules transformed`。Unity 2026-07-31 复跑受本机 Licensing Client IPC 阻塞，历史成功证据保留但不冒充本次复测。
+当前 Python 全量基线为 `164 passed`；前端 production build 为 `1585 modules transformed`。Unity 2026-07-31 新复跑仍受本机 Licensing Client IPC 阻塞，Milestone 7 历史成功证据继续保留但不冒充本次复测；UE5 本轮真实 smoke 已通过。
 
 ## 当前边界
 
@@ -207,6 +217,7 @@ cd D:\Desktop\game-change-verification-agent\services\agent-python
 - 人工 C# Diff 只在审批后的隔离 Unity 副本中应用，系统不自动生成或合并补丁。
 - 配置候选只写入 `runtime-artifacts/change_workflows` 和独立 Unity run，不覆盖已提交基线。
 - 弹幕候选只写入 `runtime-artifacts/bullet-hell-workflows`；人工“接受”当前只记录决策，不自动覆盖 `configs/bullet-hell/baseline.json`。
+- UE5 跨引擎证据只验证同一契约与同条件 Baseline/Candidate，不逐帧与 Unity 对齐。
 - 不公开分发灵梦模型、贴图或本地音频。
 - 单次 Unity 前后对比不宣称为统计学 A/B 实验。
 

@@ -37,12 +37,105 @@ def test_unreal_environment_never_reports_available_without_real_project_and_pla
 
     assert runner.validate_environment()["status"] == "unavailable"
     assert runner.capabilities()["automated_run"] is False
-    with pytest.raises(RuntimeError, match="not implemented or verified"):
+    with pytest.raises(FileNotFoundError, match="Registered UE5 Player"):
         runner.automated_run(
             contract={},
-            run_dir=tmp_path / "run",
+            run_dir=tmp_path / "runtime-artifacts" / "run",
             seed=20260727,
             run_id="test",
+            variant="baseline",
+        )
+
+
+def test_unreal_runner_uses_fixed_player_validates_evidence_and_marks_verified(
+    tmp_path,
+    monkeypatch,
+):
+    repository = tmp_path / "repo"
+    project = repository / "game-unreal" / "BulletHellUE"
+    project.mkdir(parents=True)
+    (project / "BulletHellUE.uproject").write_text("{}", encoding="utf-8")
+    executable = project / "Builds" / "Windows" / "BulletHellUE.exe"
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"player")
+    runner = UnrealEngineRunner(repository_root=repository)
+    contract = load_bullet_hell_contract(BASELINE_PATH)
+    commands: list[list[str]] = []
+
+    def fake_run(command, **_kwargs):
+        commands.append(command)
+        value = lambda prefix: next(row.removeprefix(prefix) for row in command if row.startswith(prefix))
+        telemetry_path = Path(value("-TelemetryOutput="))
+        screenshot_dir = Path(value("-ScreenshotDir="))
+        config_hash = value("-ConfigHash=")
+        screenshot_dir.mkdir(parents=True, exist_ok=True)
+        telemetry_path.write_text(
+            json.dumps(
+                {
+                    "status": "completed",
+                    "completed": True,
+                    "engine_version": "5.8.1",
+                    "build_id": "test-build",
+                    "config_hash": config_hash,
+                    "duration_seconds": 36,
+                    "total_bullets_spawned": 600,
+                    "peak_alive_bullets": 100,
+                    "player_hits": 0,
+                    "player_survival_seconds": 36,
+                    "phase_results": [{"phase_id": "phase_1"}],
+                    "average_fps": 60,
+                    "low_percentile_fps": 59,
+                    "minimum_fps": 50,
+                    "runtime_error_count": 0,
+                }
+            ),
+            encoding="utf-8",
+        )
+        for second in (10, 20, 30):
+            (screenshot_dir / f"capture_{second:02d}s.png").write_bytes(b"png")
+        (screenshot_dir / "capture_manifest.json").write_text(
+            json.dumps({"config_hash": config_hash}),
+            encoding="utf-8",
+        )
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr("workflow.engines.unreal.subprocess.run", fake_run)
+    for variant in ("baseline", "candidate_1"):
+        result = runner.automated_run(
+            contract=contract,
+            run_dir=repository / "runtime-artifacts" / "workflow" / variant,
+            seed=20260727,
+            run_id="workflow_ue_candidate_iteration",
+            variant=variant,
+            capture_times=(10, 20, 30),
+        )
+        assert result.normalized_evidence["engine_name"] == "unreal"
+        assert result.normalized_evidence["completed"] is True
+
+    assert commands[0][0] == str(executable)
+    assert "-Automated" in commands[0]
+    assert any(row.startswith("-ConfigInput=") for row in commands[0])
+    assert any(row.startswith("-ConfigFileHash=") for row in commands[0])
+    assert runner.validate_environment()["status"] == "verified"
+
+
+def test_unreal_runner_rejects_paths_outside_runtime_artifacts(tmp_path):
+    repository = tmp_path / "repo"
+    project = repository / "game-unreal" / "BulletHellUE"
+    project.mkdir(parents=True)
+    (project / "BulletHellUE.uproject").write_text("{}", encoding="utf-8")
+    executable = project / "Builds" / "Windows" / "BulletHellUE.exe"
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"player")
+    runner = UnrealEngineRunner(repository_root=repository)
+    contract = load_bullet_hell_contract(BASELINE_PATH)
+
+    with pytest.raises(ValueError, match="must remain under"):
+        runner.automated_run(
+            contract=contract,
+            run_dir=repository / "outside",
+            seed=20260727,
+            run_id="workflow_ue",
             variant="baseline",
         )
 

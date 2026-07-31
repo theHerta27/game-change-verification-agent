@@ -32,7 +32,7 @@ REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
 OUTPUTS_DIR = Path(
     os.environ.get("AGENTIC_GAME_RD_RUNTIME_DIR", REPOSITORY_ROOT / "runtime-artifacts")
 )
-BACKEND_VERSION = "milestone8a-dual-agent-engine-runner"
+BACKEND_VERSION = "milestone8-ue5-cross-engine-verified"
 BACKEND_CAPABILITIES = {
     "real_provider_runtime_handoff": True,
     "runtime_run_polling": True,

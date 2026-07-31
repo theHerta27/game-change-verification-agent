@@ -130,7 +130,7 @@ const text = {
     note: '授权说明',
     run: '开始自动对比与修复',
     running: '游戏引擎正在运行，请保持后端窗口开启',
-    manual: '打开 Unity 手动试玩',
+    manual: '打开游戏引擎手动试玩',
     reset: '重新开始一次演示',
     accept: '记录为接受（当前不会写回正式基线）',
     revise: '要求修订',
@@ -153,7 +153,7 @@ const text = {
     check: '指标',
     scope: '证据边界',
     mockHint: 'Mock 会按固定规则修改真实弹幕基线，用于稳定回归；它不是自由理解任意需求的模型。',
-    realHint: '真实模型只提出完整候选 JSON，仍须通过同一 Schema、安全规则和 Unity 证据。',
+    realHint: '真实模型只提出完整候选 JSON，仍须通过同一 Schema、安全规则和所选引擎证据。',
     blocked: '需求已被安全门拦截',
     failed: '工作流执行失败',
     awaiting: '候选已就绪，等待你授权隔离测试预算。',
@@ -163,7 +163,7 @@ const text = {
     presetDescriptions: [
       '系统会把第二阶段改成双向螺旋，先做安全校验，再用同一轨迹分别运行修改前和修改后；若受击或性能不达标，会在预算内自动调低弹速并复测。',
       '系统会提高第三阶段花瓣弹的压迫感，重点观察玩家受击和低分位 FPS，并展示一次候选如何被证据驱动地修复。',
-      '这是一条故意越界的高密度需求。安全门应在启动 Unity 前直接拦截，并解释为什么不能运行以及可接受的边界。'
+      '这是一条故意越界的高密度需求。安全门应在启动游戏引擎前直接拦截，并解释为什么不能运行以及可接受的边界。'
     ],
     presetRequirements: [
       '第二阶段改为双向螺旋弹，提高密度，但同时存在的子弹不能超过350发，最低帧率不能低于55 FPS。',
@@ -205,7 +205,7 @@ const text = {
     keyChanges: '本次关键变化',
     visualChanges: ['第二阶段：单向螺旋 → 双向螺旋', '每波子弹：12 → 16', '子弹速度：3.6 → 2.6（两轮自动修复后）'],
     evidenceLayers: ['自动截图：肉眼确认修改效果', '自动数据：验证数量、受击与性能约束', '手动体验：补充主观操作感受'],
-    readOnlyLoaded: '已载入只读演示记录。查看不会重新运行模型或 Unity。',
+    readOnlyLoaded: '已载入只读演示记录。查看不会重新运行模型或游戏引擎。',
     newDemoHint: '从只读正式基线创建一个全新的临时 Workflow，不复用上次的候选结果。',
     guideTitle: '五分钟安全演示引导',
     guideSkip: '跳过引导',
@@ -261,7 +261,7 @@ const text = {
     note: 'Authorization note',
     run: 'Start comparison and repair',
     running: 'The game engine is running. Keep the backend window open.',
-    manual: 'Open Unity manual playtest',
+    manual: 'Open engine manual playtest',
     reset: 'Start a new demo',
     accept: 'Record as accepted (does not write to baseline)',
     revise: 'Request revision',
@@ -284,7 +284,7 @@ const text = {
     check: 'Metric',
     scope: 'Evidence boundary',
     mockHint: 'Mock deterministically changes the real bullet-hell baseline for repeatable regression. It is not a general language model.',
-    realHint: 'The real provider only proposes candidate JSON. The same schema, safety, and Unity evidence still apply.',
+    realHint: 'The real provider only proposes candidate JSON. The same schema, safety, and selected-engine evidence still apply.',
     blocked: 'The safety gate blocked this requirement',
     failed: 'Workflow execution failed',
     awaiting: 'Candidate ready. Authorize the isolated test budget.',
@@ -294,7 +294,7 @@ const text = {
     presetDescriptions: [
       'The system changes phase 2 to a bidirectional spiral, validates it, then runs before and after with the same trajectory. It can reduce speed and retest when evidence misses a target.',
       'The system raises pressure in phase 3 and focuses on player hits and low-percentile FPS, showing an evidence-driven bounded repair.',
-      'This intentionally unsafe density request should be blocked before Unity starts, with a clear explanation of the supported boundary.'
+      'This intentionally unsafe density request should be blocked before the engine starts, with a clear explanation of the supported boundary.'
     ],
     presetRequirements: [
       'Change phase 2 to a denser bidirectional spiral while keeping at most 350 alive bullets and at least 55 FPS.',
@@ -336,7 +336,7 @@ const text = {
     keyChanges: 'Key changes',
     visualChanges: ['Phase 2: one-way spiral → bidirectional spiral', 'Bullets per wave: 12 → 16', 'Bullet speed: 3.6 → 2.6 after two bounded repairs'],
     evidenceLayers: ['Automatic screenshots: visually confirm the change', 'Automatic data: verify density, hits, and performance', 'Manual playtest: add subjective feel'],
-    readOnlyLoaded: 'Read-only demo loaded. Viewing it does not rerun the model or Unity.',
+    readOnlyLoaded: 'Read-only demo loaded. Viewing it does not rerun the model or the game engine.',
     newDemoHint: 'Create a fresh temporary Workflow from the read-only formal baseline without reusing the last candidate.',
     guideTitle: 'Five-minute safe demo guide',
     guideSkip: 'Skip guide',
@@ -1237,7 +1237,7 @@ function eventStatusLabel(status: string, language: Language) {
 function repairReason(reason: string, language: Language) {
   return language === 'zh'
     ? reason
-    : 'Apply a bounded numeric adjustment from the previous Unity evidence while preserving the pattern type.';
+    : 'Apply a bounded numeric adjustment from the previous engine evidence while preserving the pattern type.';
 }
 
 function display(value: unknown) {

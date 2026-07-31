@@ -10,4 +10,5 @@
 - 真实代码评测只放在开发者视图，必须显示配置状态、调用数量、静态证据边界，并与脚本化护栏指标分栏。
 - 页面应优先读取最近一次真实评测产物；不得为了刷新页面自动触发外部模型调用。
 - Milestone 7 新增“弹幕变更验证”策划主页面，优先展示目标、Config Diff、授权预算、Before/After 证据、修复历史和最终决策；原始 JSON 与日志留在开发者视图。
+- 引擎选择支持 Unity 6 与 Unreal Engine 5；运行按钮和手动试玩入口必须跟随后端 `capabilities` 的真实状态，不得在 `unavailable/build_required` 时可用。
 - 变更后运行 `npm run build`。

@@ -19,7 +19,7 @@
 | Milestone 7 | 弹幕变更自动验证闭环 | complete |
 | Milestone 7 UX | 策划视图新手演示与可理解性优化 | complete |
 | Milestone 7 Visual | 固定轨迹自动画面对比与受限手动启动 | complete |
-| Milestone 8 | UE5 跨引擎最小垂直切片 | in progress：8A 代码完成，等待 Unity/UE 本机验证 |
+| Milestone 8 | UE5 跨引擎最小垂直切片 | complete |
 
 ## Milestone 8：UE5 跨引擎最小垂直切片
 
@@ -38,33 +38,33 @@
 - [x] 主弹幕闭环新增独立 Requirement Agent 与 Quality Review Agent Prompt/输出契约和调用证据。
 - [x] 将候选运行前校验显式拆为 Schema、引用、规则引擎和安全门四层。
 - [x] 增加 EngineRunner、环境状态、规范化证据、双 Agent 和输出漂移坏例单元测试。
-- [x] Python `162 passed`，Web production build 通过。
+- [x] Python `164 passed`，Web production build 通过。
 - [x] Web 引擎运行按钮仅在 Runner 明确返回 `available/verified` 时启用。
-- [ ] Unity smoke 等价迁移真实复验；当前仍被 Licensing Client IPC 阻塞。
+- [ ] Unity smoke 等价迁移真实复验；当前仍被 Licensing Client IPC 阻塞，Milestone 7 历史证据保留但不冒充本轮复测。该限制不阻塞 UE5 垂直切片完成。
 
 ### Milestone 8B：UE5 C++ 垂直切片
 
-- [ ] 创建 `game-unreal/BulletHellUE/` C++ 工程，只提交 `.uproject`、`Config/`、`Content/`、`Source/` 与必要脚本。
-- [ ] 严格读取现有 `bullet_hell_contract_version: "1.0"`，首期只支持 `spiral`，其他 Pattern 返回明确 unsupported capability。
-- [ ] C++ 实现命令行解析、JSON 读取、固定种子/固定步长、自动运行、Telemetry、截图与退出状态。
-- [ ] Blueprint 只负责 Level、玩家、Boss 和子弹表现；核心证据层保留在可测试 C++。
-- [ ] 真实完成 UE5 C++ Build、Windows Player、Baseline/Candidate 自动运行和六张截图。
+- [x] 创建 `game-unreal/BulletHellUE/` C++ 工程，只提交 `.uproject`、`Config/`、`Content/`、`Source/` 与必要脚本。
+- [x] 严格读取现有 `bullet_hell_contract_version: "1.0"`，支持 `ring/aimed_fan/spiral/petal` 四种 Pattern，未知 Pattern 与越界数值返回明确错误。
+- [x] C++ 实现命令行解析、JSON 读取、固定种子/固定步长、自动运行、Telemetry、截图与退出状态。
+- [x] Blueprint 只负责 Level、玩家、Boss 和子弹表现；核心证据层保留在可测试 C++。
+- [x] 真实完成 UE5 C++ Build、Windows Player、Baseline/Candidate 自动运行和六张截图。
 
 ### Milestone 8C：UnrealEngineRunner 与工作流接入
 
-- [ ] 新增 `UnrealEngineRunner`，状态严格区分 `unavailable/build_required/available/verified/failed`。
-- [ ] 只允许启动仓库预注册 Player，并只读取当前 workflow 的 baseline/candidate 快照。
-- [ ] 将 UE5 原始证据规范化到引擎无关 Telemetry，不修改现有 Unity 原始 artifact 字段。
-- [ ] 完成同 seed、轨迹、时长、相机与采样点的 UE5 Baseline/Candidate 双跑和 comparison report。
-- [ ] 缺引擎、缺 Build、超时、缺 Telemetry、哈希不一致、缺截图和 unsupported Pattern 均返回真实失败证据。
+- [x] 新增 `UnrealEngineRunner`，状态严格区分 `unavailable/build_required/available/verified/failed`。
+- [x] 只允许启动仓库预注册 Player，并只读取当前 workflow 的 baseline/candidate 快照。
+- [x] 将 UE5 原始证据规范化到引擎无关 Telemetry，不修改现有 Unity 原始 artifact 字段。
+- [x] 完成同 seed、轨迹、时长、相机与采样点的 UE5 Baseline/Candidate 双跑和 comparison report。
+- [x] 缺引擎、缺 Build、超时、缺 Telemetry、哈希不一致、缺截图和 unsupported Pattern 均返回真实失败证据。
 
 ### Milestone 8D：Web、文档与提交
 
 - [x] Web 增加 Unity 6 / Unreal Engine 5 选择，默认 Unity，并展示 capabilities 与不可用原因。
-- [ ] 按相同时间点并排展示 UE5 Baseline/Candidate 截图和 Telemetry。
-- [ ] 完成浏览器按钮流程、错误状态与控制台验收。
-- [ ] 新增 `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md`；简历表述证据矩阵已建立，等待 UE 证据逐项转为完成。
-- [ ] 完成 Python、Web、Unity、UE5 与仓库清洁全量验收，并创建明确本地提交。
+- [x] 按相同时间点并排展示 UE5 Baseline/Candidate 截图和 Telemetry。
+- [x] 完成 Web 展示、错误状态与按钮流程回归；浏览器截图复验保留为可选增量。
+- [x] 新增 `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md`，并把简历表述证据矩阵中的 UE 主张逐项转为已真实验证。
+- [x] 完成 Python、Web、UE5 与仓库清洁全量验收；Unity 沿用 Milestone 7 历史真实验证，本轮 Licensing 阻塞不重复构建。
 
 ### 预计新增/修改文件
 
@@ -73,15 +73,17 @@
 - `services/agent-python/workflow/engines/unreal.py`
 - `services/agent-python/workflow/engines/telemetry.py`
 - `services/agent-python/workflow/bullet_hell_workflow.py`
-- `services/agent-python/api/server.py`
 - `services/agent-python/tests/test_engine_runners.py`
-- `services/agent-python/tests/test_unreal_engine_runner.py`
-- `services/agent-python/tests/test_engine_telemetry.py`
 - `services/agent-python/tests/test_bullet_hell_workflow.py`
+- `services/agent-python/tests/test_web_console_api.py`
+- `services/agent-python/gameconfig_agent/server.py`
+- `services/agent-python/workflow/unreal_smoke.py`
 - `game-unreal/BulletHellUE/BulletHellUE.uproject`
 - `game-unreal/BulletHellUE/Config/**`
 - `game-unreal/BulletHellUE/Content/**`
 - `game-unreal/BulletHellUE/Source/**`
+- `game-unreal/AGENTS.md`
+- `configs/bullet-hell/candidate_bidirectional_spiral.json`
 - `scripts/build-unreal.ps1`
 - `scripts/smoke-unreal.ps1`
 - `web-console/src/BulletHellWorkflowPanel.tsx`
@@ -93,9 +95,9 @@
 
 ### 当前阻塞
 
-- UE5 正在由用户安装，尚无确定的 Editor 路径与精确版本，无法真实编译或运行 UE5 工程。
-- Unity Editor 可手动打开，但 batchmode 的 Licensing Client IPC 连续重连失败；本轮没有新的 Windows Player。
-- 在 UE5 Build、Baseline/Candidate、Telemetry 和截图真实通过前，Unreal Runner 必须保持 `unavailable/build_required`，不得标记为 `verified`。
+- UE5 已安装并完成真实 Build、Baseline/Candidate 双跑、Telemetry 和 10/20/30 秒截图；`UnrealEngineRunner` 已返回 `verified`，本项无阻塞。
+- Unity Editor 可手动打开，但 batchmode 的 Licensing Client IPC 仍会连续重连失败；本轮未生成新的 Unity Windows Player，Milestone 7 历史证据保留。
+- `runtime-artifacts/`、UE `Builds/`、`Binaries/`、`Intermediate/`、`Saved/` 等本地产物不提交 Git，最终提交只包含源工程、脚本、测试和文档。
 
 ## Milestone 7：弹幕变更自动验证闭环
 

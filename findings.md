@@ -160,10 +160,24 @@
 - 现有正式契约字段为 `scenario.scenario_id`、`phases[].pattern.wave_interval_ms`、`bullet_lifetime_seconds`；随机种子由命令行传入。UE5 不得另建 `scene_id`、`fire_interval` 或平行 Schema。
 - Unity 原始 Telemetry 使用 `scenario_id/status/run_mode/random_seed/...`，并不包含新提案中的 `engine_name/config_hash/build_id/run_id/completed`。跨引擎层应生成规范化证据包装，不应破坏或重命名现有 Unity artifact。
 - 现有 Unity 启动、自动双跑、截图和 artifact 白名单集中在 `workflow/bullet_hell_workflow.py`；API 位于 `api/server.py`；Unity 配置读取与证据分别位于 `BulletHellConfigLoader.cs`、`BulletHellRuntimeBootstrap.cs`、`BulletHellTelemetryRecorder.cs`；Web 主入口为 `BulletHellWorkflowPanel.tsx`。
-- UE5 首期只实现 spiral 是合理垂直切片，但当前正式 baseline 同时含 ring、spiral、petal。Runner 必须明确验证能力：首期 UE5 运行应使用从正式只读 baseline 派生、仅保留/聚焦 phase_2 spiral 的兼容快照，或者在工作流层明确拒绝完整三 Pattern 运行，不能静默忽略 phase_1/phase_3。
+- UE5 首期只实现 spiral 的替代方案最终未采用；实际 C++ 切片直接支持 `ring/aimed_fan/spiral/petal` 四种 Pattern，并运行完整三阶段 baseline，不依赖派生快照。
 - “进程返回 0”不足以判定引擎运行成功。跨引擎 Runner 必须同时验证可执行文件、超时、Telemetry JSON、配置哈希、完成状态、必要截图和关键错误日志。
 - 仅“从 Hub 打开并关闭 Editor”仍不足以保证命令行 batchmode 获得许可证。本次日志显示 `LicenseClient-Administrator` IPC 通道拒绝连接，随后每轮重连等待约 60 秒；再次验收时应保持 Unity Hub 登录且进程处于运行状态，并把 Licensing Client 初始化单独纳入环境检查。
 - 简历中的“双 Agent Workflow”在本轮之前不成立：弹幕主流程只有候选生成模型调用，修复策略由确定性函数直接选择。现在 Requirement Agent 与 Quality Review Agent 已有独立 Prompt、模型调用记录、输出契约和失败坏例，但仍应准确称为“中央状态机编排的有界双 Agent”，而非自治多智能体系统。
 - “A/B 测试”容易被理解为统计实验。当前证据是同一 Player、seed、固定轨迹和时长下的一组受控 Before/After 回归对比，简历和面试应使用后者。
 - Quality Review Agent 不能凌驾于硬指标。即使真实模型输出 `accept`，只要确定性运行检查失败，策略门就会拒绝并转人工复核；模型也不能直接给出替换数值。
 - 统一 Telemetry 应采用新增包装层：Unity 原始 `telemetry.json` 保留旧字段，规范化证据增加 `engine_name/config_hash/run_id/completed`，避免为了跨引擎改坏已验证 artifact。
+
+## 2026-07-31 Milestone 8 完成
+
+- UE5 真实安装路径为 `D:\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe`，版本为 `5.8.1-56057345+++UE5+Release-5.8`；本机 MSVC 14.44、Windows SDK 10.0.26100.0 可完成 C++ Windows Player 打包。
+- `game-unreal/BulletHellUE/Source/BulletHellGameMode.cpp` 原先只接受 `-Variant=baseline|candidate`，无法运行工作流多轮候选目录 `candidate_1/2`；已改为接受 `baseline` 或任意 `candidate*`，并同步让 Runner 将 `candidate_1` 等规范化为 verification 的 `candidate`。
+- UE5 真实 smoke 最新为 `ue5_smoke_20260731_231202`：Baseline 峰值 70、受击 1；Candidate 峰值 192、受击 0；两侧 36 秒完成、低分位 FPS 均约 60、异常日志 0；所有 runtime target 通过。
+- 真实 Web/API workflow `bullet_20260731_230825_8c13b17d` 使用 `engine=unreal` 跑通 Baseline + `candidate_1`，`status=evidence_ready`，`runs_used=1`；C++ 多轮候选兼容修复被真实 workflow 覆盖，不只是单元测试。
+- UE5 自动画面对比已生成 `visual_comparison.json`：Baseline/Candidate 各 3 张截图，10/20/30 秒分别对应 ring/spiral/petal；20 秒和 30 秒人工核验可见双向螺旋与密度差异，画面有效。
+- 在受限沙箱内运行 UE5 打包或 Player 可能因 `AppData\Roaming\Unreal Engine\AutomationTool\Logs` 写入权限失败；本次最终构建和 smoke 使用受控授权执行，脚本本身仍保持固定路径和固定命令。
+- `UnrealEngineRunner` 的 `runner_verification.json` 记录的是最新一次已完成双跑的验证状态，不是任意单次运行；只有 telemetry、capture_manifest 和六张截图全部存在时才返回 `verified`。
+- `README.md`、`docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md` 和 `docs/RESUME_NARRATIVE_EVIDENCE_MATRIX.md` 中的 UE 证据已统一更新；简历中“双 Agent”仍应表述为“中央状态机编排的有界双 Agent”，不宣称自治多智能体。
+- Unity 2026-07-31 新复跑仍被 Licensing Client IPC 阻塞，未生成新 Windows Player；Milestone 7 历史成功证据继续保留，README 与规划文档已明确该限制，避免把历史证据冒充本轮复测。
+- `runtime-artifacts/`、UE `Builds/`、`Binaries/`、`Intermediate/`、`Saved/` 均不提交 Git；最终提交只包含 `game-unreal` 源工程、Python/Web 源码、脚本、测试和文档。
+- 简历草稿中的 `FHighResScreenshotManager` 与实际 UE 源码不符；本工程截图使用 `FScreenshotRequest::RequestScreenshot`。已在校验矩阵中明确该差异，正式简历应使用实际类名，不能保留不存在的类名。

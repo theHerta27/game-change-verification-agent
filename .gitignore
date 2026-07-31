@@ -40,6 +40,9 @@ game-unreal/**/Binaries/
 game-unreal/**/DerivedDataCache/
 game-unreal/**/Intermediate/
 game-unreal/**/Saved/
+game-unreal/**/Build/
+game-unreal/**/Builds/
+game-unreal/**/StagedBuilds/
 game-unreal/**/*.sln
 game-unreal/**/*.VC.db
 

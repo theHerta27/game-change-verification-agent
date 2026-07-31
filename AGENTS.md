@@ -13,7 +13,7 @@
 
 ## 当前阶段
 
-Milestone 7 弹幕变更自动验证闭环已完成。当前进入 Milestone 8：在保留 Unity 与 Training Sword 回归的前提下，增加统一 EngineRunner 和真实 UE5 最小验证切片。
+Milestone 8 已完成。Unity 弹幕闭环、统一 EngineRunner 和真实 UE5 C++ Windows Player 跨引擎验证均已落地；Training Sword 旧回归继续保留。
 
 禁止：
 
@@ -24,7 +24,7 @@ Milestone 7 弹幕变更自动验证闭环已完成。当前进入 Milestone 8�
 - 在隔离工作区之外应用候选 C# Diff，或绕过人工审批启动 Unity 验证。
 - 修改已有 GameConfig API、JSON artifact 和 Unity runtime contract 字段。
 - 用 Mock、Unity 产物或编辑器手工截图冒充 UE5 Build、Telemetry 或自动截图。
-- 在真实 UE5 Baseline/Candidate 双跑完成前将 Unreal Runner 标为 `verified`。
+- 在真实 UE5 Baseline/Candidate、Telemetry 和截图再次通过前，把新修改后的 Unreal Runner 标为 `verified`。
 - 未经一次明确授权启动弹幕隔离测试，或绕过最终人工决策覆盖任何已提交基线。
 - 提交 `.env`、密钥、第三方模型、贴图、音频、运行产物或构建缓存。
 
@@ -36,6 +36,7 @@ Milestone 7 弹幕变更自动验证闭环已完成。当前进入 Milestone 8�
 .\scripts\test-python.ps1
 .\scripts\test-web.ps1
 .\scripts\smoke-unity.ps1
+.\scripts\smoke-unreal.ps1
 .\scripts\verify-repo-clean.ps1
 ```
 

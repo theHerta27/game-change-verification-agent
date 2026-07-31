@@ -14,6 +14,7 @@
 - Requirement Agent 只生成结构化目标和候选配置；Quality Review Agent 只审查需求、Diff、Telemetry 和历史，不得直接计算或写入配置数值。
 - Quality Review Agent 的输出必须通过确定性策略门；硬指标失败时禁止模型直接接受。
 - EngineRunner 只能启动仓库预注册的固定 Player 和当前 workflow 快照；不得接收任意 EXE、命令或配置路径。
+- Unreal Runner 的 `verified` 必须由真实 UE5 Windows Player、Baseline/Candidate、Telemetry 和截图支持；对应 smoke 为 `scripts/smoke-unreal.ps1`。
 - Unity 原始 Telemetry 字段保持兼容；跨引擎公共字段写入新增规范化证据，不得重命名旧 artifact。
 - 不直接写数据库，不引入 Go、Redis、队列或主仓库自动代码修改。
 - 变更后必须在本目录运行 `python -m pytest tests`。

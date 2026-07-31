@@ -435,3 +435,44 @@
 - Python 全量：`162 passed`，1 条既有 Starlette/httpx 弃用告警。
 - Web production build：`1585 modules transformed`，CSS 30.85 kB，JS 359.73 kB。
 - 当前简历可验证口径固定为：Unity 闭环已真实验证；有界双 Agent、四层确定性校验和 EngineRunner 已实现并测试；UE5 真实 C++ Player 与跨引擎运行证据待安装完成后补齐。
+
+## 2026-07-31 Milestone 8 完成
+
+### 已完成
+
+- 用户已安装 UE `5.8.1-56057345+++UE5+Release-5.8`，真实工程位于 `game-unreal/BulletHellUE/`。
+- `scripts/build-unreal.ps1` 完成 UE5 C++ Windows Player 打包，`scripts/smoke-unreal.ps1` 完成真实 Baseline/Candidate 双跑。
+- C++ 接受 `baseline` 与任意 `candidate*` variant，修复多轮候选 `candidate_1/2` 无法运行的问题；Runner 侧统一将 `candidate_1` 等规范化为 verification 的 `candidate`。
+- 最新 smoke：`runtime-artifacts/ue5-verification/ue5_smoke_20260731_231202/`，`verification_manifest.json` 状态为 `verified`。
+- UE Baseline/Candidate 均使用同一 Player、seed `20260727`、固定轨迹、36 秒时长和 10/20/30 秒截图；Telemetry、配置哈希、截图、日志与 `comparison_report.json` 全部通过校验。
+- 真实 Web/API workflow：`bullet_20260731_230825_8c13b17d`，`engine=unreal`，`status=evidence_ready`，`runs_used=1`，所有 runtime target 通过。
+- 该 workflow 已生成 `visual_comparison.json`：Baseline/Candidate 各 3 张截图，10/20/30 秒对应 phase_1/phase_2/phase_3；20 秒和 30 秒人工核验可见单向螺旋与双向螺旋差异，画面非黑屏。
+- `UnrealEngineRunner` 当前返回 `verified`；Web 策划页可切换 Unity / Unreal，未就绪时仍禁用运行按钮。
+- 更新 `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md`、`docs/RESUME_NARRATIVE_EVIDENCE_MATRIX.md`、README、AGENTS 和规划记录，UE 简历主张逐项转为已真实验证。
+
+### 最终证据
+
+最新 UE5 smoke 指标：
+
+| 指标 | Baseline | Candidate |
+|---|---:|---:|
+| total_bullets_spawned | 592 | 992 |
+| peak_alive_bullets | 70 | 192 |
+| player_hits | 1 | 0 |
+| player_survival_seconds | 36 | 36 |
+| average_fps | 59.6563 | 59.8583 |
+| low_percentile_fps | 59.8874 | 59.9995 |
+| minimum_fps | 20.5058 | 21.6646 |
+| runtime_error_count | 0 | 0 |
+
+### 回归
+
+- Python 全量：`164 passed`，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：`1585 modules transformed`，通过。
+- UE5 C++ Build、Baseline/Candidate 双跑、Telemetry、截图和 verification manifest：通过。
+- Unity 2026-07-31 新复跑仍受本机 Licensing Client IPC 阻塞；Milestone 7 历史真实证据保留，不作为本轮 Unity 复测。
+- `runtime-artifacts/` 与 UE 构建缓存目录均不入库，最终提交只包含源码、脚本、测试和文档。
+
+### 最终状态
+
+`Milestone 8 complete。真实 UE5 跨引擎验证链路已完成，Unity 原闭环保持可用；下一阶段按用户确认的简历叙事统一收口并提交本分支。`
