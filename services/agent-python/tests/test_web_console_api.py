@@ -31,7 +31,7 @@ def test_health_endpoint():
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "ok"
-    assert payload["backend_version"] == "milestone7-bullet-hell-verification"
+    assert payload["backend_version"] == "milestone8a-dual-agent-engine-runner"
     assert payload["capabilities"]["real_provider_runtime_handoff"] is True
     assert payload["capabilities"]["change_workflow"] is True
     assert payload["capabilities"]["code_workflow"] is True

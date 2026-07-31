@@ -1,4 +1,4 @@
-# Agentic Game R&D Lab 项目简介
+# Game Change Verification Agent 项目简介
 
 这份文档用于让网页端或其他 AI 快速了解项目大方向。需要深入讨论时，再根据具体问题提供相关源码。
 
@@ -8,7 +8,7 @@
 
 - 策划配置生成；
 - 配置校验与修复；
-- 自动化测试和 Unity 运行验证；
+- 自动化测试和游戏引擎运行验证；
 - 代码审查与受控代码生成；
 - Agent 调试、评测和 Badcase 分析。
 
@@ -16,7 +16,8 @@
 
 - Python + FastAPI：Agent、校验器、工作流和 API；
 - React + TypeScript：Web Console；
-- Unity 6：可运行的游戏测试场景；
+- Unity 6：已完成的可运行游戏测试场景；
+- Unreal Engine 5：正在建设的 C++ 最小跨引擎验证切片；
 - MockLLM 与 OpenAI Compatible Provider：确定性回归和真实模型实验。
 
 ## 核心思路
@@ -25,11 +26,11 @@
 
 ```text
 自然语言需求
--> Agent 生成候选配置或代码 Diff
--> Schema / Reference / Rule / Patch Safety 校验
+-> Requirement Agent 生成结构化目标与候选
+-> Schema / Reference / Rule / Safety Gate 校验
 -> Quality Review
 -> 人工批准
--> Unity 隔离运行
+-> 游戏引擎隔离运行
 -> telemetry 评测
 -> 接受 / 修订 / 回滚
 ```
@@ -43,7 +44,8 @@
 - 支持环形、瞄准扇形、螺旋和花瓣四种配置化弹幕；
 - Agent 只能提出候选 JSON，不能改 C# 或正式基线；
 - 人工授权后，Unity 使用固定种子和轨迹运行修改前与修改后；
-- 指标不通过时，Agent 从有限修复策略中选择，确定性工具负责调参；
+- Quality Review Agent 基于需求、Diff、Telemetry 和历史选择接受、有限修复或人工复核；
+- Agent 建议必须通过确定性策略门，数值由确定性工具负责计算；
 - 最多运行三个候选，最后由人接受、修订或回滚。
 
 Training Sword 新手试炼作为旧回归流程继续保留。本地可以使用博丽灵梦模型作为角色表现；没有模型时自动使用占位角色，不影响测试逻辑。
@@ -76,7 +78,7 @@ Training Sword 新手试炼作为旧回归流程继续保留。本地可以使�
 
 ## 当前结果与证据边界
 
-- Python：151 tests passed；
+- Python：162 tests passed；
 - 前端 production build：通过；
 - Unity 固定种子双跑可重复率：100%；
 - Code Change 护栏 benchmark：12 个固定样本，预期匹配率 100%；
@@ -87,6 +89,7 @@ Training Sword 新手试炼作为旧回归流程继续保留。本地可以使�
 - 弹幕离线 benchmark 有 20 个固定样本，只用于验证需求路由、Schema、安全门、有限修复和失败路由，不代表真实 Unity 或真实模型质量。
 - 弹幕 Unity Build 与双跑必须由 `scripts/smoke-bullet-hell.ps1` 单独验收；未生成 Player 时不能声称 Unity 通过。
 - Milestone 7 最终已通过 Bullet Hell Windows Build、固定 60Hz 玩法模拟双跑、真实 Web/API 自动修复闭环和人工接受。
+- Milestone 8A 已实现统一 EngineRunner 和有界双 Agent 证据；UE5 Player、Telemetry 和截图尚未完成，不能写成已验证。
 
 ## 当前不足
 
@@ -103,6 +106,7 @@ Training Sword 新手试炼作为旧回归流程继续保留。本地可以使�
 services/agent-python/   Agent、校验器、工作流和 FastAPI
 web-console/             React Web Console
 game-unity/              Unity 测试场景
+game-unreal/             UE5 最小验证切片（建设中）
 evals/                   固定评测数据集
 docs/                    项目文档
 runtime-artifacts/       本地运行证据，不提交 Git

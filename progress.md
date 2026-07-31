@@ -418,3 +418,20 @@
 - Web production build：`1585 modules transformed`，CSS 29.75 kB，JS 353.17 kB。
 - Unity 真实复测仍受 Licensing Client IPC 阻塞；本轮没有新增 Unity Build 或运行证据。
 - UE5 尚未安装完成，`UnrealEngineRunner` 只报告 `unavailable`，没有伪造 Build、Telemetry 或截图。
+
+### Web 与叙事收口
+
+- Web 策划页新增 Unity 6 / Unreal Engine 5 选择；默认仍为 Unity，并显示 Runner 的真实状态和原因。
+- UE 未安装时可以生成静态候选，但授权后运行按钮保持禁用，无法越过环境安全门。
+- 新增 Agent 分工证据区，显示 Requirement Agent、Quality Review Agent、Provider、Prompt、延迟和确定性策略门结果。
+- 项目对外名称、后端健康版本和启动脚本统一为 `Game Change Verification Agent`。
+- 新增 `docs/RESUME_NARRATIVE_EVIDENCE_MATRIX.md`，逐项区分已真实验证、仅代码/测试完成和未完成的 UE 主张。
+- 浏览器实测 Unreal 状态、静态候选、Requirement Agent 证据和禁用运行按钮正确，桌面页面无横向溢出；移动视口截图被浏览器本地页面安全策略中止，未绕过。
+- 定向 Python：`24 passed`；Web production build：`1585 modules transformed`，CSS 30.85 kB，JS 359.73 kB。
+
+### Milestone 8A 收口回归
+
+- 修复引擎能力加载期间的运行按钮短暂可用问题；只有后端明确返回 `available` 或 `verified` 时才允许启动引擎运行。
+- Python 全量：`162 passed`，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：`1585 modules transformed`，CSS 30.85 kB，JS 359.73 kB。
+- 当前简历可验证口径固定为：Unity 闭环已真实验证；有界双 Agent、四层确定性校验和 EngineRunner 已实现并测试；UE5 真实 C++ Player 与跨引擎运行证据待安装完成后补齐。

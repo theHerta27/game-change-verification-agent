@@ -8,7 +8,7 @@ $ServiceRoot = Join-Path $RepoRoot "services\agent-python"
 . (Join-Path $PSScriptRoot "common.ps1")
 $PythonExe = Resolve-ProjectPython -RepoRoot $RepoRoot
 
-Write-Host "Starting Agentic Game R&D Lab backend..."
+Write-Host "Starting Game Change Verification Agent backend..."
 Write-Host "API: http://127.0.0.1:$Port"
 Write-Host "OpenAPI: http://127.0.0.1:$Port/docs"
 

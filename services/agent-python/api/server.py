@@ -155,7 +155,7 @@ def create_unified_app(
     )
     bullet_benchmark_dir = bullet_hell_benchmark_dir or RUNTIME_ARTIFACTS_DIR / "bullet-hell-benchmark"
     application = create_app(runtime_run_service=runtime_runs)
-    application.title = "Agentic Game R&D Lab API"
+    application.title = "Game Change Verification Agent API"
 
     @application.get("/api/quality/health")
     def quality_health() -> dict[str, str]:

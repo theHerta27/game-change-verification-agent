@@ -1,13 +1,14 @@
-# Agentic Game R&D Lab
+# Game Change Verification Agent
 
-AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划配置生成、代码质量审查、Unity 可控运行环境和 telemetry 证据放进同一个本地单仓库。
+面向游戏研发策划变更的有界 Agent 与自动化验证系统。项目在自建 Unity 2.5D 弹幕 Boss 战测试床中，把自然语言需求、候选配置、确定性校验、人工授权、引擎运行和 Telemetry 证据串成可回放闭环。
 
-**Milestone 0–7 已完成。** 当前主线是面向 Unity 2.5D 弹幕玩法的 Game Change Verification Agent：自然语言需求先形成候选弹幕配置，经过静态安全门、人工授权和 Unity 前后双跑，再根据 telemetry 有限修复并由人决定接受或回滚。Training Sword 旧流程继续保留。
+**Milestone 0–7 已完成，Milestone 8 进行中。** Requirement Agent 负责生成结构化目标与候选，Quality Review Agent 负责基于需求、Diff 和运行证据选择接受、有限修复或人工复核；Schema、引用、规则引擎和安全门始终由确定性代码执行。Unity 已有完整闭环，Unreal Engine 5 正在建设真实 C++ 最小验证切片。
 
 ## 当前组成
 
 - `services/agent-python`：唯一 Python 运行时，包含 GameConfig 配置能力与 DevQuality Python 质量审查能力。
 - `game-unity`：从 GameConfig Runtime Demo 迁移的 Unity 6 测试床。
+- `game-unreal`：UE5 C++ 最小垂直切片；真实 Build 通过前不标记为可用。
 - `web-console`：唯一 React 控制台。
 - `runtime-artifacts`：本地运行证据，不提交 Git。
 - `local-assets`：灵梦 PMX、转换文件和其他第三方本地资产，不提交 Git。
@@ -15,14 +16,14 @@ AI Agent 驱动的 Unity 游戏研发与质量保障实验室。项目将策划�
 ## 首次准备
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd D:\Desktop\game-change-verification-agent
 .\scripts\bootstrap.ps1
 ```
 
 ## 启动后端
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd D:\Desktop\game-change-verification-agent
 .\scripts\start-backend.ps1
 ```
 
@@ -52,7 +53,7 @@ cd D:\Desktop\agentic-game-rd
 ## 启动前端
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd D:\Desktop\game-change-verification-agent
 .\scripts\start-web.ps1
 ```
 
@@ -68,8 +69,9 @@ cd D:\Desktop\agentic-game-rd
 策划视图默认进入弹幕变更验证，推荐流程：
 
 ```text
-填写弹幕需求 -> 生成候选并静态校验 -> 人工授权最多三轮隔离运行
--> Unity 同条件运行 baseline / candidate -> 查看 telemetry 和自动修复
+填写弹幕需求 -> Requirement Agent 生成候选 -> 四层确定性校验
+-> 人工授权最多三轮隔离运行 -> 引擎同条件运行修改前 / 修改后
+-> Quality Review Agent 审查 telemetry -> 策略门批准有限修复
 -> 生成 10/20/30 秒固定轨迹截图并排对比
 -> 接受 / 要求修订 / 回滚
 ```
@@ -80,7 +82,7 @@ cd D:\Desktop\agentic-game-rd
 第二阶段改为双向螺旋弹，提高密度，但同时存在的子弹不能超过350发，最低帧率不能低于55 FPS。
 ```
 
-弹幕 Mock 不会自由创作：它从已提交的弹幕基线出发，只应用支持范围内的确定性映射。真实 Provider 只负责提出候选 JSON，仍必须经过同一套静态校验、人工授权和 Unity 运行证据。详见 `docs/MILESTONE7_BULLET_HELL_CHANGE_VERIFICATION.md`。
+弹幕 Mock 不会自由创作：它从已提交基线出发，以固定规则复现两个 Agent 的安全路由。真实 Provider 使用两个独立 Prompt 分别生成候选和审查证据，但仍不能跳过确定性校验、策略门、人工授权和引擎证据。详见 `docs/MILESTONE7_BULLET_HELL_CHANGE_VERIFICATION.md`。
 
 页面把证据分为三层：自动截图回答“肉眼改了什么”，telemetry 回答“约束是否达标”，手动试玩只补充主观操作感受。手动路线不同，不作为严格的 Before / After 证明。
 
@@ -91,7 +93,7 @@ Milestone 4 在这条闭环前增加受控候选生成：开发者显式选择�
 Milestone 5 使用 12 个固定样本验证需求门禁、JSON 契约、目标范围、安全门和 badcase 路由。默认 `scripted_fixture` 只评测工程护栏，不代表真实模型代码能力。运行：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
+cd D:\Desktop\game-change-verification-agent\services\agent-python
 ..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_code_change_benchmark --output ..\..\runtime-artifacts\code-change-benchmark
 ```
 
@@ -100,7 +102,7 @@ cd D:\Desktop\agentic-game-rd\services\agent-python
 Milestone 6 使用 5 个小型 Unity C# 防御式需求评测真实 Provider。它记录 JSON、契约、安全、质量、补丁可应用性、固定语义证据、延迟与 usage，但不会自动审批或启动 Unity：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
+cd D:\Desktop\game-change-verification-agent\services\agent-python
 ..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_real_code_evaluation --output ..\..\runtime-artifacts\real-code-evaluation --timeout-seconds 60
 ```
 
@@ -117,7 +119,7 @@ cd D:\Desktop\agentic-game-rd\services\agent-python
 在 Unity Hub 中添加：
 
 ```text
-D:\Desktop\agentic-game-rd\game-unity
+D:\Desktop\game-change-verification-agent\game-unity
 ```
 
 项目锁定 Unity `6000.3.19f1`。没有本地灵梦模型时使用仓库内占位角色；本地模型后续通过 `CharacterViewResolver` 动态替换，不改变战斗逻辑。
@@ -127,7 +129,7 @@ D:\Desktop\agentic-game-rd\game-unity
 第三方模型只保留在 Git 忽略目录。首次准备和转换：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd D:\Desktop\game-change-verification-agent
 .\scripts\bootstrap-blender.ps1
 .\scripts\convert-reimu.ps1
 .\scripts\import-reimu-unity.ps1
@@ -141,7 +143,7 @@ cd D:\Desktop\agentic-game-rd
 测试画像位于 `scenarios/milestone1/starter_trial_baseline.json`，固定场景、随机种子和验收指标。运行：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd D:\Desktop\game-change-verification-agent
 .\scripts\smoke-unity.ps1
 ```
 
@@ -159,7 +161,7 @@ cd D:\Desktop\agentic-game-rd
 运行 Bullet Hell Windows Build 和固定种子双跑：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd D:\Desktop\game-change-verification-agent
 .\scripts\smoke-bullet-hell.ps1
 ```
 
@@ -168,13 +170,17 @@ cd D:\Desktop\agentic-game-rd
 离线 20 样本工程回归：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
+cd D:\Desktop\game-change-verification-agent\services\agent-python
 ..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_bullet_hell_benchmark --output ..\..\runtime-artifacts\bullet-hell-benchmark
 ```
 
 该 benchmark 使用脚本化故障验证路由、护栏和有限修复，不代表真实 Unity 或真实模型质量。
 
-当前主演示实测中，候选双向螺旋首次未满足固定轨迹受击目标，系统两次降低弹速并自动复测；最终峰值存活子弹 `196/350`、玩家受击 `0/3`、生存 `36/36s`、低分位 FPS 约 `58.8/55`，随后由人工接受。页面刷新后可使用“加载最近验证”恢复该证据。
+当前主演示实测中，候选双向螺旋首次未满足固定轨迹受击目标，系统两次降低弹速并自动复测；最新保存证据为峰值存活子弹 `66 → 198`、玩家受击 `2 → 0`、生存 `36/36s`、低分位 FPS `58.65`（目标 `≥55`）、异常日志 `0`，随后由人工接受。
+
+## Unreal Engine 5
+
+后端已提供统一 `EngineRunner` 接口和 `engine: unity | unreal` 请求字段；省略时仍默认 Unity。当前 UE5 正在本机安装，Web 会如实显示 `unavailable`，并禁用运行按钮。只有 C++ 工程真实编译、Windows Player 生成、Baseline/Candidate 双跑、Telemetry 与 10/20/30 秒截图全部通过后，才会更新为 `verified`。
 
 ## 验证
 
@@ -191,6 +197,8 @@ cd D:\Desktop\agentic-game-rd\services\agent-python
 .\scripts\smoke-bullet-hell.ps1
 .\scripts\verify-repo-clean.ps1
 ```
+
+当前 Python 全量基线为 `162 passed`；前端 production build 为 `1585 modules transformed`。Unity 2026-07-31 复跑受本机 Licensing Client IPC 阻塞，历史成功证据保留但不冒充本次复测。
 
 ## 当前边界
 

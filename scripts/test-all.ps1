@@ -11,4 +11,4 @@ else {
 }
 & (Join-Path $PSScriptRoot "smoke-bullet-hell.ps1")
 & (Join-Path $PSScriptRoot "verify-repo-clean.ps1")
-Write-Host "All Agentic Game R&D Lab checks passed."
+Write-Host "All Game Change Verification Agent checks passed."

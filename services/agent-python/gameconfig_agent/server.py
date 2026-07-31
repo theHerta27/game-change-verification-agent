@@ -32,7 +32,7 @@ REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
 OUTPUTS_DIR = Path(
     os.environ.get("AGENTIC_GAME_RD_RUNTIME_DIR", REPOSITORY_ROOT / "runtime-artifacts")
 )
-BACKEND_VERSION = "milestone7-bullet-hell-verification"
+BACKEND_VERSION = "milestone8a-dual-agent-engine-runner"
 BACKEND_CAPABILITIES = {
     "real_provider_runtime_handoff": True,
     "runtime_run_polling": True,
@@ -77,7 +77,7 @@ class RequirementIntakeRequest(BaseModel):
 
 def create_app(runtime_run_service: RuntimeRunService | None = None) -> FastAPI:
     runtime_runs = runtime_run_service or RuntimeRunService()
-    app = FastAPI(title="GameConfig Agent Web Console API")
+    app = FastAPI(title="Game Change Verification Agent API")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -96,7 +96,7 @@ def create_app(runtime_run_service: RuntimeRunService | None = None) -> FastAPI:
     @app.get("/")
     def root() -> dict[str, Any]:
         return {
-            "service": "GameConfig Agent Web Console API",
+            "service": "Game Change Verification Agent API",
             "status": "ok",
             "message": "这是后端 API 服务。请打开前端页面 http://127.0.0.1:5173 使用 Web Console。",
             "health": "/api/health",

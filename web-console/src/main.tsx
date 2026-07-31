@@ -63,7 +63,7 @@ const fallbackRequirement = '设计一个新手武器 Training Sword，基础攻
 
 const copy = {
   zh: {
-    appTitle: '游戏配置验证工作台', appSubtitle: '将策划需求转成配置，并通过静态校验与 Unity 运行数据验证配置目标。',
+    appTitle: '游戏变更验证工作台', appSubtitle: '将策划需求转成候选配置，经双 Agent 审查、确定性校验和游戏引擎运行证据验证目标。',
     developerTitle: 'Agent 工程调试控制台', plannerMode: '策划 / QA 视图', developerMode: '开发者调试',
     languageButton: 'English', localApi: '本地 API 服务',
     runControls: '运行控制', classicCase: '经典案例', manualInput: '手动输入', main: '核心案例', backup: '专项案例',
@@ -371,7 +371,7 @@ function App() {
     <header className="border-b border-line bg-panel/95 px-5 py-4">
       <div className="mx-auto flex max-w-[1800px] flex-wrap items-center justify-between gap-4">
         <div className="max-w-3xl">
-          <p className="text-xs uppercase text-run">GameConfig Agent</p>
+          <p className="text-xs uppercase text-run">Game Change Verification Agent</p>
           <h1 className="mt-1 text-2xl font-semibold">{viewMode === 'planner' ? t.appTitle : t.developerTitle}</h1>
           <p className="mt-1 text-sm leading-6 text-slate-400">{viewMode === 'planner' ? t.appSubtitle : t.developerHint}</p>
         </div>

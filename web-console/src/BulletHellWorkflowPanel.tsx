@@ -1,18 +1,53 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  AlertTriangle, Camera, CheckCircle2, ChevronLeft, ChevronRight, CircleDot, Eye,
+  AlertTriangle, Bot, Camera, CheckCircle2, ChevronLeft, ChevronRight, CircleDot, Cpu, Eye,
   FileJson, Gauge, Gamepad2, HelpCircle, Orbit, Play, RefreshCw, RotateCcw,
   Settings, ShieldCheck, SlidersHorizontal, Sparkles, ThumbsUp, Wrench, X
 } from 'lucide-react';
 
 type Language = 'zh' | 'en';
 type Provider = 'mock' | 'openai_compatible';
+type EngineName = 'unity' | 'unreal';
 type ExperienceMode = 'novice' | 'professional';
 type PlayVariant = 'baseline' | 'candidate';
 type DiffRow = { change_type: string; path: string; before: unknown; after: unknown };
 type MetricRow = { metric: string; baseline: unknown; candidate: unknown; target: string; passed: boolean; evidence: string };
 type TimelineRow = { step: string; status: string; timestamp: string; detail: Record<string, unknown> };
 type RepairRow = { iteration: number; action: string; applied: boolean; phase_id?: string; reason: string };
+type AgentRun = {
+  agent_name: string;
+  prompt_name: string;
+  provider: string;
+  model?: string | null;
+  latency_ms: number;
+  status: string;
+  model_call: boolean;
+  iteration?: number;
+};
+type QualityReview = {
+  iteration: number;
+  agent_output: { decision: string; repair_action?: string | null; reason: string; evidence_refs: string[] };
+  policy_gate: {
+    passed: boolean;
+    effective_decision: string;
+    effective_action?: string | null;
+    expected_action?: string | null;
+    reason: string;
+  };
+};
+type EngineCapability = {
+  engine: EngineName;
+  display_name: string;
+  status: 'unavailable' | 'build_required' | 'available' | 'verified' | 'failed';
+  reason: string;
+  patterns: string[];
+  automated_run: boolean;
+  manual_play: boolean;
+};
+type BulletCapabilities = {
+  default_engine: EngineName;
+  engines: Record<EngineName, EngineCapability>;
+};
 type VisualCapture = { time_seconds: number; phase_id: string; phase_name: string; pattern_type: string; file_name: string };
 type VisualVariant = {
   variant: PlayVariant;
@@ -37,6 +72,7 @@ type VisualComparison = {
 type Workflow = {
   workflow_id: string;
   provider: Provider;
+  engine?: EngineName;
   model?: string | null;
   status: string;
   current_iteration: number;
@@ -44,9 +80,19 @@ type Workflow = {
   authorization?: { actor: string; note: string; scope: string } | null;
   feasibility_gate?: { decision: string; reason: string; issues: Array<Record<string, unknown>> };
   structured_goal?: Record<string, unknown>;
-  static_validation?: { passed: boolean; schema_errors: unknown[]; rule_errors: unknown[] };
+  static_validation?: {
+    passed: boolean;
+    schema_errors: unknown[];
+    reference_errors?: unknown[];
+    rule_errors: unknown[];
+    safety_errors?: unknown[];
+    layers?: Record<string, { passed: boolean; errors: unknown[] }>;
+  };
   config_diff?: DiffRow[];
   repair_history?: RepairRow[];
+  agent_runs?: AgentRun[];
+  quality_reviews?: QualityReview[];
+  badcases?: Array<Record<string, unknown>>;
   comparison_report?: { passed: boolean; metrics: MetricRow[]; evidence_scope: string };
   baseline_telemetry?: Record<string, unknown> | null;
   candidate_telemetry?: Record<string, unknown> | null;
@@ -60,11 +106,17 @@ const text = {
   zh: {
     eyebrow: 'GAME CHANGE VERIFICATION',
     title: '弹幕变更验证',
-    subtitle: '用自然语言提出玩法调整。Agent 生成候选，确定性工具校验，Unity 在隔离环境自动对比修改前后结果。',
+    subtitle: '用自然语言提出玩法调整。Agent 生成并审查候选，确定性工具校验，游戏引擎在隔离环境自动对比修改前后结果。',
     boundary: '自动化边界',
     boundaryText: '一次授权后最多运行 3 个候选；只修改候选 JSON。本页面不会覆盖正式基线。',
     requirement: '玩法变更需求',
     provider: '候选生成方式',
+    engine: '验证引擎',
+    engineHint: '候选 JSON 使用同一份 Bullet Hell 1.0 契约；不同引擎只负责执行和采集证据。',
+    engineUnavailable: '当前环境不可运行',
+    engineBuildRequired: '需要先构建本地 Player',
+    engineAvailable: '可运行，尚未形成完整验证证据',
+    engineVerified: '已完成真实运行验证',
     mock: '确定性 Mock',
     mockNovice: '固定演示模型（免费、结果可重复）',
     real: '真实模型',
@@ -77,7 +129,7 @@ const text = {
     authorizedBy: '授权人',
     note: '授权说明',
     run: '开始自动对比与修复',
-    running: 'Unity 正在运行，请保持后端窗口开启',
+    running: '游戏引擎正在运行，请保持后端窗口开启',
     manual: '打开 Unity 手动试玩',
     reset: '重新开始一次演示',
     accept: '记录为接受（当前不会写回正式基线）',
@@ -133,12 +185,12 @@ const text = {
     beforeAfterText: '手动操作路线每次不同，只用于分别感受两个版本的视觉和操作，不作为严格的前后效果证明。',
     playBefore: '手动体验修改前',
     playAfter: '手动体验修改后',
-    temporaryPlayerNote: '只启动固定的临时 Unity Player，并读取本工作流快照；不会修改正式基线。',
+    temporaryPlayerNote: '只启动后端登记的临时游戏 Player，并读取本工作流快照；不会修改正式基线。',
     selectedPlay: '当前已启动',
     baselineSnapshot: '修改前',
     candidateSnapshot: '修改后',
-    launchSucceeded: 'Unity Player 已启动，可以开始主观体验。',
-    launchFailed: 'Unity Player 启动失败',
+    launchSucceeded: '临时 Player 已启动，可以开始主观体验。',
+    launchFailed: '临时 Player 启动失败',
     visualTitle: '自动固定轨迹画面对比',
     visualPurpose: '自动画面用于证明改了什么；运行数据用于证明约束是否达标；手动试玩只用于主观体验。',
     visualFairness: '两侧使用相同 seed、固定轨迹、36 秒时长和相机，在 10、20、30 秒自动截图。',
@@ -171,16 +223,31 @@ const text = {
     termCandidate: 'Candidate 是 Agent 提出的修改后候选，只存在于临时工作流中。',
     termWorkflow: 'Workflow 是一次从需求、校验、授权到证据和结论的完整验证记录。',
     termArtifact: 'Artifact 是工作流保存的 JSON、日志和报告等原始证据文件。',
-    termTelemetry: 'Telemetry 是 Unity 运行时自动记录的子弹、受击、存活时间和 FPS 等数据。'
+    termTelemetry: 'Telemetry 是引擎运行时自动记录的子弹、受击、存活时间和 FPS 等数据。',
+    agentEvidence: 'Agent 分工与决策证据',
+    requirementAgent: '需求解析 Agent',
+    qualityReviewAgent: '质量审查 Agent',
+    requirementAgentHelp: '只把自然语言需求转换为结构化目标和候选配置，无权运行引擎或写回基线。',
+    qualityReviewAgentHelp: '只读取需求、配置差异和运行证据，输出接受、有限修复或人工复核；不能直接改数值。',
+    deterministicGate: '确定性策略门',
+    noAgentEvidence: '创建新工作流后显示两个 Agent 的调用与审查记录。',
+    modelCall: '模型调用',
+    deterministicRun: '确定性执行'
   },
   en: {
     eyebrow: 'GAME CHANGE VERIFICATION',
     title: 'Bullet Hell Change Verification',
-    subtitle: 'Describe a gameplay change. The Agent proposes a candidate, deterministic tools verify it, and Unity compares before and after in isolation.',
+    subtitle: 'Describe a gameplay change. Bounded agents propose and review a candidate, deterministic tools verify it, and a game engine compares before and after in isolation.',
     boundary: 'Automation boundary',
     boundaryText: 'One authorization permits up to 3 candidate runs and candidate JSON changes only. You make the final baseline decision.',
     requirement: 'Gameplay change requirement',
     provider: 'Candidate provider',
+    engine: 'Verification engine',
+    engineHint: 'Both engines consume the same Bullet Hell 1.0 candidate; the engine backend only executes and records evidence.',
+    engineUnavailable: 'Unavailable in this environment',
+    engineBuildRequired: 'Build the local Player first',
+    engineAvailable: 'Runnable, not yet fully verified',
+    engineVerified: 'Verified with real runtime evidence',
     mock: 'Deterministic Mock',
     mockNovice: 'Fixed demo model (free and repeatable)',
     real: 'Real provider',
@@ -193,7 +260,7 @@ const text = {
     authorizedBy: 'Authorized by',
     note: 'Authorization note',
     run: 'Start comparison and repair',
-    running: 'Unity is running. Keep the backend window open.',
+    running: 'The game engine is running. Keep the backend window open.',
     manual: 'Open Unity manual playtest',
     reset: 'Start a new demo',
     accept: 'Record as accepted (does not write to baseline)',
@@ -249,12 +316,12 @@ const text = {
     beforeAfterText: 'Manual movement differs between runs. Use these only to feel each version, not as strict before/after proof.',
     playBefore: 'Manually experience Before',
     playAfter: 'Manually experience After',
-    temporaryPlayerNote: 'This starts only the fixed temporary Unity Player with a workflow snapshot and never changes the formal baseline.',
+    temporaryPlayerNote: 'This starts only a registered temporary game Player with a workflow snapshot and never changes the formal baseline.',
     selectedPlay: 'Currently launched',
     baselineSnapshot: 'Before',
     candidateSnapshot: 'After',
-    launchSucceeded: 'Unity Player started for subjective playtesting.',
-    launchFailed: 'Unity Player failed to start',
+    launchSucceeded: 'The temporary Player started for subjective playtesting.',
+    launchFailed: 'The temporary Player failed to start',
     visualTitle: 'Automatic fixed-trajectory visual comparison',
     visualPurpose: 'Automatic visuals show what changed; runtime data proves constraints; manual playtesting adds subjective experience.',
     visualFairness: 'Both sides use the same seed, fixed trajectory, 36-second duration, and camera, captured at 10, 20, and 30 seconds.',
@@ -287,7 +354,16 @@ const text = {
     termCandidate: 'Candidate is the proposed configuration after the change and exists only in a temporary workflow.',
     termWorkflow: 'Workflow is one complete record from requirement and validation through evidence and decision.',
     termArtifact: 'Artifact is a saved JSON, log, or report that provides raw workflow evidence.',
-    termTelemetry: 'Telemetry is runtime data recorded by Unity, such as bullets, hits, survival time, and FPS.'
+    termTelemetry: 'Telemetry is runtime data recorded by an engine, such as bullets, hits, survival time, and FPS.',
+    agentEvidence: 'Agent roles and decision evidence',
+    requirementAgent: 'Requirement Agent',
+    qualityReviewAgent: 'Quality Review Agent',
+    requirementAgentHelp: 'Converts natural language into a structured goal and candidate config. It cannot run an engine or write to the baseline.',
+    qualityReviewAgentHelp: 'Reads the requirement, diff, and runtime evidence to recommend accept, bounded repair, or human review. It cannot edit values.',
+    deterministicGate: 'Deterministic policy gate',
+    noAgentEvidence: 'Create a new workflow to see both agent runs and review records.',
+    modelCall: 'Model call',
+    deterministicRun: 'Deterministic execution'
   }
 } as const;
 
@@ -317,6 +393,17 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
   const [playVariant, setPlayVariant] = useState<PlayVariant | null>(null);
   const [playMessage, setPlayMessage] = useState('');
   const [latestLoaded, setLatestLoaded] = useState(false);
+  const [engine, setEngine] = useState<EngineName>('unity');
+  const [capabilities, setCapabilities] = useState<BulletCapabilities | null>(null);
+
+  useEffect(() => {
+    request<BulletCapabilities>('/api/bullet-hell/capabilities')
+      .then((value) => {
+        setCapabilities(value);
+        setEngine((current) => current || value.default_engine);
+      })
+      .catch((reason) => setError(String(reason)));
+  }, []);
 
   useEffect(() => {
     if (!workflow || (!runningStatuses.has(workflow.status) && workflow.visual_comparison?.status !== 'running')) return;
@@ -329,6 +416,10 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
   useEffect(() => {
     window.localStorage.setItem(EXPERIENCE_MODE_KEY, experienceMode);
   }, [experienceMode]);
+
+  useEffect(() => {
+    if (workflow?.engine) setEngine(workflow.engine);
+  }, [workflow?.engine]);
 
   const currentStep = useMemo(() => stepForStatus(workflow?.status), [workflow?.status]);
   const novice = experienceMode === 'novice';
@@ -344,6 +435,8 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
   const visualComparisonAllowed = !!workflow && [
     'evidence_ready', 'budget_exhausted', 'accepted', 'revision_requested', 'rolled_back'
   ].includes(workflow.status);
+  const activeEngine = capabilities?.engines[workflow?.engine ?? engine];
+  const engineReady = !!activeEngine && ['available', 'verified'].includes(activeEngine.status);
 
   async function act(name: string, action: () => Promise<Workflow>) {
     setBusy(name);
@@ -374,7 +467,7 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
     setDecisionNote('');
     return act(name, () => request('/api/bullet-hell/workflows', {
       method: 'POST',
-      body: JSON.stringify({ requirement_text: requirement, provider, timeout_seconds: timeoutSeconds })
+      body: JSON.stringify({ requirement_text: requirement, provider, timeout_seconds: timeoutSeconds, engine })
     }));
   }
 
@@ -501,7 +594,7 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
         />
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <label className="label" htmlFor="bullet-provider">
           {t.provider}
           <select
@@ -513,6 +606,19 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
           >
             <option value="mock">{novice ? t.mockNovice : t.mock}</option>
             <option value="openai_compatible">{t.real}</option>
+          </select>
+        </label>
+        <label className="label" htmlFor="bullet-engine">
+          {t.engine}
+          <select
+            id="bullet-engine"
+            className="input mt-1"
+            value={engine}
+            disabled={!!workflow}
+            onChange={(event) => setEngine(event.target.value as EngineName)}
+          >
+            <option value="unity">Unity 6</option>
+            <option value="unreal">Unreal Engine 5</option>
           </select>
         </label>
         <label className="label" htmlFor="bullet-timeout">
@@ -530,6 +636,17 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
         </label>
       </div>
       <p className="mt-3 text-xs leading-5 text-slate-400">{provider === 'mock' ? t.mockHint : t.realHint}</p>
+      <div className={`engine-capability mt-3 ${engineReady ? 'engine-capability-ready' : 'engine-capability-blocked'}`}>
+        <Cpu className="h-4 w-4 shrink-0"/>
+        <div>
+          <p className="text-xs font-semibold">
+            {activeEngine?.display_name ?? (engine === 'unity' ? 'Unity 6' : 'Unreal Engine 5')}
+            {' · '}
+            {engineStatusLabel(activeEngine?.status, t)}
+          </p>
+          <p className="mt-1 text-xs leading-5 opacity-80">{activeEngine?.reason ?? t.engineHint}</p>
+        </div>
+      </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
         {!workflow && <button className={`button-primary ${guideActive && guideStep === 2 ? 'guide-focus' : ''}`} disabled={!!busy || !requirement.trim()} onClick={() => createWorkflow()}>
@@ -565,12 +682,13 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
       </div>}
 
       {workflow?.status === 'authorized' && <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
-        <button className="button-primary" disabled={!!busy} onClick={() => act('run', () => request(`/api/bullet-hell/workflows/${workflow.workflow_id}/run`, { method: 'POST' }))}>
+        <button className="button-primary" disabled={!!busy || !engineReady} onClick={() => act('run', () => request(`/api/bullet-hell/workflows/${workflow.workflow_id}/run`, { method: 'POST' }))}>
           <Play className="h-4 w-4"/>{t.run}
         </button>
+        {!engineReady && <span className="self-center text-xs leading-5 text-amber-200">{activeEngine?.reason}</span>}
       </div>}
 
-      {workflow && ['evidence_ready', 'budget_exhausted'].includes(workflow.status) && <div className="mt-5 border-t border-line pt-5">
+      {workflow && ['evidence_ready', 'budget_exhausted', 'blocked'].includes(workflow.status) && <div className="mt-5 border-t border-line pt-5">
         <label className="label">{t.decisionNote}<input className="input mt-1" value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)}/></label>
         <div className="mt-3 flex flex-wrap gap-2">
           {workflow.status === 'evidence_ready' && <DecisionButton label={t.accept} icon={<ThumbsUp className="h-4 w-4"/>} disabled={!!busy || !decisionNote.trim()} onClick={() => decide('accept')}/>}
@@ -579,7 +697,7 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
         </div>
       </div>}
 
-      {manualPlayAllowed && workflow && <BeforeAfterPlay
+      {manualPlayAllowed && engineReady && workflow && <BeforeAfterPlay
         beforeLabel={beforeLabel}
         afterLabel={afterLabel}
         title={t.beforeAfterTitle}
@@ -592,6 +710,7 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
         baselineLabel={t.baselineSnapshot}
         candidateLabel={t.candidateSnapshot}
         playMessage={playMessage}
+        playerName={activeEngine?.display_name ?? (engine === 'unity' ? 'Unity 6' : 'Unreal Engine 5')}
         busy={busy}
         guideFocus={guideActive && guideStep === 4}
         onPlay={launchManualPlay}
@@ -618,7 +737,7 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
       {workflow && <p className="mt-4 text-sm leading-6 text-slate-300">{statusMessage(workflow.status, t)}</p>}
       {workflow?.error && <p className="mt-3 border-l-2 border-red-400 pl-3 text-sm text-red-200">{workflow.error.type}: {workflow.error.message}</p>}
 
-      {visualComparisonAllowed && workflow && <AutomaticVisualComparison
+      {visualComparisonAllowed && engineReady && workflow && <AutomaticVisualComparison
         workflow={workflow}
         language={language}
         beforeLabel={beforeLabel}
@@ -642,6 +761,25 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
 
       {workflow?.structured_goal && <EvidenceBand title={t.goal} icon={<SlidersHorizontal className="h-4 w-4"/>}>
         <GoalSummary value={workflow.structured_goal} language={language}/>
+      </EvidenceBand>}
+
+      {workflow && <EvidenceBand title={t.agentEvidence} icon={<Bot className="h-4 w-4"/>}>
+        <AgentEvidence
+          runs={workflow.agent_runs ?? []}
+          reviews={workflow.quality_reviews ?? []}
+          language={language}
+          novice={novice}
+          labels={{
+            requirement: t.requirementAgent,
+            quality: t.qualityReviewAgent,
+            requirementHelp: t.requirementAgentHelp,
+            qualityHelp: t.qualityReviewAgentHelp,
+            policyGate: t.deterministicGate,
+            empty: t.noAgentEvidence,
+            modelCall: t.modelCall,
+            deterministic: t.deterministicRun
+          }}
+        />
       </EvidenceBand>}
 
       {workflow?.config_diff && workflow.config_diff.length > 0 && <EvidenceBand title={t.changes} icon={<Orbit className="h-4 w-4"/>}>
@@ -704,6 +842,63 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
       method: 'POST', body: JSON.stringify({ decision, actor, note: decisionNote })
     }));
   }
+}
+
+function AgentEvidence({ runs, reviews, language, novice, labels }: {
+  runs: AgentRun[];
+  reviews: QualityReview[];
+  language: Language;
+  novice: boolean;
+  labels: {
+    requirement: string;
+    quality: string;
+    requirementHelp: string;
+    qualityHelp: string;
+    policyGate: string;
+    empty: string;
+    modelCall: string;
+    deterministic: string;
+  };
+}) {
+  if (!runs.length) return <p className="text-sm text-slate-400">{labels.empty}</p>;
+  return <div className="agent-evidence-list">
+    {runs.map((run, index) => {
+      const requirement = run.agent_name === 'requirement_agent';
+      const title = requirement ? labels.requirement : labels.quality;
+      const description = requirement ? labels.requirementHelp : labels.qualityHelp;
+      return <div className="agent-evidence-row" key={`${run.agent_name}-${run.iteration ?? 0}-${index}`}>
+        <div className="agent-evidence-heading">
+          <span className={`agent-status-dot ${run.status === 'succeeded' ? 'agent-status-ok' : 'agent-status-failed'}`}/>
+          <div>
+            <p className="text-sm font-semibold text-slate-100">
+              {title}{run.iteration ? ` · ${language === 'zh' ? `第 ${run.iteration} 轮` : `Round ${run.iteration}`}` : ''}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-400">{description}</p>
+          </div>
+        </div>
+        <div className="agent-evidence-meta">
+          <span>{run.model_call ? labels.modelCall : labels.deterministic}</span>
+          <span>{run.provider}{run.model ? ` / ${run.model}` : ''}</span>
+          {!novice && <span className="font-mono">{run.prompt_name}</span>}
+          <span>{run.latency_ms} ms</span>
+        </div>
+      </div>;
+    })}
+    {reviews.map((review) => <div className="policy-gate-row" key={`review-${review.iteration}`}>
+      <ShieldCheck className="h-4 w-4 shrink-0 text-cyan-300"/>
+      <div>
+        <p className="text-sm font-semibold text-slate-100">
+          {labels.policyGate} · {review.policy_gate.effective_decision}
+        </p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">{review.policy_gate.reason}</p>
+        {!novice && <p className="mt-1 font-mono text-xs text-cyan-200">
+          agent={review.agent_output.decision}
+          {' · '}action={review.agent_output.repair_action ?? 'none'}
+          {' · '}expected={review.policy_gate.expected_action ?? 'none'}
+        </p>}
+      </div>
+    </div>)}
+  </div>;
 }
 
 function GuideCard({ step, steps, title, previous, next, done, skip, onPrevious, onNext, onSkip }: {
@@ -828,7 +1023,7 @@ function ScreenshotEvidence({ label, capture, url, phaseLabel, patternLabel }: {
 }
 
 function BeforeAfterPlay({ beforeLabel, afterLabel, title, description, beforeButton, afterButton, note,
-  selectedLabel, selectedVariant, baselineLabel, candidateLabel, playMessage, busy, guideFocus, onPlay }: {
+  selectedLabel, selectedVariant, baselineLabel, candidateLabel, playMessage, playerName, busy, guideFocus, onPlay }: {
   beforeLabel: string;
   afterLabel: string;
   title: string;
@@ -841,6 +1036,7 @@ function BeforeAfterPlay({ beforeLabel, afterLabel, title, description, beforeBu
   baselineLabel: string;
   candidateLabel: string;
   playMessage: string;
+  playerName: string;
   busy: string;
   guideFocus: boolean;
   onPlay: (variant: PlayVariant) => void;
@@ -864,7 +1060,7 @@ function BeforeAfterPlay({ beforeLabel, afterLabel, title, description, beforeBu
     <p className="mt-3 flex items-start gap-2 text-xs leading-5 text-cyan-100"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>{note}</p>
     {selectedVariant && <div className="launch-command-panel mt-4" role="status">
       <p className="text-sm font-semibold text-white">{selectedLabel}：{selectedVariant === 'baseline' ? baselineLabel : candidateLabel}</p>
-      {busy === `play-${selectedVariant}` && <p className="mt-2 flex items-center gap-2 text-xs text-cyan-100"><RefreshCw className="h-4 w-4 animate-spin"/>Unity Player</p>}
+      {busy === `play-${selectedVariant}` && <p className="mt-2 flex items-center gap-2 text-xs text-cyan-100"><RefreshCw className="h-4 w-4 animate-spin"/>{playerName} Player</p>}
       {playMessage && <p className={`mt-2 text-xs ${playMessage.includes('失败') || playMessage.includes('failed') ? 'text-red-200' : 'text-green-200'}`}>{playMessage}</p>}
     </div>}
   </section>;
@@ -940,6 +1136,13 @@ function statusMessage(status: string, t: typeof text.zh | typeof text.en) {
   return '';
 }
 
+function engineStatusLabel(status: EngineCapability['status'] | undefined, t: typeof text.zh | typeof text.en) {
+  if (status === 'verified') return t.engineVerified;
+  if (status === 'available') return t.engineAvailable;
+  if (status === 'build_required') return t.engineBuildRequired;
+  return t.engineUnavailable;
+}
+
 function statusLabel(status: string, language: Language, novice = false) {
   const labels: Record<Language, Record<string, string>> = {
     zh: { drafted: '等待输入', awaiting_authorization: '等待授权', authorized: '已授权', running_baseline: novice ? '运行修改前' : '运行 Baseline', running_candidate: novice ? '运行修改后' : '运行 Candidate', analyzing: '分析证据', repairing: '自动修复', evidence_ready: '证据就绪', budget_exhausted: '预算耗尽', blocked: '已拦截', needs_clarification: '需要补充', failed: '执行失败', accepted: '已接受', revision_requested: '要求修订', rolled_back: '已回滚' },
@@ -997,10 +1200,14 @@ function eventLabel(step: string, language: Language) {
     'Isolated test budget authorized': '隔离测试预算已授权',
     'Baseline Unity run': 'Unity 基线运行',
     'Candidate Unity run': 'Unity 候选运行',
+    'Baseline engine run': '修改前引擎运行',
+    'Candidate engine run': '修改后引擎运行',
     'Bounded repair policy': '受约束自动修复',
     'Evidence review': '运行证据审查',
+    'Quality Review Agent': '质量审查 Agent',
     'Final human decision': '人工最终决策',
     'Manual Unity playtest': 'Unity 手动试玩',
+    'Manual engine playtest': '引擎手动试玩',
     'Workflow execution': '工作流执行',
     'Repair budget': '自动修复预算',
   } : {};

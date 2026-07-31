@@ -34,4 +34,4 @@ if (-not $SkipWeb) {
     }
 }
 
-Write-Host "Agentic Game R&D Lab dependencies are ready."
+Write-Host "Game Change Verification Agent dependencies are ready."

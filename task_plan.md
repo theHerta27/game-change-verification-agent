@@ -39,6 +39,7 @@
 - [x] 将候选运行前校验显式拆为 Schema、引用、规则引擎和安全门四层。
 - [x] 增加 EngineRunner、环境状态、规范化证据、双 Agent 和输出漂移坏例单元测试。
 - [x] Python `162 passed`，Web production build 通过。
+- [x] Web 引擎运行按钮仅在 Runner 明确返回 `available/verified` 时启用。
 - [ ] Unity smoke 等价迁移真实复验；当前仍被 Licensing Client IPC 阻塞。
 
 ### Milestone 8B：UE5 C++ 垂直切片
@@ -59,10 +60,10 @@
 
 ### Milestone 8D：Web、文档与提交
 
-- [ ] Web 增加 Unity 6 / Unreal Engine 5 选择，默认 Unity，并展示 capabilities 与不可用原因。
+- [x] Web 增加 Unity 6 / Unreal Engine 5 选择，默认 Unity，并展示 capabilities 与不可用原因。
 - [ ] 按相同时间点并排展示 UE5 Baseline/Candidate 截图和 Telemetry。
 - [ ] 完成浏览器按钮流程、错误状态与控制台验收。
-- [ ] 新增 `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md` 与简历表述证据矩阵。
+- [ ] 新增 `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md`；简历表述证据矩阵已建立，等待 UE 证据逐项转为完成。
 - [ ] 完成 Python、Web、Unity、UE5 与仓库清洁全量验收，并创建明确本地提交。
 
 ### 预计新增/修改文件
