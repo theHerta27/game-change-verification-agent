@@ -312,3 +312,90 @@
 ### 最终状态
 
 `Milestone 7 complete。当前版本可从 Web Console 执行配置提案、静态校验、人工授权、Unity 前后双跑、有限自动修复、证据展示和人工决策。`
+
+## 2026-07-28 Milestone 7 UX
+
+### 已完成
+
+- 仅修改 Web 策划视图，新增默认新手模式、专业模式切换和浏览器持久化。
+- 新增顶部安全演示说明、三个案例的中文结果预告、授权边界、只读最近演示和重新开始入口。
+- 新增五步安全引导，可随时跳过；跳过或切换专业模式后刷新不再强制播放，设置中可主动重新查看。
+- 新手模式将 Baseline/Candidate 显示为“修改前/修改后”，Mock 显示为“固定演示模型（免费、结果可重复）”；专业术语通过问号解释保留。
+- 新增修改前/修改后人工试玩区；没有截图或录像时如实显示空状态，两个入口分别选择 `baseline_config.json` 与 `candidate_config.json`，不伪造媒体。
+- 修复步骤圆圈被横向滚动容器裁剪的问题，并补充移动端布局和减少动画偏好。
+
+### 验收
+
+- Web production build：1585 modules transformed，通过；CSS 28.48 kB，JS 347.93 kB。
+- 浏览器：模式切换跨刷新保留；跳过引导后刷新不重播；设置可重开引导。
+- 浏览器：只读最近演示不运行模型或 Unity；两个试玩入口分别生成 Baseline/Candidate 快照命令。
+- 桌面步骤圆圈完整；移动端实测 1～6 均为 24×24，全部位于进度容器内部，页面无横向溢出。
+- 中英文步骤标签均可显示；浏览器缩放后圆圈仍完整位于进度容器内部。
+- 浏览器控制台 warning/error：0。
+- 后端、Unity、正式 baseline、workflow 状态定义与既有验收数据未修改。
+
+### 最终状态
+
+`Milestone 7 UX complete。策划视图已具备可持久化的新手/专业分级、可控引导和诚实的修改前后试玩证据入口。`
+
+## 2026-07-28 Milestone 7 Visual
+
+### 已完成
+
+- Unity Bullet Hell 自动模式新增 10、20、30 秒截图序列和独立 `capture_manifest.json`。
+- 新增工作流附加视觉证据服务；Baseline 与最终 Candidate 使用 seed `20260727`、固定轨迹、36 秒时长和固定正交相机依次运行。
+- 新增 `visual_comparison.json`，记录状态、配置 SHA256、阶段、Pattern、时间点和截图文件。
+- 新增自动画面对比与图片只读 API；图片路径、variant 和文件名均为服务端白名单。
+- 新增受限手动启动 API，直接启动修改前或修改后快照，不再要求策划复制 PowerShell。
+- Web 将证据明确分成自动截图、自动数据和真人手动体验三层；手动入口明确不作为严格比较。
+- Web 并排展示三个相同时间点，并从真实 Config Diff 解释双向、每波数量和自动修复后速度变化。
+
+### 真实证据
+
+- 工作流：`bullet_20260728_111919_0485bf8c`。
+- 视觉运行：Baseline/Candidate 均完成，六张 PNG 全部存在，随机种子、轨迹、时长、相机和阶段对齐。
+- 第 20 秒：Baseline/Candidate 均为 phase_2、Boss 49%；截图内存活子弹约 52/172，双向螺旋差异明显。
+- Web：六张图片全部加载，broken image 为 0；375px 移动端无页面级横向溢出。
+- 手动入口：修改前和修改后均从页面成功启动固定 Unity Player；测试后已关闭 Player。
+- API：PNG 返回 `200 image/png`；路径穿越请求 404，未知 variant 409。
+
+### 回归
+
+- Python：153 passed，1 条既有 Starlette/httpx 弃用告警。
+- Web production build：1585 modules transformed；CSS 29.75 kB，JS 353.17 kB。
+- Unity：Training Sword 固定 seed、灵梦/Placeholder 表现 smoke、Bullet Hell C# Build 和固定 seed 双跑全部通过。
+- 仓库清洁与旧来源不可变检查通过。
+
+### 最终状态
+
+`Milestone 7 Visual complete。当前页面能用同条件截图回答“改了什么”，用 telemetry 回答“是否达标”，再用手动试玩补充主观体验。`
+
+## 2026-07-31 Milestone 8 审计
+
+### 已完成
+
+- 读取 Milestone 8 UE5 跨引擎扩展要求，确认本轮必须以真实 UE5 Build、Player、Telemetry 和截图为完成标准。
+- 审计 Git：当前分支 `main`，最近提交 `fd0a772`；11 个 Milestone 7 Visual 文件尚未提交，因此未创建功能分支。
+- 定位现有 Unity 启动、配置读取、Telemetry、截图、工作流、API 和 Web 页面代码。
+- 核对正式 Bullet Hell 1.0 契约，确认 UE5 必须读取同一字段，不创建平行 Schema。
+- 检查本机环境：未发现 UE5；Visual Studio 2022 Build Tools、MSVC 14.44、Windows SDK 10.0.26100.0 和 MSBuild 已存在。
+- 更新 Milestone 8A–8D 计划、预计修改文件和阻塞条件。
+
+### 本轮真实基线
+
+- Python：`153 passed`，1 条既有 Starlette/httpx 弃用告警。
+- Web：production build 通过，`1585 modules transformed`，CSS 29.75 kB，JS 353.17 kB。
+- Unity：本轮重建失败，原因是 Hub access token/entitlement 未传递给 batchmode；没有生成新的 `BulletHellDemo.exe`。
+- Unity 历史证据：2026-07-28 baseline telemetry 为总子弹 592、峰值 66、受击 2、36 秒完成、低分位 FPS 58.73；该数据未冒充本轮复测结果。
+- UE5：未安装，未创建工程、未编译、未运行、无 Telemetry、无截图。
+
+### 当前状态
+
+`Milestone 8 blocked。等待用户安装/选择 UE5 版本，并从 Unity Hub 打开当前 Unity 项目恢复批处理许可证；随后先冻结 Milestone 7 成功基线，再创建 feature/ue5-runtime-adapter 分支实施。`
+
+### Unity Hub 复测
+
+- 用户已从 Unity Hub 打开并关闭 `game-unity`，随后重新执行 `scripts/smoke-bullet-hell.ps1`。
+- Unity Editor batchmode 在 300 秒后超时；`build.log` 显示 Licensing Client IPC 连续重连失败，并多次等待 60 秒。
+- 本次仍未进入有效 Windows Build，也未生成新的 Player；问题属于本机 Hub/批处理许可证会话阻塞，不是端口占用或已确认的 C# 编译错误。
+- Milestone 7 的 2026-07-28 真实运行证据继续保留，但不得冒充 2026-07-31 的新复测结果。

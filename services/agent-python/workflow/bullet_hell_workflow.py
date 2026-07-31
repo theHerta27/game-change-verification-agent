@@ -211,15 +211,47 @@ class BulletHellWorkflowService:
         self._write_manifest(directory, manifest)
         return self.get(workflow_id)
 
-    def launch_manual(self, workflow_id: str) -> dict[str, Any]:
+    def generate_visual_comparison(self, workflow_id: str) -> dict[str, Any]:
         directory, manifest = self._load(workflow_id)
-        if manifest["status"] not in {"authorized", "evidence_ready", "budget_exhausted"}:
-            raise ValueError(f"Manual play cannot launch from status {manifest['status']!r}.")
+        allowed_statuses = {"evidence_ready", "budget_exhausted", "accepted", "revision_requested", "rolled_back"}
+        if manifest["status"] not in allowed_statuses:
+            raise ValueError(f"Visual comparison cannot run from status {manifest['status']!r}.")
         if not self.unity_executable.is_file():
             raise FileNotFoundError(f"Bullet Hell Unity player not found: {self.unity_executable}")
-        config_path = directory / "candidate_config.json"
-        telemetry_path = directory / "manual_telemetry.json"
-        log_path = directory / "manual_player.log"
+        status_path = directory / "visual_comparison.json"
+        current = _read_json_if_exists(status_path)
+        if current and current.get("status") == "running":
+            return self.get(workflow_id)
+        self._save(
+            status_path,
+            {
+                "status": "running",
+                "random_seed": 20260727,
+                "fixed_trajectory": True,
+                "capture_times_seconds": [10, 20, 30],
+                "started_at": _utc_now(),
+                "variants": {},
+                "error": None,
+            },
+        )
+        Thread(target=self._execute_visual_comparison, args=(workflow_id,), daemon=True).start()
+        return self.get(workflow_id)
+
+    def launch_manual(self, workflow_id: str, *, variant: str = "candidate") -> dict[str, Any]:
+        directory, manifest = self._load(workflow_id)
+        allowed_statuses = {
+            "authorized", "evidence_ready", "budget_exhausted",
+            "accepted", "revision_requested", "rolled_back",
+        }
+        if manifest["status"] not in allowed_statuses:
+            raise ValueError(f"Manual play cannot launch from status {manifest['status']!r}.")
+        if variant not in {"baseline", "candidate"}:
+            raise ValueError(f"Unsupported manual play variant: {variant!r}.")
+        if not self.unity_executable.is_file():
+            raise FileNotFoundError(f"Bullet Hell Unity player not found: {self.unity_executable}")
+        config_path = directory / f"{variant}_config.json"
+        telemetry_path = directory / f"manual_{variant}_telemetry.json"
+        log_path = directory / f"manual_{variant}_player.log"
         command = [
             str(self.unity_executable),
             "--bullet-hell",
@@ -233,9 +265,20 @@ class BulletHellWorkflowService:
             str(log_path),
         ]
         process = subprocess.Popen(command, cwd=self.unity_executable.parent)
-        self._event(manifest, "Manual Unity playtest", "launched", {"process_id": process.pid})
+        self._event(
+            manifest,
+            "Manual Unity playtest",
+            "launched",
+            {"process_id": process.pid, "variant": variant},
+        )
         self._write_manifest(directory, manifest)
-        return {"workflow_id": workflow_id, "process_id": process.pid, "status": "launched"}
+        return {
+            "workflow_id": workflow_id,
+            "process_id": process.pid,
+            "status": "launched",
+            "variant": variant,
+            "config_artifact": config_path.name,
+        }
 
     def get(self, workflow_id: str) -> dict[str, Any]:
         with self._lock:
@@ -251,6 +294,7 @@ class BulletHellWorkflowService:
                 ("baseline_telemetry.json", "baseline_telemetry"),
                 ("candidate_telemetry.json", "candidate_telemetry"),
                 ("comparison_report.json", "comparison_report"),
+                ("visual_comparison.json", "visual_comparison"),
             ):
                 response[field] = _read_json_if_exists(directory / filename)
             response["available_artifacts"] = [
@@ -278,10 +322,23 @@ class BulletHellWorkflowService:
             "candidate_telemetry.json", "comparison_report.json", "repair_history.json", "workflow_manifest.json",
             "feasibility_gate.json", "model_evidence.json", "badcase.json", "baseline_player.log",
             "candidate_player.log", "manual_telemetry.json", "manual_player.log",
+            "manual_baseline_telemetry.json", "manual_candidate_telemetry.json",
+            "manual_baseline_player.log", "manual_candidate_player.log", "visual_comparison.json",
         }
         if name not in allowed:
             raise ValueError(f"Unsupported artifact: {name}")
         path = directory / name
+        if not path.is_file():
+            raise FileNotFoundError(path)
+        return path
+
+    def visual_artifact(self, workflow_id: str, variant: str, name: str) -> Path:
+        directory, _ = self._load(workflow_id)
+        if variant not in {"baseline", "candidate"}:
+            raise ValueError(f"Unsupported visual variant: {variant!r}.")
+        if name not in {"capture_10s.png", "capture_20s.png", "capture_30s.png"}:
+            raise ValueError(f"Unsupported visual artifact: {name!r}.")
+        path = directory / "visual-comparison" / variant / name
         if not path.is_file():
             raise FileNotFoundError(path)
         return path
@@ -369,6 +426,90 @@ class BulletHellWorkflowService:
                 },
             )
             self._write_manifest(directory, manifest)
+
+    def _execute_visual_comparison(self, workflow_id: str) -> None:
+        directory, _ = self._load(workflow_id)
+        status_path = directory / "visual_comparison.json"
+        try:
+            variants: dict[str, Any] = {}
+            for variant in ("baseline", "candidate"):
+                config_path = directory / f"{variant}_config.json"
+                output_dir = directory / "visual-comparison" / variant
+                result = self._run_visual_capture(config_path, output_dir, variant, 20260727)
+                result["config_sha256"] = hashlib.sha256(config_path.read_bytes()).hexdigest()
+                variants[variant] = result
+            self._save(
+                status_path,
+                {
+                    "status": "completed",
+                    "random_seed": 20260727,
+                    "fixed_trajectory": True,
+                    "duration_seconds": variants["baseline"]["duration_seconds"],
+                    "capture_times_seconds": [10, 20, 30],
+                    "camera": "orthographic_fixed",
+                    "generated_at": _utc_now(),
+                    "variants": variants,
+                    "error": None,
+                },
+            )
+        except Exception as exc:
+            self._save(
+                status_path,
+                {
+                    "status": "failed",
+                    "random_seed": 20260727,
+                    "fixed_trajectory": True,
+                    "capture_times_seconds": [10, 20, 30],
+                    "finished_at": _utc_now(),
+                    "variants": {},
+                    "error": {"type": type(exc).__name__, "message": str(exc)},
+                },
+            )
+
+    def _run_visual_capture(
+        self,
+        config_path: Path,
+        output_dir: Path,
+        variant: str,
+        seed: int,
+    ) -> dict[str, Any]:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        telemetry_path = output_dir / "telemetry.json"
+        log_path = output_dir / "player.log"
+        command = [
+            str(self.unity_executable),
+            "-force-d3d11",
+            "-screen-fullscreen", "0",
+            "-screen-width", "960",
+            "-screen-height", "540",
+            "--bullet-hell",
+            "--auto-run",
+            "--seed", str(seed),
+            "--config-input", str(config_path),
+            "--telemetry-output", str(telemetry_path),
+            "--screenshot-output-dir", str(output_dir),
+            "-logFile", str(log_path),
+        ]
+        result = subprocess.run(command, cwd=self.unity_executable.parent, timeout=90, check=False)
+        manifest_path = output_dir / "capture_manifest.json"
+        expected = [output_dir / f"capture_{second:02d}s.png" for second in (10, 20, 30)]
+        missing = [path.name for path in expected if not path.is_file()]
+        if missing or not manifest_path.is_file() or not telemetry_path.is_file():
+            raise RuntimeError(
+                f"{variant} visual capture exited with code {result.returncode}; "
+                f"missing artifacts: {missing or ['capture_manifest.json or telemetry.json']}. See {log_path}"
+            )
+        capture_manifest = _read_json(manifest_path)
+        return {
+            "variant": variant,
+            "duration_seconds": capture_manifest["duration_seconds"],
+            "random_seed": capture_manifest["random_seed"],
+            "run_mode": capture_manifest["run_mode"],
+            "fixed_trajectory": capture_manifest["fixed_trajectory"],
+            "captures": capture_manifest["captures"],
+            "telemetry_file": str(telemetry_path.relative_to(self.workflows_dir / config_path.parent.name)).replace("\\", "/"),
+            "player_exit_code": result.returncode,
+        }
 
     def _run_unity(self, contract: dict[str, Any], run_dir: Path, seed: int) -> dict[str, Any]:
         if not self.unity_executable.is_file():

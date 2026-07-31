@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from agent_service.agents.dual_agent import run_dual_agent
@@ -247,6 +247,36 @@ def create_unified_app(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except (ValueError, FileNotFoundError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/bullet-hell/workflows/{workflow_id}/play/{variant}")
+    def play_bullet_hell_workflow_variant(workflow_id: str, variant: str) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.launch_manual(workflow_id, variant=variant)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.post("/api/bullet-hell/workflows/{workflow_id}/visual-comparison")
+    def generate_bullet_hell_visual_comparison(workflow_id: str) -> dict[str, Any]:
+        try:
+            return bullet_hell_workflows.generate_visual_comparison(workflow_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @application.get("/api/bullet-hell/workflows/{workflow_id}/visuals/{variant}/{name}")
+    def bullet_hell_visual_artifact(workflow_id: str, variant: str, name: str) -> FileResponse:
+        try:
+            path = bullet_hell_workflows.visual_artifact(workflow_id, variant, name)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return FileResponse(path, media_type="image/png", filename=path.name)
 
     @application.post("/api/bullet-hell/workflows/{workflow_id}/decision")
     def decide_bullet_hell_workflow(

@@ -72,9 +72,11 @@ awaiting_authorization
 3. 候选变化及静态安全结果；
 4. 一次性隔离测试授权；
 5. baseline / candidate 指标对比；
-6. 自动修复记录；
-7. 接受、要求修订和回滚；
-8. 原始 JSON、日志和 telemetry 入口。
+6. 相同 seed、固定轨迹和相机下的 10/20/30 秒自动截图对比；
+7. 自动修复记录；
+8. 受限的修改前/修改后手动体验；
+9. 接受、要求修订和回滚；
+10. 原始 JSON、日志和 telemetry 入口。
 
 开发者视图保留 Training Sword、代码审查、Badcase 和离线 benchmark 等调试能力。
 
@@ -110,6 +112,16 @@ baseline 和 candidate 必须使用相同的：
 | `minimum_fps` | 保留原始最低帧证据，但不单独下硬结论 |
 | `exception_log_count` | 检查运行时错误 |
 
+视觉证据使用独立图形运行读取已经确定的 `baseline_config.json` 和最终 `candidate_config.json`，不会重新调用模型、重新进入修复循环或占用三轮候选预算。当前固定在第 10、20、30 秒截图，并保存 seed、阶段、Pattern、配置 SHA256 和相机约定。
+
+三层证据回答不同问题：
+
+| 层级 | 回答的问题 | 边界 |
+|---|---|---|
+| 自动固定轨迹截图 | 相同时间和镜头下肉眼改了什么 | 不是视频，也不代表真人操作 |
+| 自动 telemetry | 数量、受击、生存和性能是否达标 | 固定轨迹不代表所有玩家 |
+| 真人手动体验 | 实际操作的主观感受如何 | 两次路线不同，不用于严格前后比较 |
+
 ## 5. API
 
 ```text
@@ -120,6 +132,9 @@ GET  /api/bullet-hell/workflows/latest
 POST /api/bullet-hell/workflows/{workflow_id}/authorize
 POST /api/bullet-hell/workflows/{workflow_id}/run
 POST /api/bullet-hell/workflows/{workflow_id}/play
+POST /api/bullet-hell/workflows/{workflow_id}/play/{baseline|candidate}
+POST /api/bullet-hell/workflows/{workflow_id}/visual-comparison
+GET  /api/bullet-hell/workflows/{workflow_id}/visuals/{baseline|candidate}/{name}
 POST /api/bullet-hell/workflows/{workflow_id}/decision
 GET  /api/bullet-hell/workflows/{workflow_id}/artifacts/{name}
 GET  /api/bullet-hell/benchmark/dataset
@@ -127,6 +142,8 @@ POST /api/bullet-hell/benchmark
 ```
 
 所有工作流证据保存在 Git 忽略的 `runtime-artifacts/bullet-hell-workflows/`，不会覆盖 `configs/bullet-hell/baseline.json`。
+
+受限手动启动接口只接受 `baseline` 或 `candidate`，服务端固定选择 Bullet Hell Player 和当前工作流快照；API 不接收可执行文件路径或任意命令。
 
 ## 6. 本地运行
 

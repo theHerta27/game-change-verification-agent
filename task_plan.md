@@ -17,6 +17,82 @@
 | Milestone 5 | 代码变更 Benchmark 与失败分类 | complete |
 | Milestone 6 | 真实 Provider 代码生成评测 | complete |
 | Milestone 7 | 弹幕变更自动验证闭环 | complete |
+| Milestone 7 UX | 策划视图新手演示与可理解性优化 | complete |
+| Milestone 7 Visual | 固定轨迹自动画面对比与受限手动启动 | complete |
+| Milestone 8 | UE5 跨引擎最小垂直切片 | blocked：等待 UE5 安装与 Unity 基线重新授权 |
+
+## Milestone 8：UE5 跨引擎最小垂直切片
+
+### 目标
+
+在不破坏 Unity Milestone 7 的前提下，为 Bullet Hell 1.0 契约增加真实 UE5 C++ Windows Player 验证能力。只有 UE5 工程真实编译、Baseline/Candidate 真实运行、Telemetry 与 10/20/30 秒截图全部有效后，才能将 UE5 标记为 `verified`。
+
+### Milestone 8A：环境与 EngineRunner
+
+- [x] 审计 Git、现有 Unity 启动、配置读取、Telemetry、截图、工作流和 Web 页面。
+- [x] 检查 UE5、Visual Studio C++、MSVC、Windows SDK 与 MSBuild 环境。
+- [x] 记录改造前 Python、Web 和 Unity 基线结果。
+- [ ] 冻结当前未提交的 Milestone 7 Visual 改动，并在干净工作树创建 `feature/ue5-runtime-adapter`。
+- [ ] 新增统一 `EngineRunner` 抽象与结果模型。
+- [ ] 将现有 Unity 启动逻辑等价封装为 `UnityEngineRunner`，旧请求未传 `engine` 时继续默认 `unity`。
+- [ ] 增加 EngineRunner、命令构造、路径白名单和失败状态单元测试。
+- [ ] 原有 Python、Web 与 Unity smoke 全部通过。
+
+### Milestone 8B：UE5 C++ 垂直切片
+
+- [ ] 创建 `game-unreal/BulletHellUE/` C++ 工程，只提交 `.uproject`、`Config/`、`Content/`、`Source/` 与必要脚本。
+- [ ] 严格读取现有 `bullet_hell_contract_version: "1.0"`，首期只支持 `spiral`，其他 Pattern 返回明确 unsupported capability。
+- [ ] C++ 实现命令行解析、JSON 读取、固定种子/固定步长、自动运行、Telemetry、截图与退出状态。
+- [ ] Blueprint 只负责 Level、玩家、Boss 和子弹表现；核心证据层保留在可测试 C++。
+- [ ] 真实完成 UE5 C++ Build、Windows Player、Baseline/Candidate 自动运行和六张截图。
+
+### Milestone 8C：UnrealEngineRunner 与工作流接入
+
+- [ ] 新增 `UnrealEngineRunner`，状态严格区分 `unavailable/build_required/available/verified/failed`。
+- [ ] 只允许启动仓库预注册 Player，并只读取当前 workflow 的 baseline/candidate 快照。
+- [ ] 将 UE5 原始证据规范化到引擎无关 Telemetry，不修改现有 Unity 原始 artifact 字段。
+- [ ] 完成同 seed、轨迹、时长、相机与采样点的 UE5 Baseline/Candidate 双跑和 comparison report。
+- [ ] 缺引擎、缺 Build、超时、缺 Telemetry、哈希不一致、缺截图和 unsupported Pattern 均返回真实失败证据。
+
+### Milestone 8D：Web、文档与提交
+
+- [ ] Web 增加 Unity 6 / Unreal Engine 5 选择，默认 Unity，并展示 capabilities 与不可用原因。
+- [ ] 按相同时间点并排展示 UE5 Baseline/Candidate 截图和 Telemetry。
+- [ ] 完成浏览器按钮流程、错误状态与控制台验收。
+- [ ] 新增 `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md` 与简历表述证据矩阵。
+- [ ] 完成 Python、Web、Unity、UE5 与仓库清洁全量验收，并创建明确本地提交。
+
+### 预计新增/修改文件
+
+- `services/agent-python/workflow/engines/base.py`
+- `services/agent-python/workflow/engines/unity.py`
+- `services/agent-python/workflow/engines/unreal.py`
+- `services/agent-python/workflow/engines/telemetry.py`
+- `services/agent-python/workflow/bullet_hell_workflow.py`
+- `services/agent-python/api/server.py`
+- `services/agent-python/tests/test_engine_runners.py`
+- `services/agent-python/tests/test_unreal_engine_runner.py`
+- `services/agent-python/tests/test_engine_telemetry.py`
+- `services/agent-python/tests/test_bullet_hell_workflow.py`
+- `game-unreal/BulletHellUE/BulletHellUE.uproject`
+- `game-unreal/BulletHellUE/Config/**`
+- `game-unreal/BulletHellUE/Content/**`
+- `game-unreal/BulletHellUE/Source/**`
+- `scripts/build-unreal.ps1`
+- `scripts/smoke-unreal.ps1`
+- `web-console/src/BulletHellWorkflowPanel.tsx`
+- `web-console/src/styles.css`
+- `.gitignore`
+- `AGENTS.md`
+- `README.md`
+- `docs/MILESTONE8_UE5_CROSS_ENGINE_VERIFICATION.md`
+
+### 当前阻塞
+
+- 当前 `main` 有 11 个 Milestone 7 Visual 未提交文件，不能在未冻结成功基线时直接创建功能分支。
+- 本机没有检测到 UE5；Epic Launcher 安装清单为空，无法创建、编译或运行真实 UE5 工程。
+- 本轮 Unity 重建因 Hub access token/entitlement 失败，且验收脚本已删除旧 Player，需从 Unity Hub 打开项目恢复批处理许可证后重新构建。
+- 在以上阻塞解除前，Milestone 8 保持 `blocked`，不得把 UE5 写成 available 或 verified。
 
 ## Milestone 7：弹幕变更自动验证闭环
 
@@ -44,6 +120,37 @@
 ### 当前阶段
 
 `Milestone 7 complete。Bullet Hell Windows Build、固定 60Hz 玩法模拟双跑、Training Sword 回归、真实 Web/API 自动修复闭环和人工接受均已通过。`
+
+## Milestone 7 UX：策划视图新手演示与可理解性优化
+
+### 目标
+
+- [x] 仅调整 Web 策划视图，不修改后端工作流、Unity 逻辑、状态定义、正式基线和既有证据。
+- [x] 新增默认开启并持久化的“新手模式 / 专业模式”，保留现有专业术语与问号解释。
+- [x] 新增可跳过、不会重复强制播放、可从设置重新打开的五分钟安全引导。
+- [x] 增加案例结果说明、安全边界、只读最近演示、重新开始和修改前/修改后试玩入口。
+- [x] 修复 1～6 步骤圆圈裁剪，并完成中英文、缩放和移动端浏览器验收。
+- [x] 运行 Web production build，完成浏览器截图验收。
+
+### 当前阶段
+
+`complete。仅修改 Web 策划视图及规划记录；后端 API、Unity Player、正式 baseline、workflow 状态机和既有验收数据均未修改。`
+
+## Milestone 7 Visual：固定轨迹自动画面对比
+
+### 目标
+
+- [x] 保留手动试玩，但明确其仅用于主观体验，不作为严格前后比较证据。
+- [x] 使用与 telemetry 相同的 seed、固定轨迹、运行时长和相机，分别生成 Baseline 与最终 Candidate 的自动截图。
+- [x] 固定输出 10、20、30 秒三个时间点，并保存时间、阶段、Pattern、配置哈希和运行条件。
+- [x] Web 并排展示相同时间点的修改前/修改后截图、关键配置变化和既有运行指标。
+- [x] 新增受限手动启动接口，只允许固定 Player、当前 workflow 和 baseline/candidate 两个快照。
+- [x] 不修改正式 baseline、工作流状态定义、三轮修复预算、自动修复策略和既有 telemetry 验收数据。
+- [x] 完成 Python、Web、Unity 与浏览器验收。
+
+### 当前阶段
+
+`complete。固定轨迹 10/20/30 秒截图链已真实运行并在 Web 并排展示；视频同步播放仍是可选增量，不影响当前截图证据的可复现性。`
 
 ## Milestone 3A：配置变更闭环
 

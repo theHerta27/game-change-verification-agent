@@ -130,3 +130,36 @@
 - 真实评测总延迟为 141,578 ms，Provider 报告总 usage 为 19,842 tokens；这些数据来自首次真实调用，后续页面刷新和 replay 不再次调用模型。
 - CLI 文档和 Web API 曾使用不同的默认产物目录（连字符与下划线），导致页面读到旧 blocked 报告；统一为 `runtime-artifacts/real-code-evaluation` 后，页面能正确加载最近一次真实结果。
 - 仓库清洁脚本原先把任何存在的 `.env` 都判为“未忽略”，没有实际调用 Git 检查规则；改为逐文件执行 `git check-ignore` 后，既能允许被忽略的本地配置，也会继续拒绝真正未忽略的密钥文件。
+
+## 2026-07-28 Milestone 7 UX
+
+- 步骤圆圈裁剪来自横向滚动容器：圆圈相对步骤条向上偏移 13px，但容器顶部没有安全内边距。为滚动区域预留 16px 顶部空间后，1～6 在桌面、移动端和缩放条件下均完整位于容器内部。
+- 新手模式属于展示层，不应改变 `baseline/candidate`、workflow 状态或 artifact 字段；页面只把术语映射为“修改前/修改后”，专业模式继续显示原术语。
+- 模式和引导状态适合用浏览器本地偏好保存：首次访问默认新手，引导跳过或切换专业模式后不再强制播放；设置入口只在用户主动操作时重开引导。
+- 现有后端 `/play` 只允许特定状态下启动 Candidate，且浏览器不能直接启动任意本地 EXE。在“不改后端”的约束下，修改前/修改后入口必须分别生成精确的本地快照启动命令，不能把 Baseline 按钮伪装成 Candidate 启动。
+- 最近一次已接受工作流不允许再次调用现有 `/play`，但其 `baseline_config.json` 和 `candidate_config.json` 快照仍可只读访问；命令式入口因此也适用于已完成演示。
+
+## 2026-07-28 Milestone 7 Visual
+
+- 手动试玩的输入轨迹不可复现，只能回答“主观玩起来怎样”；严格视觉比较必须与 telemetry 一样固定 seed、轨迹、时长、相机和采样时间。
+- Unity 运行时原有单张截图钩子，但自动验证使用 `-nographics`，因此不能直接产生可展示画面。独立视觉证据运行保留图形设备，不改变原 telemetry 双跑和三轮修复预算。
+- 10/20/30 秒对应当前基线的 phase_1/phase_2/phase_3；两侧在相同时间点记录相同阶段，说明画面比较没有混入不同阶段或不同观察时刻。
+- 第 20 秒真实截图中，Baseline 存活子弹约 52，Candidate 约 172；玩家位置、Boss 49% 血量、相机和阶段一致，双向螺旋与更高密度可以直接辨认。
+- 视觉运行读取工作流最终 `candidate_config.json`，不会重新调用模型、重新修复或写回正式 baseline；配置 SHA256 随视觉证据一起记录。
+- 受限启动接口只接收 `baseline|candidate` 枚举，并在服务端选择固定 EXE 与工作流快照。路径分隔符请求在路由层 404，其他未知 variant 在服务层 409，不能执行任意程序或路径。
+- 视频同步不是当前可靠性的必要前提。三组同条件定点截图已经能回答“相同时间和镜头下改了什么”，先稳定截图链比引入编码器、视频同步和更大的平台差异更务实。
+
+## 2026-07-31 Milestone 8 审计
+
+- 当前仓库目录已从 `agentic-game-rd` 改名为 `game-change-verification-agent`；本轮只以该整合仓库为目标。
+- `main` 工作树包含 11 个未提交的 Milestone 7 Visual 文件，约 1353 行新增。不能把它们误认为干净提交基线，也不能在不确认的情况下丢弃。
+- Python 基线为 `153 passed`，Web production build 为 `1585 modules transformed`；两者本轮真实通过。
+- Unity Bullet Hell 本轮真实重建被 Hub access token/entitlement 阻断。脚本已删除旧 Player 并拒绝把旧 EXE 当作新 Build，因此当前 Player 不存在；历史 Telemetry 仍只能作为 2026-07-28 的既有证据。
+- Epic Launcher 的 `LauncherInstalled.dat` 中 `InstallationList` 为空，常见路径与命令行均未发现 `UnrealEditor.exe`、`UnrealBuildTool` 或 `RunUAT`，当前不具备真实 UE5 Build 条件。
+- 本机已有 Visual Studio 2022 Build Tools 17.14、MSVC 14.44.35207、Windows SDK 10.0.26100.0 和 MSBuild；这些版本满足 UE 5.8 官方最低要求和 Epic 构建农场工具链口径，主要缺口是 UE5 引擎本体。
+- 现有正式契约字段为 `scenario.scenario_id`、`phases[].pattern.wave_interval_ms`、`bullet_lifetime_seconds`；随机种子由命令行传入。UE5 不得另建 `scene_id`、`fire_interval` 或平行 Schema。
+- Unity 原始 Telemetry 使用 `scenario_id/status/run_mode/random_seed/...`，并不包含新提案中的 `engine_name/config_hash/build_id/run_id/completed`。跨引擎层应生成规范化证据包装，不应破坏或重命名现有 Unity artifact。
+- 现有 Unity 启动、自动双跑、截图和 artifact 白名单集中在 `workflow/bullet_hell_workflow.py`；API 位于 `api/server.py`；Unity 配置读取与证据分别位于 `BulletHellConfigLoader.cs`、`BulletHellRuntimeBootstrap.cs`、`BulletHellTelemetryRecorder.cs`；Web 主入口为 `BulletHellWorkflowPanel.tsx`。
+- UE5 首期只实现 spiral 是合理垂直切片，但当前正式 baseline 同时含 ring、spiral、petal。Runner 必须明确验证能力：首期 UE5 运行应使用从正式只读 baseline 派生、仅保留/聚焦 phase_2 spiral 的兼容快照，或者在工作流层明确拒绝完整三 Pattern 运行，不能静默忽略 phase_1/phase_3。
+- “进程返回 0”不足以判定引擎运行成功。跨引擎 Runner 必须同时验证可执行文件、超时、Telemetry JSON、配置哈希、完成状态、必要截图和关键错误日志。
+- 仅“从 Hub 打开并关闭 Editor”仍不足以保证命令行 batchmode 获得许可证。本次日志显示 `LicenseClient-Administrator` IPC 通道拒绝连接，随后每轮重连等待约 60 秒；再次验收时应保持 Unity Hub 登录且进程处于运行状态，并把 Licensing Client 初始化单独纳入环境检查。

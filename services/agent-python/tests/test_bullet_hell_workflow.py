@@ -170,3 +170,92 @@ def test_gameplay_failure_exit_code_keeps_valid_telemetry(tmp_path, monkeypatch)
 
     assert telemetry["status"] == "failed"
     assert telemetry["player_hits"] == 5
+
+
+def test_visual_comparison_uses_fixed_variants_and_strict_artifacts(tmp_path, monkeypatch):
+    service = _service(tmp_path)
+    service.unity_executable.write_bytes(b"placeholder")
+    created = service.create(requirement_text=_requirement())
+    service.authorize(created["workflow_id"], actor="designer")
+    service.start(created["workflow_id"])
+    completed = _wait(service, created["workflow_id"])
+    assert completed["status"] == "evidence_ready"
+
+    def fake_capture(config_path, output_dir, variant, seed):
+        output_dir.mkdir(parents=True, exist_ok=True)
+        captures = []
+        for second in (10, 20, 30):
+            filename = f"capture_{second:02d}s.png"
+            (output_dir / filename).write_bytes(f"{variant}-{second}".encode())
+            captures.append(
+                {
+                    "time_seconds": second,
+                    "phase_id": "phase_2",
+                    "phase_name": "Spiral",
+                    "pattern_type": "spiral",
+                    "file_name": filename,
+                }
+            )
+        return {
+            "variant": variant,
+            "duration_seconds": 36,
+            "random_seed": seed,
+            "run_mode": "auto",
+            "fixed_trajectory": True,
+            "captures": captures,
+            "telemetry_file": f"visual-comparison/{variant}/telemetry.json",
+            "player_exit_code": 0,
+        }
+
+    monkeypatch.setattr(service, "_run_visual_capture", fake_capture)
+    service.generate_visual_comparison(created["workflow_id"])
+    for _ in range(100):
+        visual = service.get(created["workflow_id"])["visual_comparison"]
+        if visual and visual["status"] != "running":
+            break
+        time.sleep(0.01)
+
+    assert visual["status"] == "completed"
+    assert visual["random_seed"] == 20260727
+    assert visual["fixed_trajectory"] is True
+    assert visual["capture_times_seconds"] == [10, 20, 30]
+    assert visual["variants"]["baseline"]["config_sha256"] != visual["variants"]["candidate"]["config_sha256"]
+    image = service.visual_artifact(created["workflow_id"], "baseline", "capture_20s.png")
+    assert image.read_bytes() == b"baseline-20"
+    client = TestClient(create_unified_app(bullet_hell_workflow_service=service))
+    image_response = client.get(
+        f"/api/bullet-hell/workflows/{created['workflow_id']}/visuals/baseline/capture_20s.png"
+    )
+    assert image_response.status_code == 200
+    assert image_response.headers["content-type"] == "image/png"
+    invalid_variant = client.post(
+        f"/api/bullet-hell/workflows/{created['workflow_id']}/play/arbitrary"
+    )
+    assert invalid_variant.status_code == 409
+    with pytest.raises(ValueError, match="Unsupported visual"):
+        service.visual_artifact(created["workflow_id"], "..", "capture_20s.png")
+    with pytest.raises(ValueError, match="Unsupported visual artifact"):
+        service.visual_artifact(created["workflow_id"], "baseline", "../baseline_config.json")
+
+
+def test_manual_play_is_restricted_to_workflow_snapshots(tmp_path, monkeypatch):
+    service = _service(tmp_path)
+    service.unity_executable.write_bytes(b"placeholder")
+    created = service.create(requirement_text=_requirement())
+    service.authorize(created["workflow_id"], actor="designer")
+    commands = []
+
+    def fake_popen(command, **_kwargs):
+        commands.append(command)
+        return SimpleNamespace(pid=1234)
+
+    monkeypatch.setattr("workflow.bullet_hell_workflow.subprocess.Popen", fake_popen)
+    before = service.launch_manual(created["workflow_id"], variant="baseline")
+    after = service.launch_manual(created["workflow_id"], variant="candidate")
+
+    assert before["config_artifact"] == "baseline_config.json"
+    assert after["config_artifact"] == "candidate_config.json"
+    assert commands[0][commands[0].index("--config-input") + 1].endswith("baseline_config.json")
+    assert commands[1][commands[1].index("--config-input") + 1].endswith("candidate_config.json")
+    with pytest.raises(ValueError, match="Unsupported manual play variant"):
+        service.launch_manual(created["workflow_id"], variant="../../arbitrary.exe")

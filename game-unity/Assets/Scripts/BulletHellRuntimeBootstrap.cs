@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -57,7 +58,9 @@ namespace GameConfig.Runtime
                 Application.logMessageReceived += HandleLog;
                 startedAt = Time.time;
                 message = settings.AutoRun ? "固定轨迹自动验证中" : "WASD 移动，Shift 低速聚焦，玩家自动射击";
-                if (Environment.GetCommandLineArgs().Contains("--screenshot-output"))
+                if (Environment.GetCommandLineArgs().Contains("--screenshot-output-dir"))
+                    StartCoroutine(CaptureEvidenceSequence());
+                else if (Environment.GetCommandLineArgs().Contains("--screenshot-output"))
                     StartCoroutine(CaptureEvidence());
             }
             catch (Exception exception)
@@ -228,6 +231,48 @@ namespace GameConfig.Runtime
             }
         }
 
+        private IEnumerator CaptureEvidenceSequence()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            int index = Array.IndexOf(args, "--screenshot-output-dir");
+            if (index < 0 || index + 1 >= args.Length) yield break;
+            string outputDirectory = Path.GetFullPath(args[index + 1]);
+            Directory.CreateDirectory(outputDirectory);
+            float[] targets = { 10f, 20f, 30f };
+            List<VisualCaptureRecord> records = new();
+
+            foreach (float target in targets)
+            {
+                while (!completed && simulationElapsed < target)
+                    yield return null;
+                if (completed) break;
+                yield return new WaitForEndOfFrame();
+                string fileName = $"capture_{target:00}s.png";
+                ScreenCapture.CaptureScreenshot(Path.Combine(outputDirectory, fileName));
+                records.Add(new VisualCaptureRecord
+                {
+                    time_seconds = target,
+                    phase_id = bossState.CurrentPhase.phase_id,
+                    phase_name = bossState.CurrentPhase.display_name,
+                    pattern_type = bossState.CurrentPhase.pattern.type,
+                    file_name = fileName,
+                });
+            }
+
+            VisualCaptureManifest manifest = new()
+            {
+                random_seed = settings.RandomSeed,
+                run_mode = settings.RunMode,
+                fixed_trajectory = settings.AutoRun,
+                duration_seconds = contract.scenario.duration_seconds,
+                captures = records.ToArray(),
+            };
+            File.WriteAllText(
+                Path.Combine(outputDirectory, "capture_manifest.json"),
+                JsonUtility.ToJson(manifest, true)
+            );
+        }
+
         private static IEnumerator QuitAfterCleanup(int exitCode)
         {
             yield return new WaitForSecondsRealtime(0.2f);
@@ -257,6 +302,26 @@ namespace GameConfig.Runtime
             GUI.Label(new Rect(36, 74, 390, 22), $"阶段：{bossState.CurrentPhase.display_name} | Pattern: {bossState.CurrentPhase.pattern.type}");
             GUI.Label(new Rect(36, 100, 390, 22), $"玩家生命：{playerHealth}/{contract.player.max_health} | Boss：{bossState.HealthRatio * 100f:0}%");
             GUI.Label(new Rect(36, 126, 390, 22), $"存活子弹：{projectilePool.ActiveCount}/{contract.constraints.max_alive_bullets}");
+        }
+
+        [Serializable]
+        private sealed class VisualCaptureRecord
+        {
+            public float time_seconds;
+            public string phase_id;
+            public string phase_name;
+            public string pattern_type;
+            public string file_name;
+        }
+
+        [Serializable]
+        private sealed class VisualCaptureManifest
+        {
+            public int random_seed;
+            public string run_mode;
+            public bool fixed_trajectory;
+            public float duration_seconds;
+            public VisualCaptureRecord[] captures;
         }
     }
 }

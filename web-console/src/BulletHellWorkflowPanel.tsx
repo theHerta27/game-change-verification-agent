@@ -1,15 +1,39 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  AlertTriangle, CheckCircle2, CircleDot, FileJson, Gauge, Gamepad2, Orbit,
-  Play, RefreshCw, RotateCcw, ShieldCheck, SlidersHorizontal, Sparkles, ThumbsUp, Wrench
+  AlertTriangle, Camera, CheckCircle2, ChevronLeft, ChevronRight, CircleDot, Eye,
+  FileJson, Gauge, Gamepad2, HelpCircle, Orbit, Play, RefreshCw, RotateCcw,
+  Settings, ShieldCheck, SlidersHorizontal, Sparkles, ThumbsUp, Wrench, X
 } from 'lucide-react';
 
 type Language = 'zh' | 'en';
 type Provider = 'mock' | 'openai_compatible';
+type ExperienceMode = 'novice' | 'professional';
+type PlayVariant = 'baseline' | 'candidate';
 type DiffRow = { change_type: string; path: string; before: unknown; after: unknown };
 type MetricRow = { metric: string; baseline: unknown; candidate: unknown; target: string; passed: boolean; evidence: string };
 type TimelineRow = { step: string; status: string; timestamp: string; detail: Record<string, unknown> };
 type RepairRow = { iteration: number; action: string; applied: boolean; phase_id?: string; reason: string };
+type VisualCapture = { time_seconds: number; phase_id: string; phase_name: string; pattern_type: string; file_name: string };
+type VisualVariant = {
+  variant: PlayVariant;
+  duration_seconds: number;
+  random_seed: number;
+  run_mode: string;
+  fixed_trajectory: boolean;
+  config_sha256: string;
+  captures: VisualCapture[];
+};
+type VisualComparison = {
+  status: 'running' | 'completed' | 'failed';
+  random_seed: number;
+  fixed_trajectory: boolean;
+  duration_seconds?: number;
+  capture_times_seconds: number[];
+  camera?: string;
+  generated_at?: string;
+  variants: Partial<Record<PlayVariant, VisualVariant>>;
+  error?: { type: string; message: string } | null;
+};
 type Workflow = {
   workflow_id: string;
   provider: Provider;
@@ -26,6 +50,7 @@ type Workflow = {
   comparison_report?: { passed: boolean; metrics: MetricRow[]; evidence_scope: string };
   baseline_telemetry?: Record<string, unknown> | null;
   candidate_telemetry?: Record<string, unknown> | null;
+  visual_comparison?: VisualComparison | null;
   timeline: TimelineRow[];
   error?: { stage: string; type: string; message: string } | null;
   available_artifacts: Array<{ name: string; size: number }>;
@@ -37,23 +62,25 @@ const text = {
     title: '弹幕变更验证',
     subtitle: '用自然语言提出玩法调整。Agent 生成候选，确定性工具校验，Unity 在隔离环境自动对比修改前后结果。',
     boundary: '自动化边界',
-    boundaryText: '一次授权后最多运行 3 个候选；只修改候选 JSON。正式基线必须由你最终接受。',
+    boundaryText: '一次授权后最多运行 3 个候选；只修改候选 JSON。本页面不会覆盖正式基线。',
     requirement: '玩法变更需求',
     provider: '候选生成方式',
     mock: '确定性 Mock',
+    mockNovice: '固定演示模型（免费、结果可重复）',
     real: '真实模型',
     timeout: '模型超时（秒）',
     create: '生成候选并静态校验',
     creating: '正在生成候选',
-    loadLatest: '加载最近验证',
-    authorize: '授权隔离自动验证',
+    loadLatest: '查看上次完整演示（只读，不运行）',
+    authorize: '授权本次隔离测试',
+    authorizationSafety: '仅允许本次隔离测试，不修改正式配置。',
     authorizedBy: '授权人',
     note: '授权说明',
     run: '开始自动对比与修复',
     running: 'Unity 正在运行，请保持后端窗口开启',
     manual: '打开 Unity 手动试玩',
-    reset: '新建验证',
-    accept: '接受候选',
+    reset: '重新开始一次演示',
+    accept: '记录为接受（当前不会写回正式基线）',
     revise: '要求修订',
     rollback: '回滚候选',
     decisionNote: '最终决策说明',
@@ -64,7 +91,7 @@ const text = {
     repairs: '自动修复记录',
     events: '可观察执行事件',
     artifacts: '原始证据文件',
-    noEvidence: '完成自动验证后显示 baseline 与 candidate 的同条件对比。',
+    noEvidence: '完成自动验证后显示修改前与修改后的同条件对比。',
     noRepairs: '当前候选尚未触发自动修复。',
     pass: '通过',
     fail: '未通过',
@@ -81,6 +108,11 @@ const text = {
     ready: '证据已完成，请根据指标决定接受、修订或回滚。',
     exhausted: '自动运行预算已用完，当前候选仍未满足全部目标。',
     presets: ['双向螺旋主案例', '高密度修复观察', '危险需求拦截'],
+    presetDescriptions: [
+      '系统会把第二阶段改成双向螺旋，先做安全校验，再用同一轨迹分别运行修改前和修改后；若受击或性能不达标，会在预算内自动调低弹速并复测。',
+      '系统会提高第三阶段花瓣弹的压迫感，重点观察玩家受击和低分位 FPS，并展示一次候选如何被证据驱动地修复。',
+      '这是一条故意越界的高密度需求。安全门应在启动 Unity 前直接拦截，并解释为什么不能运行以及可接受的边界。'
+    ],
     presetRequirements: [
       '第二阶段改为双向螺旋弹，提高密度，但同时存在的子弹不能超过350发，最低帧率不能低于55 FPS。',
       '第三阶段使用花瓣弹提高压迫感，但玩家最多受击3次，最低帧率不能低于55 FPS。',
@@ -88,7 +120,58 @@ const text = {
     ],
     steps: ['需求与候选', '静态安全校验', '隔离测试授权', 'Baseline / Candidate', '自动修复', '人工结论'],
     planner: '策划控制台',
-    debug: '展开原始 JSON'
+    debug: '展开原始 JSON',
+    safeDemo: '安全演示：所有修改都发生在临时副本中，不会覆盖正式基线',
+    noviceMode: '新手模式',
+    professionalMode: '专业模式',
+    replayGuide: '重新查看引导',
+    settings: '显示设置',
+    caseOutcome: '这个案例会发生什么',
+    beforeProfessional: 'Baseline（修改前）',
+    afterProfessional: 'Candidate（修改后）',
+    beforeAfterTitle: '真人手动体验',
+    beforeAfterText: '手动操作路线每次不同，只用于分别感受两个版本的视觉和操作，不作为严格的前后效果证明。',
+    playBefore: '手动体验修改前',
+    playAfter: '手动体验修改后',
+    temporaryPlayerNote: '只启动固定的临时 Unity Player，并读取本工作流快照；不会修改正式基线。',
+    selectedPlay: '当前已启动',
+    baselineSnapshot: '修改前',
+    candidateSnapshot: '修改后',
+    launchSucceeded: 'Unity Player 已启动，可以开始主观体验。',
+    launchFailed: 'Unity Player 启动失败',
+    visualTitle: '自动固定轨迹画面对比',
+    visualPurpose: '自动画面用于证明改了什么；运行数据用于证明约束是否达标；手动试玩只用于主观体验。',
+    visualFairness: '两侧使用相同 seed、固定轨迹、36 秒时长和相机，在 10、20、30 秒自动截图。',
+    generateVisual: '生成自动画面对比',
+    generatingVisual: '正在依次生成修改前和修改后截图',
+    visualReady: '自动截图证据已生成',
+    visualFailed: '自动截图生成失败',
+    visualEmpty: '当前工作流还没有自动画面证据。生成后会显示三个相同时间点的并排截图。',
+    atSecond: '第 {second} 秒',
+    phase: '阶段',
+    pattern: '弹幕类型',
+    keyChanges: '本次关键变化',
+    visualChanges: ['第二阶段：单向螺旋 → 双向螺旋', '每波子弹：12 → 16', '子弹速度：3.6 → 2.6（两轮自动修复后）'],
+    evidenceLayers: ['自动截图：肉眼确认修改效果', '自动数据：验证数量、受击与性能约束', '手动体验：补充主观操作感受'],
+    readOnlyLoaded: '已载入只读演示记录。查看不会重新运行模型或 Unity。',
+    newDemoHint: '从只读正式基线创建一个全新的临时 Workflow，不复用上次的候选结果。',
+    guideTitle: '五分钟安全演示引导',
+    guideSkip: '跳过引导',
+    guidePrevious: '上一步',
+    guideNext: '下一步',
+    guideDone: '完成引导',
+    guideSteps: [
+      '先查看上次完整演示。这个动作只读取已有证据，不会运行任何程序。',
+      '阅读案例说明，确认这次要观察的是弹幕样式、受击、性能还是安全拦截。',
+      '需要亲自走流程时，重新开始一次演示；系统会从只读基线建立新的临时 Workflow。',
+      '候选通过静态校验后，再授权本次隔离测试。授权不会修改正式配置。',
+      '证据完成后，先试玩修改前，再试玩修改后，最后只记录你的结论。'
+    ],
+    termBaseline: 'Baseline 是修改前的只读基线配置，用作对照。',
+    termCandidate: 'Candidate 是 Agent 提出的修改后候选，只存在于临时工作流中。',
+    termWorkflow: 'Workflow 是一次从需求、校验、授权到证据和结论的完整验证记录。',
+    termArtifact: 'Artifact 是工作流保存的 JSON、日志和报告等原始证据文件。',
+    termTelemetry: 'Telemetry 是 Unity 运行时自动记录的子弹、受击、存活时间和 FPS 等数据。'
   },
   en: {
     eyebrow: 'GAME CHANGE VERIFICATION',
@@ -99,19 +182,21 @@ const text = {
     requirement: 'Gameplay change requirement',
     provider: 'Candidate provider',
     mock: 'Deterministic Mock',
+    mockNovice: 'Fixed demo model (free and repeatable)',
     real: 'Real provider',
     timeout: 'Model timeout (seconds)',
     create: 'Create candidate and validate',
     creating: 'Creating candidate',
-    loadLatest: 'Load latest verification',
-    authorize: 'Authorize isolated auto validation',
+    loadLatest: 'View last complete demo (read-only)',
+    authorize: 'Authorize this isolated test',
+    authorizationSafety: 'This authorization applies only to this isolated test and never changes the formal configuration.',
     authorizedBy: 'Authorized by',
     note: 'Authorization note',
     run: 'Start comparison and repair',
     running: 'Unity is running. Keep the backend window open.',
     manual: 'Open Unity manual playtest',
-    reset: 'New verification',
-    accept: 'Accept candidate',
+    reset: 'Start a new demo',
+    accept: 'Record as accepted (does not write to baseline)',
     revise: 'Request revision',
     rollback: 'Roll back candidate',
     decisionNote: 'Final decision note',
@@ -139,6 +224,11 @@ const text = {
     ready: 'Evidence is ready. Accept, revise, or roll back.',
     exhausted: 'The automatic run budget is exhausted and targets are still unmet.',
     presets: ['Bidirectional spiral', 'Dense pattern repair', 'Unsafe request block'],
+    presetDescriptions: [
+      'The system changes phase 2 to a bidirectional spiral, validates it, then runs before and after with the same trajectory. It can reduce speed and retest when evidence misses a target.',
+      'The system raises pressure in phase 3 and focuses on player hits and low-percentile FPS, showing an evidence-driven bounded repair.',
+      'This intentionally unsafe density request should be blocked before Unity starts, with a clear explanation of the supported boundary.'
+    ],
     presetRequirements: [
       'Change phase 2 to a denser bidirectional spiral while keeping at most 350 alive bullets and at least 55 FPS.',
       'Use a denser petal pattern in phase 3, with at most 3 player hits and at least 55 FPS.',
@@ -146,11 +236,64 @@ const text = {
     ],
     steps: ['Requirement', 'Static safety', 'Authorization', 'Baseline / Candidate', 'Auto repair', 'Human decision'],
     planner: 'Designer console',
-    debug: 'Show raw JSON'
+    debug: 'Show raw JSON',
+    safeDemo: 'Safe demo: every change stays in a temporary copy and never overwrites the formal baseline',
+    noviceMode: 'Novice mode',
+    professionalMode: 'Professional mode',
+    replayGuide: 'Replay guide',
+    settings: 'Display settings',
+    caseOutcome: 'What will happen in this case',
+    beforeProfessional: 'Baseline',
+    afterProfessional: 'Candidate',
+    beforeAfterTitle: 'Manual human experience',
+    beforeAfterText: 'Manual movement differs between runs. Use these only to feel each version, not as strict before/after proof.',
+    playBefore: 'Manually experience Before',
+    playAfter: 'Manually experience After',
+    temporaryPlayerNote: 'This starts only the fixed temporary Unity Player with a workflow snapshot and never changes the formal baseline.',
+    selectedPlay: 'Currently launched',
+    baselineSnapshot: 'Before',
+    candidateSnapshot: 'After',
+    launchSucceeded: 'Unity Player started for subjective playtesting.',
+    launchFailed: 'Unity Player failed to start',
+    visualTitle: 'Automatic fixed-trajectory visual comparison',
+    visualPurpose: 'Automatic visuals show what changed; runtime data proves constraints; manual playtesting adds subjective experience.',
+    visualFairness: 'Both sides use the same seed, fixed trajectory, 36-second duration, and camera, captured at 10, 20, and 30 seconds.',
+    generateVisual: 'Generate automatic visual comparison',
+    generatingVisual: 'Generating Before and After screenshots in sequence',
+    visualReady: 'Automatic screenshot evidence is ready',
+    visualFailed: 'Automatic screenshot generation failed',
+    visualEmpty: 'This workflow has no automatic visual evidence yet. Generate it to compare three identical time points.',
+    atSecond: '{second} seconds',
+    phase: 'Phase',
+    pattern: 'Pattern',
+    keyChanges: 'Key changes',
+    visualChanges: ['Phase 2: one-way spiral → bidirectional spiral', 'Bullets per wave: 12 → 16', 'Bullet speed: 3.6 → 2.6 after two bounded repairs'],
+    evidenceLayers: ['Automatic screenshots: visually confirm the change', 'Automatic data: verify density, hits, and performance', 'Manual playtest: add subjective feel'],
+    readOnlyLoaded: 'Read-only demo loaded. Viewing it does not rerun the model or Unity.',
+    newDemoHint: 'Create a fresh temporary Workflow from the read-only formal baseline without reusing the last candidate.',
+    guideTitle: 'Five-minute safe demo guide',
+    guideSkip: 'Skip guide',
+    guidePrevious: 'Previous',
+    guideNext: 'Next',
+    guideDone: 'Finish guide',
+    guideSteps: [
+      'Start by viewing the last complete demo. This reads saved evidence only and runs nothing.',
+      'Read the case description and confirm whether this demo focuses on pattern style, hits, performance, or safety blocking.',
+      'To perform the flow yourself, start a new demo. A fresh temporary Workflow is created from the read-only baseline.',
+      'After static validation, authorize only this isolated test. The formal configuration is never changed.',
+      'When evidence is ready, play Before first, then After, and only record your final decision.'
+    ],
+    termBaseline: 'Baseline is the read-only configuration before the change and is used for comparison.',
+    termCandidate: 'Candidate is the proposed configuration after the change and exists only in a temporary workflow.',
+    termWorkflow: 'Workflow is one complete record from requirement and validation through evidence and decision.',
+    termArtifact: 'Artifact is a saved JSON, log, or report that provides raw workflow evidence.',
+    termTelemetry: 'Telemetry is runtime data recorded by Unity, such as bullets, hits, survival time, and FPS.'
   }
 } as const;
 
 const runningStatuses = new Set(['running_baseline', 'running_candidate', 'analyzing', 'repairing']);
+const EXPERIENCE_MODE_KEY = 'agentic-game-rd.bullet-hell.experience-mode';
+const GUIDE_DISMISSED_KEY = 'agentic-game-rd.bullet-hell.guide-dismissed';
 
 export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, onProvider, onTimeout }: {
   language: Language;
@@ -168,16 +311,39 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [selectedPreset, setSelectedPreset] = useState(0);
+  const [experienceMode, setExperienceMode] = useState<ExperienceMode>(() => readExperienceMode());
+  const [guideActive, setGuideActive] = useState(() => readExperienceMode() === 'novice' && !readGuideDismissed());
+  const [guideStep, setGuideStep] = useState(0);
+  const [playVariant, setPlayVariant] = useState<PlayVariant | null>(null);
+  const [playMessage, setPlayMessage] = useState('');
+  const [latestLoaded, setLatestLoaded] = useState(false);
 
   useEffect(() => {
-    if (!workflow || !runningStatuses.has(workflow.status)) return;
+    if (!workflow || (!runningStatuses.has(workflow.status) && workflow.visual_comparison?.status !== 'running')) return;
     const timer = window.setInterval(() => {
       request<Workflow>(`/api/bullet-hell/workflows/${workflow.workflow_id}`).then(setWorkflow).catch((reason) => setError(String(reason)));
     }, 1200);
     return () => window.clearInterval(timer);
-  }, [workflow?.workflow_id, workflow?.status]);
+  }, [workflow?.workflow_id, workflow?.status, workflow?.visual_comparison?.status]);
+
+  useEffect(() => {
+    window.localStorage.setItem(EXPERIENCE_MODE_KEY, experienceMode);
+  }, [experienceMode]);
 
   const currentStep = useMemo(() => stepForStatus(workflow?.status), [workflow?.status]);
+  const novice = experienceMode === 'novice';
+  const beforeLabel = novice ? t.before : t.beforeProfessional;
+  const afterLabel = novice ? t.after : t.afterProfessional;
+  const displaySteps = useMemo(
+    () => t.steps.map((label, index) => novice && index === 3 ? `${t.before} / ${t.after}` : label),
+    [novice, t]
+  );
+  const manualPlayAllowed = !!workflow && [
+    'authorized', 'evidence_ready', 'budget_exhausted', 'accepted', 'revision_requested', 'rolled_back'
+  ].includes(workflow.status);
+  const visualComparisonAllowed = !!workflow && [
+    'evidence_ready', 'budget_exhausted', 'accepted', 'revision_requested', 'rolled_back'
+  ].includes(workflow.status);
 
   async function act(name: string, action: () => Promise<Workflow>) {
     setBusy(name);
@@ -196,10 +362,111 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
     setRequirement(t.presetRequirements[index]);
     setWorkflow(null);
     setError('');
+    setLatestLoaded(false);
+    setPlayVariant(null);
+    setPlayMessage('');
+  }
+
+  function createWorkflow(name = 'create') {
+    setLatestLoaded(false);
+    setPlayVariant(null);
+    setPlayMessage('');
+    setDecisionNote('');
+    return act(name, () => request('/api/bullet-hell/workflows', {
+      method: 'POST',
+      body: JSON.stringify({ requirement_text: requirement, provider, timeout_seconds: timeoutSeconds })
+    }));
+  }
+
+  function changeExperienceMode(mode: ExperienceMode) {
+    setExperienceMode(mode);
+    window.localStorage.setItem(EXPERIENCE_MODE_KEY, mode);
+    if (mode === 'professional') {
+      setGuideActive(false);
+      window.localStorage.setItem(GUIDE_DISMISSED_KEY, 'true');
+    }
+  }
+
+  function dismissGuide() {
+    setGuideActive(false);
+    window.localStorage.setItem(GUIDE_DISMISSED_KEY, 'true');
+  }
+
+  function replayGuide() {
+    setExperienceMode('novice');
+    setGuideStep(0);
+    setGuideActive(true);
+  }
+
+  async function launchManualPlay(variant: PlayVariant) {
+    if (!workflow) return;
+    setPlayVariant(variant);
+    setPlayMessage('');
+    setBusy(`play-${variant}`);
+    setError('');
+    try {
+      await request(`/api/bullet-hell/workflows/${workflow.workflow_id}/play/${variant}`, { method: 'POST' });
+      setPlayMessage(t.launchSucceeded);
+    } catch (reason) {
+      setPlayMessage(`${t.launchFailed}：${reason instanceof Error ? reason.message : String(reason)}`);
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function generateVisualComparison() {
+    if (!workflow) return;
+    setBusy('visual-comparison');
+    setError('');
+    try {
+      setWorkflow(await request(`/api/bullet-hell/workflows/${workflow.workflow_id}/visual-comparison`, { method: 'POST' }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+    } finally {
+      setBusy('');
+    }
   }
 
   return <section className="bullet-workbench">
     <div className="bullet-command">
+      <div className="safe-demo-banner" role="status">
+        <ShieldCheck className="h-5 w-5 shrink-0"/>
+        <strong>{t.safeDemo}</strong>
+      </div>
+
+      <div className="experience-toolbar" aria-label={t.settings}>
+        <div className="mode-switch" role="group" aria-label={t.settings}>
+          <button
+            type="button"
+            className={novice ? 'mode-switch-active' : ''}
+            aria-pressed={novice}
+            onClick={() => changeExperienceMode('novice')}
+          >{t.noviceMode}</button>
+          <button
+            type="button"
+            className={!novice ? 'mode-switch-active' : ''}
+            aria-pressed={!novice}
+            onClick={() => changeExperienceMode('professional')}
+          >{t.professionalMode}</button>
+        </div>
+        <button type="button" className="button-quiet" onClick={replayGuide}>
+          <Settings className="h-4 w-4"/>{t.replayGuide}
+        </button>
+      </div>
+
+      {guideActive && <GuideCard
+        step={guideStep}
+        steps={t.guideSteps}
+        title={t.guideTitle}
+        previous={t.guidePrevious}
+        next={t.guideNext}
+        done={t.guideDone}
+        skip={t.guideSkip}
+        onPrevious={() => setGuideStep((value) => Math.max(0, value - 1))}
+        onNext={() => guideStep === t.guideSteps.length - 1 ? dismissGuide() : setGuideStep((value) => value + 1)}
+        onSkip={dismissGuide}
+      />}
+
       <div>
         <p className="text-xs font-semibold text-cyan-300">{t.eyebrow}</p>
         <h2 className="mt-2 text-2xl font-semibold text-white">{t.title}</h2>
@@ -219,6 +486,12 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
             </button>
           )}
         </div>
+        {selectedPreset >= 0 && <div className={`case-outcome mt-4 ${guideActive && guideStep === 1 ? 'guide-focus' : ''}`}>
+          <div className="flex items-center gap-2 text-sm font-semibold text-cyan-100">
+            <Eye className="h-4 w-4"/>{t.caseOutcome}
+          </div>
+          <p className="mt-2 text-sm leading-6 text-slate-300">{t.presetDescriptions[selectedPreset]}</p>
+        </div>}
         <label className="label mt-4" htmlFor="bullet-requirement">{t.requirement}</label>
         <textarea
           id="bullet-requirement"
@@ -238,7 +511,7 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
             disabled={!!workflow}
             onChange={(event) => onProvider(event.target.value as Provider)}
           >
-            <option value="mock">{t.mock}</option>
+            <option value="mock">{novice ? t.mockNovice : t.mock}</option>
             <option value="openai_compatible">{t.real}</option>
           </select>
         </label>
@@ -259,38 +532,41 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
       <p className="mt-3 text-xs leading-5 text-slate-400">{provider === 'mock' ? t.mockHint : t.realHint}</p>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {!workflow && <button className="button-primary" disabled={!!busy || !requirement.trim()} onClick={() => act('create', () => request('/api/bullet-hell/workflows', {
-          method: 'POST',
-          body: JSON.stringify({ requirement_text: requirement, provider, timeout_seconds: timeoutSeconds })
-        }))}>
+        {!workflow && <button className={`button-primary ${guideActive && guideStep === 2 ? 'guide-focus' : ''}`} disabled={!!busy || !requirement.trim()} onClick={() => createWorkflow()}>
           {busy === 'create' ? <RefreshCw className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4"/>}
           {busy === 'create' ? t.creating : t.create}
         </button>}
-        {!workflow && <button className="button-secondary" disabled={!!busy} onClick={() => act('latest', () => request('/api/bullet-hell/workflows/latest'))}>
+        {!workflow && <button className={`button-secondary ${guideActive && guideStep === 0 ? 'guide-focus' : ''}`} disabled={!!busy} onClick={() => {
+          setLatestLoaded(true);
+          setPlayVariant(null);
+          void act('latest', () => request('/api/bullet-hell/workflows/latest'));
+        }}>
           {busy === 'latest' ? <RefreshCw className="h-4 w-4 animate-spin"/> : <FileJson className="h-4 w-4"/>}
           {t.loadLatest}
         </button>}
-        {workflow && <button className="button-secondary" onClick={() => { setWorkflow(null); setError(''); setDecisionNote(''); }}>
+        {workflow && <button className={`button-secondary ${guideActive && guideStep === 2 ? 'guide-focus' : ''}`} disabled={!!busy} onClick={() => void createWorkflow('restart')}>
           <RotateCcw className="h-4 w-4"/>{t.reset}
         </button>}
       </div>
+      {latestLoaded && workflow && <p className="mt-3 text-xs leading-5 text-cyan-100">{t.readOnlyLoaded}</p>}
+      {workflow && <p className="mt-2 text-xs leading-5 text-slate-400">{t.newDemoHint}</p>}
 
       {workflow?.status === 'awaiting_authorization' && <div className="mt-5 border-t border-line pt-5">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="label">{t.authorizedBy}<input className="input mt-1" value={actor} onChange={(event) => setActor(event.target.value)}/></label>
           <label className="label">{t.note}<input className="input mt-1" value={authorizationNote} onChange={(event) => setAuthorizationNote(event.target.value)}/></label>
         </div>
-        <button className="button-primary mt-3" disabled={!!busy || !actor.trim()} onClick={() => act('authorize', () => request(`/api/bullet-hell/workflows/${workflow.workflow_id}/authorize`, {
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button className={`button-primary ${guideActive && guideStep === 3 ? 'guide-focus' : ''}`} disabled={!!busy || !actor.trim()} onClick={() => act('authorize', () => request(`/api/bullet-hell/workflows/${workflow.workflow_id}/authorize`, {
           method: 'POST', body: JSON.stringify({ actor, note: authorizationNote })
         }))}><ShieldCheck className="h-4 w-4"/>{t.authorize}</button>
+        <span className="max-w-sm text-xs leading-5 text-cyan-100">{t.authorizationSafety}</span>
+        </div>
       </div>}
 
       {workflow?.status === 'authorized' && <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
         <button className="button-primary" disabled={!!busy} onClick={() => act('run', () => request(`/api/bullet-hell/workflows/${workflow.workflow_id}/run`, { method: 'POST' }))}>
           <Play className="h-4 w-4"/>{t.run}
-        </button>
-        <button className="button-secondary" disabled={!!busy} onClick={() => request(`/api/bullet-hell/workflows/${workflow.workflow_id}/play`, { method: 'POST' }).catch((reason) => setError(String(reason)))}>
-          <Gamepad2 className="h-4 w-4"/>{t.manual}
         </button>
       </div>}
 
@@ -303,6 +579,24 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
         </div>
       </div>}
 
+      {manualPlayAllowed && workflow && <BeforeAfterPlay
+        beforeLabel={beforeLabel}
+        afterLabel={afterLabel}
+        title={t.beforeAfterTitle}
+        description={t.beforeAfterText}
+        beforeButton={t.playBefore}
+        afterButton={t.playAfter}
+        note={t.temporaryPlayerNote}
+        selectedLabel={t.selectedPlay}
+        selectedVariant={playVariant}
+        baselineLabel={t.baselineSnapshot}
+        candidateLabel={t.candidateSnapshot}
+        playMessage={playMessage}
+        busy={busy}
+        guideFocus={guideActive && guideStep === 4}
+        onPlay={launchManualPlay}
+      />}
+
       {error && <p role="alert" className="mt-4 rounded-md border border-red-500/40 bg-red-950/40 p-3 text-sm text-red-100">{error}</p>}
     </div>
 
@@ -310,13 +604,13 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold text-slate-500">{t.planner}</p>
-          <h3 className="mt-1 text-lg font-semibold text-white">{t.status}</h3>
+          <h3 className="mt-1 flex items-center gap-1 text-lg font-semibold text-white">{t.status}<TermHelp label="Workflow" explanation={t.termWorkflow}/></h3>
         </div>
-        <StatusBadge status={workflow?.status ?? 'drafted'} language={language}/>
+        <StatusBadge status={workflow?.status ?? 'drafted'} language={language} novice={novice}/>
       </div>
 
       <div className="evidence-rail mt-5" aria-label={t.status}>
-        {t.steps.map((label, index) => <div key={label} className={`evidence-stop ${index <= currentStep ? 'evidence-stop-active' : ''}`}>
+        {displaySteps.map((label, index) => <div key={label} className={`evidence-stop ${index <= currentStep ? 'evidence-stop-active' : ''}`}>
           <span>{index + 1}</span><p>{label}</p>
         </div>)}
       </div>
@@ -324,13 +618,35 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
       {workflow && <p className="mt-4 text-sm leading-6 text-slate-300">{statusMessage(workflow.status, t)}</p>}
       {workflow?.error && <p className="mt-3 border-l-2 border-red-400 pl-3 text-sm text-red-200">{workflow.error.type}: {workflow.error.message}</p>}
 
+      {visualComparisonAllowed && workflow && <AutomaticVisualComparison
+        workflow={workflow}
+        language={language}
+        beforeLabel={beforeLabel}
+        afterLabel={afterLabel}
+        title={t.visualTitle}
+        purpose={t.visualPurpose}
+        fairness={t.visualFairness}
+        generateLabel={t.generateVisual}
+        generatingLabel={t.generatingVisual}
+        readyLabel={t.visualReady}
+        failedLabel={t.visualFailed}
+        emptyLabel={t.visualEmpty}
+        atSecond={t.atSecond}
+        phaseLabel={t.phase}
+        patternLabel={t.pattern}
+        changesTitle={t.keyChanges}
+        layers={t.evidenceLayers}
+        busy={busy === 'visual-comparison'}
+        onGenerate={generateVisualComparison}
+      />}
+
       {workflow?.structured_goal && <EvidenceBand title={t.goal} icon={<SlidersHorizontal className="h-4 w-4"/>}>
         <GoalSummary value={workflow.structured_goal} language={language}/>
       </EvidenceBand>}
 
       {workflow?.config_diff && workflow.config_diff.length > 0 && <EvidenceBand title={t.changes} icon={<Orbit className="h-4 w-4"/>}>
         <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm">
-          <thead className="text-xs text-slate-500"><tr><th className="px-2 py-2">Path</th><th className="px-2 py-2">{t.before}</th><th className="px-2 py-2">{t.after}</th></tr></thead>
+          <thead className="text-xs text-slate-500"><tr><th className="px-2 py-2">Path</th><th className="px-2 py-2">{beforeLabel}<TermHelp label="Baseline" explanation={t.termBaseline}/></th><th className="px-2 py-2">{afterLabel}<TermHelp label="Candidate" explanation={t.termCandidate}/></th></tr></thead>
           <tbody>{workflow.config_diff.slice(0, 16).map((row) => <tr key={row.path} className="border-t border-line">
             <td className="px-2 py-2 font-mono text-xs text-cyan-200">{row.path}</td>
             <td className="px-2 py-2 text-slate-400">{display(row.before)}</td>
@@ -339,11 +655,11 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
         </table></div>
       </EvidenceBand>}
 
-      <EvidenceBand title={t.evidence} icon={<Gauge className="h-4 w-4"/>}>
+      <EvidenceBand title={<>{t.evidence}<TermHelp label="Telemetry" explanation={t.termTelemetry}/></>} icon={<Gauge className="h-4 w-4"/>}>
         {!workflow?.comparison_report ? <p className="text-sm text-slate-400">{t.noEvidence}</p> :
           <>
             <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm">
-              <thead className="text-xs text-slate-500"><tr><th className="px-2 py-2">{t.check}</th><th className="px-2 py-2">{t.before}</th><th className="px-2 py-2">{t.after}</th><th className="px-2 py-2">{t.target}</th><th className="px-2 py-2">{t.status}</th></tr></thead>
+              <thead className="text-xs text-slate-500"><tr><th className="px-2 py-2">{t.check}</th><th className="px-2 py-2">{beforeLabel}<TermHelp label="Baseline" explanation={t.termBaseline}/></th><th className="px-2 py-2">{afterLabel}<TermHelp label="Candidate" explanation={t.termCandidate}/></th><th className="px-2 py-2">{t.target}</th><th className="px-2 py-2">{t.status}</th></tr></thead>
               <tbody>{workflow.comparison_report.metrics.map((row) => <tr key={row.metric} className="border-t border-line">
                 <td className="px-2 py-2 font-medium text-slate-100">{metricLabel(row.metric, language)}</td>
                 <td className="px-2 py-2 text-slate-400">{metricValue(row.metric, row.baseline)}</td>
@@ -373,7 +689,7 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
         </EvidenceBand>
       </div>
 
-      {!!workflow?.available_artifacts?.length && <EvidenceBand title={t.artifacts} icon={<FileJson className="h-4 w-4"/>}>
+      {!!workflow?.available_artifacts?.length && <EvidenceBand title={<>{t.artifacts}<TermHelp label="Artifact" explanation={t.termArtifact}/></>} icon={<FileJson className="h-4 w-4"/>}>
         <div className="flex flex-wrap gap-2">{workflow.available_artifacts.filter((row) => !row.name.endsWith('.log')).map((row) =>
           <a key={row.name} className="chip" href={`/api/bullet-hell/workflows/${workflow.workflow_id}/artifacts/${row.name}`} target="_blank" rel="noreferrer">{row.name}</a>
         )}</div>
@@ -390,7 +706,177 @@ export function BulletHellWorkflowPanel({ language, provider, timeoutSeconds, on
   }
 }
 
-function EvidenceBand({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function GuideCard({ step, steps, title, previous, next, done, skip, onPrevious, onNext, onSkip }: {
+  step: number;
+  steps: readonly string[];
+  title: string;
+  previous: string;
+  next: string;
+  done: string;
+  skip: string;
+  onPrevious: () => void;
+  onNext: () => void;
+  onSkip: () => void;
+}) {
+  return <aside className="guide-card" aria-live="polite">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="text-xs font-semibold text-cyan-200">{title}</p>
+        <p className="mt-1 text-xs text-slate-400">{step + 1} / {steps.length}</p>
+      </div>
+      <button type="button" className="icon-button" title={skip} aria-label={skip} onClick={onSkip}><X className="h-4 w-4"/></button>
+    </div>
+    <p className="mt-3 text-sm leading-6 text-slate-100">{steps[step]}</p>
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+      <button type="button" className="button-quiet" onClick={onSkip}>{skip}</button>
+      <div className="flex gap-2">
+        <button type="button" className="button-secondary" disabled={step === 0} onClick={onPrevious}><ChevronLeft className="h-4 w-4"/>{previous}</button>
+        <button type="button" className="button-primary" onClick={onNext}>{step === steps.length - 1 ? done : next}<ChevronRight className="h-4 w-4"/></button>
+      </div>
+    </div>
+  </aside>;
+}
+
+function AutomaticVisualComparison({ workflow, language, beforeLabel, afterLabel, title, purpose, fairness,
+  generateLabel, generatingLabel, readyLabel, failedLabel, emptyLabel, atSecond, phaseLabel, patternLabel,
+  changesTitle, layers, busy, onGenerate }: {
+  workflow: Workflow;
+  language: Language;
+  beforeLabel: string;
+  afterLabel: string;
+  title: string;
+  purpose: string;
+  fairness: string;
+  generateLabel: string;
+  generatingLabel: string;
+  readyLabel: string;
+  failedLabel: string;
+  emptyLabel: string;
+  atSecond: string;
+  phaseLabel: string;
+  patternLabel: string;
+  changesTitle: string;
+  layers: readonly string[];
+  busy: boolean;
+  onGenerate: () => void;
+}) {
+  const visual = workflow.visual_comparison;
+  const complete = visual?.status === 'completed';
+  const running = visual?.status === 'running';
+  const changes = summarizeVisualChanges(workflow, language);
+  const imageUrl = (variant: PlayVariant, name: string) =>
+    `/api/bullet-hell/workflows/${workflow.workflow_id}/visuals/${variant}/${name}?v=${visual?.generated_at ?? 'current'}`;
+  return <section className="automatic-visual-panel mt-5">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="max-w-2xl">
+        <h4 className="flex items-center gap-2 text-base font-semibold text-white"><Camera className="h-5 w-5 text-cyan-300"/>{title}</h4>
+        <p className="mt-2 text-sm leading-6 text-slate-200">{purpose}</p>
+        <p className="mt-1 text-xs leading-5 text-cyan-100">{fairness}</p>
+      </div>
+      <button type="button" className="button-primary" disabled={busy || running} onClick={onGenerate}>
+        {running ? <RefreshCw className="h-4 w-4 animate-spin"/> : <Camera className="h-4 w-4"/>}
+        {running ? generatingLabel : generateLabel}
+      </button>
+    </div>
+
+    <div className="evidence-layer-strip mt-4">
+      {layers.map((item, index) => <div key={item}><span>{index + 1}</span><p>{item}</p></div>)}
+    </div>
+
+    <div className="mt-4 border-l-2 border-cyan-400 bg-cyan-400/5 px-3 py-3">
+      <p className="text-xs font-semibold text-cyan-100">{changesTitle}</p>
+      <ul className="mt-2 grid gap-2 text-sm text-slate-200 md:grid-cols-3">
+        {changes.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+    </div>
+
+    {!visual && <p className="mt-4 rounded-md border border-line bg-slate-950/50 p-3 text-sm text-slate-400">{emptyLabel}</p>}
+    {running && <p className="mt-4 flex items-center gap-2 text-sm text-cyan-100"><RefreshCw className="h-4 w-4 animate-spin"/>{generatingLabel}</p>}
+    {visual?.status === 'failed' && <p className="mt-4 border-l-2 border-red-400 pl-3 text-sm text-red-200">{failedLabel}：{visual.error?.message}</p>}
+    {complete && <div className="mt-5">
+      <p className="mb-4 flex items-center gap-2 text-sm font-semibold text-green-200"><CheckCircle2 className="h-4 w-4"/>{readyLabel}</p>
+      <div className="space-y-6">
+        {visual.capture_times_seconds.map((second) => {
+          const baseline = visual.variants.baseline?.captures.find((item) => item.time_seconds === second);
+          const candidate = visual.variants.candidate?.captures.find((item) => item.time_seconds === second);
+          if (!baseline || !candidate) return null;
+          return <section key={second} className="visual-timepoint">
+            <h5>{atSecond.replace('{second}', String(second))}</h5>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <ScreenshotEvidence label={beforeLabel} capture={baseline} url={imageUrl('baseline', baseline.file_name)} phaseLabel={phaseLabel} patternLabel={patternLabel}/>
+              <ScreenshotEvidence label={afterLabel} capture={candidate} url={imageUrl('candidate', candidate.file_name)} phaseLabel={phaseLabel} patternLabel={patternLabel}/>
+            </div>
+          </section>;
+        })}
+      </div>
+    </div>}
+  </section>;
+}
+
+function ScreenshotEvidence({ label, capture, url, phaseLabel, patternLabel }: {
+  label: string;
+  capture: VisualCapture;
+  url: string;
+  phaseLabel: string;
+  patternLabel: string;
+}) {
+  return <figure className="media-evidence">
+    <div className="media-evidence-title">{label}</div>
+    <img src={url} alt={`${label} ${capture.time_seconds}s ${capture.phase_name}`}/>
+    <figcaption>{phaseLabel}：{capture.phase_name} · {patternLabel}：{capture.pattern_type}</figcaption>
+  </figure>;
+}
+
+function BeforeAfterPlay({ beforeLabel, afterLabel, title, description, beforeButton, afterButton, note,
+  selectedLabel, selectedVariant, baselineLabel, candidateLabel, playMessage, busy, guideFocus, onPlay }: {
+  beforeLabel: string;
+  afterLabel: string;
+  title: string;
+  description: string;
+  beforeButton: string;
+  afterButton: string;
+  note: string;
+  selectedLabel: string;
+  selectedVariant: PlayVariant | null;
+  baselineLabel: string;
+  candidateLabel: string;
+  playMessage: string;
+  busy: string;
+  guideFocus: boolean;
+  onPlay: (variant: PlayVariant) => void;
+}) {
+  return <section className={`before-after-panel mt-5 ${guideFocus ? 'guide-focus' : ''}`}>
+    <div className="flex items-start gap-3">
+      <Gamepad2 className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300"/>
+      <div>
+        <h3 className="text-base font-semibold text-white">{title}</h3>
+        <p className="mt-1 text-sm leading-6 text-slate-300">{description}</p>
+      </div>
+    </div>
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <button type="button" className="play-variant-button" disabled={!!busy} onClick={() => onPlay('baseline')}>
+        <span className="play-variant-index">1</span><span><strong>{beforeButton}</strong><small>{beforeLabel}</small></span>
+      </button>
+      <button type="button" className="play-variant-button" disabled={!!busy} onClick={() => onPlay('candidate')}>
+        <span className="play-variant-index">2</span><span><strong>{afterButton}</strong><small>{afterLabel}</small></span>
+      </button>
+    </div>
+    <p className="mt-3 flex items-start gap-2 text-xs leading-5 text-cyan-100"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>{note}</p>
+    {selectedVariant && <div className="launch-command-panel mt-4" role="status">
+      <p className="text-sm font-semibold text-white">{selectedLabel}：{selectedVariant === 'baseline' ? baselineLabel : candidateLabel}</p>
+      {busy === `play-${selectedVariant}` && <p className="mt-2 flex items-center gap-2 text-xs text-cyan-100"><RefreshCw className="h-4 w-4 animate-spin"/>Unity Player</p>}
+      {playMessage && <p className={`mt-2 text-xs ${playMessage.includes('失败') || playMessage.includes('failed') ? 'text-red-200' : 'text-green-200'}`}>{playMessage}</p>}
+    </div>}
+  </section>;
+}
+
+function TermHelp({ label, explanation }: { label: string; explanation: string }) {
+  return <button type="button" className="term-help" title={`${label}：${explanation}`} aria-label={`${label}：${explanation}`}>
+    <HelpCircle className="h-3.5 w-3.5"/>
+  </button>;
+}
+
+function EvidenceBand({ title, icon, children }: { title: React.ReactNode; icon: React.ReactNode; children: React.ReactNode }) {
   return <section className="mt-5 border-t border-line pt-5">
     <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-200">{icon}{title}</h4>
     {children}
@@ -401,10 +887,10 @@ function DecisionButton({ label, icon, disabled, secondary, onClick }: { label: 
   return <button className={secondary ? 'button-secondary' : 'button-primary'} disabled={disabled} onClick={onClick}>{icon}{label}</button>;
 }
 
-function StatusBadge({ status, language }: { status: string; language: Language }) {
+function StatusBadge({ status, language, novice }: { status: string; language: Language; novice: boolean }) {
   const passed = ['evidence_ready', 'accepted'].includes(status);
   const failed = ['blocked', 'failed', 'budget_exhausted'].includes(status);
-  const label = statusLabel(status, language);
+  const label = statusLabel(status, language, novice);
   return <span className={`inline-flex min-h-9 items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${passed ? 'border-run/50 bg-run/10 text-run' : failed ? 'border-red-400/50 bg-red-950/40 text-red-200' : 'border-cyan-400/40 bg-cyan-950/30 text-cyan-200'}`}>
     {passed ? <CheckCircle2 className="h-4 w-4"/> : failed ? <AlertTriangle className="h-4 w-4"/> : runningStatuses.has(status) ? <RefreshCw className="h-4 w-4 animate-spin"/> : <CircleDot className="h-4 w-4"/>}
     {label}
@@ -454,9 +940,9 @@ function statusMessage(status: string, t: typeof text.zh | typeof text.en) {
   return '';
 }
 
-function statusLabel(status: string, language: Language) {
+function statusLabel(status: string, language: Language, novice = false) {
   const labels: Record<Language, Record<string, string>> = {
-    zh: { drafted: '等待输入', awaiting_authorization: '等待授权', authorized: '已授权', running_baseline: '运行基线', running_candidate: '运行候选', analyzing: '分析证据', repairing: '自动修复', evidence_ready: '证据就绪', budget_exhausted: '预算耗尽', blocked: '已拦截', needs_clarification: '需要补充', failed: '执行失败', accepted: '已接受', revision_requested: '要求修订', rolled_back: '已回滚' },
+    zh: { drafted: '等待输入', awaiting_authorization: '等待授权', authorized: '已授权', running_baseline: novice ? '运行修改前' : '运行 Baseline', running_candidate: novice ? '运行修改后' : '运行 Candidate', analyzing: '分析证据', repairing: '自动修复', evidence_ready: '证据就绪', budget_exhausted: '预算耗尽', blocked: '已拦截', needs_clarification: '需要补充', failed: '执行失败', accepted: '已接受', revision_requested: '要求修订', rolled_back: '已回滚' },
     en: { drafted: 'Draft', awaiting_authorization: 'Awaiting authorization', authorized: 'Authorized', running_baseline: 'Running baseline', running_candidate: 'Running candidate', analyzing: 'Analyzing', repairing: 'Repairing', evidence_ready: 'Evidence ready', budget_exhausted: 'Budget exhausted', blocked: 'Blocked', needs_clarification: 'Needs clarification', failed: 'Failed', accepted: 'Accepted', revision_requested: 'Revision requested', rolled_back: 'Rolled back' }
   };
   return labels[language][status] ?? status;
@@ -551,4 +1037,46 @@ function display(value: unknown) {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
+}
+
+function readExperienceMode(): ExperienceMode {
+  try {
+    return window.localStorage.getItem(EXPERIENCE_MODE_KEY) === 'professional' ? 'professional' : 'novice';
+  } catch {
+    return 'novice';
+  }
+}
+
+function readGuideDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(GUIDE_DISMISSED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function summarizeVisualChanges(workflow: Workflow, language: Language): string[] {
+  const zh = language === 'zh';
+  const rows = workflow.config_diff ?? [];
+  const result: string[] = [];
+  for (const row of rows) {
+    if (row.path.endsWith('.bidirectional')) {
+      result.push(zh ? '第二阶段：单向螺旋 → 双向螺旋' : 'Phase 2: one-way spiral → bidirectional spiral');
+    } else if (row.path.endsWith('.bullets_per_wave')) {
+      result.push(zh
+        ? `每波子弹：${display(row.before)} → ${display(row.after)}`
+        : `Bullets per wave: ${display(row.before)} → ${display(row.after)}`);
+    } else if (row.path.endsWith('.bullet_speed')) {
+      const repairCount = (workflow.repair_history ?? []).filter((item) => item.action === 'REDUCE_BULLET_SPEED').length;
+      const repair = repairCount > 0
+        ? (zh ? `（${repairCount} 轮自动修复后）` : ` after ${repairCount} bounded repair${repairCount > 1 ? 's' : ''}`)
+        : '';
+      result.push(zh
+        ? `子弹速度：${display(row.before)} → ${display(row.after)}${repair}`
+        : `Bullet speed: ${display(row.before)} → ${display(row.after)}${repair}`);
+    }
+  }
+  return result.length > 0
+    ? result
+    : [zh ? '当前候选没有可展示的弹幕字段变化。' : 'No visual pattern field changed in this candidate.'];
 }

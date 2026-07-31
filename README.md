@@ -45,6 +45,8 @@ cd D:\Desktop\agentic-game-rd
 - 弹幕能力清单：`GET /api/bullet-hell/capabilities`
 - 创建弹幕变更工作流：`POST /api/bullet-hell/workflows`
 - 加载最近一次弹幕验证：`GET /api/bullet-hell/workflows/latest`
+- 生成固定轨迹画面对比：`POST /api/bullet-hell/workflows/{workflow_id}/visual-comparison`
+- 受限启动修改前/修改后：`POST /api/bullet-hell/workflows/{workflow_id}/play/{baseline|candidate}`
 - 运行弹幕离线回归：`POST /api/bullet-hell/benchmark`
 
 ## 启动前端
@@ -68,6 +70,7 @@ cd D:\Desktop\agentic-game-rd
 ```text
 填写弹幕需求 -> 生成候选并静态校验 -> 人工授权最多三轮隔离运行
 -> Unity 同条件运行 baseline / candidate -> 查看 telemetry 和自动修复
+-> 生成 10/20/30 秒固定轨迹截图并排对比
 -> 接受 / 要求修订 / 回滚
 ```
 
@@ -78,6 +81,8 @@ cd D:\Desktop\agentic-game-rd
 ```
 
 弹幕 Mock 不会自由创作：它从已提交的弹幕基线出发，只应用支持范围内的确定性映射。真实 Provider 只负责提出候选 JSON，仍必须经过同一套静态校验、人工授权和 Unity 运行证据。详见 `docs/MILESTONE7_BULLET_HELL_CHANGE_VERIFICATION.md`。
+
+页面把证据分为三层：自动截图回答“肉眼改了什么”，telemetry 回答“约束是否达标”，手动试玩只补充主观操作感受。手动路线不同，不作为严格的 Before / After 证明。
 
 开发者调试视图另提供人工 C# Diff 闭环：安全门和 Quality Review Agent 审查开发者写好的补丁，批准后只在 `runtime-artifacts/code-workflows` 的 Unity 副本中应用和验证。“接受”不会自动合并主仓库。详见 `docs/MILESTONE3B_CSHARP_DIFF_WORKFLOW.md`。
 
