@@ -114,9 +114,104 @@ def test_unreal_runner_uses_fixed_player_validates_evidence_and_marks_verified(
 
     assert commands[0][0] == str(executable)
     assert "-Automated" in commands[0]
+    assert "-RenderOffscreen" in commands[0]
     assert any(row.startswith("-ConfigInput=") for row in commands[0])
     assert any(row.startswith("-ConfigFileHash=") for row in commands[0])
     assert runner.validate_environment()["status"] == "verified"
+
+
+def test_unreal_manual_play_uses_visible_window_and_confirms_startup(tmp_path, monkeypatch):
+    repository = tmp_path / "repo"
+    project = repository / "game-unreal" / "BulletHellUE"
+    project.mkdir(parents=True)
+    (project / "BulletHellUE.uproject").write_text("{}", encoding="utf-8")
+    executable = project / "Builds" / "Windows" / "BulletHellUE.exe"
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"player")
+    runner = UnrealEngineRunner(
+        repository_root=repository,
+        manual_start_timeout_seconds=0.5,
+    )
+    runtime_dir = repository / "runtime-artifacts" / "workflow"
+    runtime_dir.mkdir(parents=True)
+    config_path = runtime_dir / "baseline_config.json"
+    config_path.write_text(
+        json.dumps(load_bullet_hell_contract(BASELINE_PATH)),
+        encoding="utf-8",
+    )
+    commands: list[list[str]] = []
+
+    def fake_popen(command, **_kwargs):
+        commands.append(command)
+        log_path = Path(next(row.removeprefix("-abslog=") for row in command if row.startswith("-abslog=")))
+        log_path.write_text("LogBulletHellUE: Display: Bullet Hell run initialized", encoding="utf-8")
+        return SimpleNamespace(pid=4321, poll=lambda: None)
+
+    monkeypatch.setattr("workflow.engines.unreal.subprocess.Popen", fake_popen)
+    result = runner.manual_play(
+        config_path=config_path,
+        telemetry_path=runtime_dir / "manual_telemetry.json",
+        log_path=runtime_dir / "manual_player.log",
+        seed=20260727,
+        run_id="workflow_manual",
+        variant="baseline",
+    )
+
+    assert result["status"] == "launched"
+    assert result["startup_confirmed"] is True
+    assert "-Windowed" in commands[0]
+    assert "-RenderOffscreen" not in commands[0]
+    assert "-Automated" not in commands[0]
+
+
+def test_unreal_manual_play_reports_early_exit_instead_of_false_success(tmp_path, monkeypatch):
+    repository = tmp_path / "repo"
+    project = repository / "game-unreal" / "BulletHellUE"
+    project.mkdir(parents=True)
+    (project / "BulletHellUE.uproject").write_text("{}", encoding="utf-8")
+    executable = project / "Builds" / "Windows" / "BulletHellUE.exe"
+    executable.parent.mkdir(parents=True)
+    executable.write_bytes(b"player")
+    runner = UnrealEngineRunner(
+        repository_root=repository,
+        manual_start_timeout_seconds=0.1,
+    )
+    runtime_dir = repository / "runtime-artifacts" / "workflow"
+    runtime_dir.mkdir(parents=True)
+    config_path = runtime_dir / "baseline_config.json"
+    config_path.write_text(
+        json.dumps(load_bullet_hell_contract(BASELINE_PATH)),
+        encoding="utf-8",
+    )
+
+    def fake_popen(command, **_kwargs):
+        log_path = Path(next(row.removeprefix("-abslog=") for row in command if row.startswith("-abslog=")))
+        log_path.write_text("command_line_error: missing required argument", encoding="utf-8")
+        return SimpleNamespace(pid=4321, poll=lambda: 2)
+
+    monkeypatch.setattr("workflow.engines.unreal.subprocess.Popen", fake_popen)
+    with pytest.raises(RuntimeError, match="exited with code 2 before initialization"):
+        runner.manual_play(
+            config_path=config_path,
+            telemetry_path=runtime_dir / "manual_telemetry.json",
+            log_path=runtime_dir / "manual_player.log",
+            seed=20260727,
+            run_id="workflow_manual",
+            variant="baseline",
+        )
+
+
+def test_unreal_packaging_explicitly_cooks_presentation_assets():
+    packaging = (
+        REPOSITORY_ROOT
+        / "game-unreal"
+        / "BulletHellUE"
+        / "Config"
+        / "DefaultGame.ini"
+    ).read_text(encoding="utf-8")
+
+    assert '+MapsToCook=(FilePath="/Game/Maps/BulletHellDemo")' in packaging
+    assert '+DirectoriesToAlwaysCook=(Path="/Game/Presentation")' in packaging
 
 
 def test_unreal_runner_rejects_paths_outside_runtime_artifacts(tmp_path):

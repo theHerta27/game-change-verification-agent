@@ -115,3 +115,13 @@ Baseline 与 Candidate 使用同 seed、同固定轨迹，阶段结构一致：
 - 跨引擎数值不逐帧比较，只验证同一契约、同条件趋势和证据完整性；
 - 固定轨迹结果只代表该轨迹下的可重复证据，不宣称所有玩家体验；
 - `runtime-artifacts/` 与 UE `Builds/` 等本地产物不提交 Git。
+
+## 手动试玩与目录说明
+
+- `game-unreal/BulletHellUE/Build/` 是 Unreal Build Tool 生成或使用的构建辅助元数据，不是可直接运行的游戏。
+- `game-unreal/BulletHellUE/Builds/Windows/` 是本项目脚本约定的 Windows 打包归档目录，网页只允许启动其中注册的 `BulletHellUE.exe`。
+- 不要直接双击 `BulletHellUE.exe`。Player 需要工作流快照、版本、随机种子、Telemetry 和日志路径等受控命令行参数；缺少参数时会主动退出。正确入口是 Web 策划视图中的“手动体验修改前/修改后”。
+- 手动模式使用可见窗口，不传 `-RenderOffscreen`；自动 A/B 验证继续离屏运行。后端只有在 Player 日志出现 `Bullet Hell run initialized` 后才返回启动成功，提前退出或初始化超时会向页面返回具体错误。
+- 手动 Player 在角色死亡或配置时长结束后正常退出。自动模式仍根据验证结果返回成功或失败状态码。
+- Blueprint 表现资源通过 `DefaultGame.ini` 显式 Cook；打包日志和 Player 日志中不应出现 `/Game/Presentation/BP_*` 缺失。
+- 模拟层使用 X/Z 玩法坐标，UE 表现层统一将玩法正 Z 映射为屏幕向上。不要通过反转 W/S 输入修补相机方向，否则会造成手动操作与固定自动轨迹语义不一致。

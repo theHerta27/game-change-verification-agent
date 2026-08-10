@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import subprocess
+import time
 
 from gameconfig_agent.bullet_hell import write_json
 from workflow.engines.base import EngineRunResult, EngineRunner
@@ -23,6 +24,7 @@ class UnrealEngineRunner(EngineRunner):
         repository_root: Path,
         editor_executable: Path | None = None,
         process_timeout_seconds: int = 120,
+        manual_start_timeout_seconds: float = 8.0,
     ) -> None:
         self.repository_root = repository_root.resolve()
         self.project_path = (
@@ -38,8 +40,7 @@ class UnrealEngineRunner(EngineRunner):
         )
         configured_editor = os.environ.get("GAMECHANGE_UE_EDITOR")
         self.editor_executable = editor_executable or Path(
-            configured_editor
-            or r"D:\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe"
+            configured_editor or "__unreal_editor_not_configured__"
         )
         self.build_script = self.repository_root / "scripts" / "build-unreal.ps1"
         self.runtime_root = self.repository_root / "runtime-artifacts"
@@ -47,6 +48,7 @@ class UnrealEngineRunner(EngineRunner):
             self.runtime_root / "ue5-verification" / "runner_verification.json"
         )
         self.process_timeout_seconds = process_timeout_seconds
+        self.manual_start_timeout_seconds = manual_start_timeout_seconds
 
     def capabilities(self) -> dict[str, Any]:
         environment = self.validate_environment()
@@ -236,12 +238,21 @@ class UnrealEngineRunner(EngineRunner):
             automated=False,
             screenshot_dir=None,
         )
+        telemetry_path.unlink(missing_ok=True)
+        log_path.unlink(missing_ok=True)
         process = subprocess.Popen(command, cwd=self.executable.parent)
+        try:
+            self._await_manual_start(process, log_path)
+        except Exception:
+            if process.poll() is None:
+                process.terminate()
+            raise
         return {
             "engine": self.name,
             "workflow_id": run_id,
             "process_id": process.pid,
             "status": "launched",
+            "startup_confirmed": True,
             "variant": variant,
             "config_artifact": config_path.name,
         }
@@ -278,7 +289,6 @@ class UnrealEngineRunner(EngineRunner):
     ) -> list[str]:
         command = [
             str(self.executable),
-            "-RenderOffscreen",
             "-Windowed",
             "-ResX=960",
             "-ResY=540",
@@ -297,8 +307,48 @@ class UnrealEngineRunner(EngineRunner):
         if automated:
             if screenshot_dir is None:
                 raise ValueError("screenshot_dir is required for an automated UE5 run")
-            command.extend(["-Unattended", "-Automated", f"-ScreenshotDir={screenshot_dir}"])
+            command.extend([
+                "-RenderOffscreen",
+                "-Unattended",
+                "-Automated",
+                f"-ScreenshotDir={screenshot_dir}",
+            ])
         return command
+
+    def _await_manual_start(self, process: subprocess.Popen[Any], log_path: Path) -> None:
+        deadline = time.monotonic() + self.manual_start_timeout_seconds
+        while time.monotonic() < deadline:
+            log_text = self._read_log(log_path)
+            if "Bullet Hell run initialized" in log_text:
+                return
+            return_code = process.poll()
+            if return_code is not None:
+                raise RuntimeError(
+                    f"UE5 manual Player exited with code {return_code} before initialization. "
+                    f"See {log_path}. {self._log_tail(log_text)}"
+                )
+            time.sleep(0.1)
+        raise RuntimeError(
+            f"UE5 manual Player did not confirm initialization within "
+            f"{self.manual_start_timeout_seconds:g}s. See {log_path}. "
+            f"{self._log_tail(self._read_log(log_path))}"
+        )
+
+    @staticmethod
+    def _read_log(log_path: Path) -> str:
+        if not log_path.is_file():
+            return ""
+        try:
+            return log_path.read_text(encoding="utf-8-sig", errors="replace")
+        except OSError:
+            return ""
+
+    @staticmethod
+    def _log_tail(log_text: str, limit: int = 600) -> str:
+        if not log_text:
+            return "No startup log was written."
+        compact = " ".join(log_text.split())
+        return f"Log tail: {compact[-limit:]}"
 
     def _validate_run_evidence(
         self,

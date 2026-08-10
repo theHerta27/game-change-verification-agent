@@ -39,6 +39,12 @@ namespace
 constexpr double FixedStepSeconds = 1.0 / 60.0;
 constexpr double WorldScale = 100.0;
 
+FVector SimulationToWorld(const FVector2D& Position, double Height)
+{
+    // The top-down camera renders world +Y toward the bottom of the screen.
+    return FVector(Position.X * WorldScale, -Position.Y * WorldScale, Height);
+}
+
 FString AbsoluteArgument(const TCHAR* Name)
 {
     FString Value;
@@ -371,13 +377,13 @@ void ABulletHellGameMode::CreatePresentation()
     PlayerActor = CreateMeshActor(
         TEXT("Player"),
         TEXT("/Engine/BasicShapes/Cone.Cone"),
-        FVector(PlayerPosition.X * WorldScale, PlayerPosition.Y * WorldScale, 60.0),
+        SimulationToWorld(PlayerPosition, 60.0),
         FVector(0.55, 0.55, 0.75),
         FLinearColor(0.1f, 0.8f, 1.0f));
     BossActor = CreateMeshActor(
         TEXT("Boss"),
         TEXT("/Engine/BasicShapes/Cylinder.Cylinder"),
-        FVector(Contract.BossPositionX * WorldScale, Contract.BossPositionZ * WorldScale, 80.0),
+        SimulationToWorld(FVector2D(Contract.BossPositionX, Contract.BossPositionZ), 80.0),
         FVector(1.25, 1.25, 0.7),
         FLinearColor(0.95f, 0.08f, 0.25f));
 
@@ -476,8 +482,7 @@ void ABulletHellGameMode::UpdatePresentation()
 {
     if (PlayerActor != nullptr)
     {
-        PlayerActor->SetActorLocation(
-            FVector(PlayerPosition.X * WorldScale, PlayerPosition.Y * WorldScale, 60.0));
+        PlayerActor->SetActorLocation(SimulationToWorld(PlayerPosition, 60.0));
     }
     if (BossActor != nullptr)
     {
@@ -491,7 +496,7 @@ void ABulletHellGameMode::UpdatePresentation()
         {
             BulletInstances->AddInstance(FTransform(
                 FRotator::ZeroRotator,
-                FVector(Projectile.Position.X * WorldScale, Projectile.Position.Y * WorldScale, 55.0),
+                SimulationToWorld(Projectile.Position, 55.0),
                 FVector(0.24, 0.24, 0.24)));
         }
     }
@@ -567,13 +572,10 @@ void ABulletHellGameMode::FinishRun()
     WriteCaptureManifest();
     WriteTelemetry(bCompleted ? TEXT("completed") : TEXT("failed"), true, 0);
     bTelemetryWritten = true;
-    if (bAutomated)
-    {
-        FPlatformMisc::RequestExitWithStatus(
-            false,
-            bCompleted ? 0 : 1,
-            TEXT("ABulletHellGameMode::FinishRun"));
-    }
+    FPlatformMisc::RequestExitWithStatus(
+        false,
+        bAutomated && !bCompleted ? 1 : 0,
+        TEXT("ABulletHellGameMode::FinishRun"));
 }
 
 void ABulletHellGameMode::WriteTelemetry(
