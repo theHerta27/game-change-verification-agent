@@ -1,6 +1,31 @@
+param(
+    [string]$GameConfigRoot = $env:GAMECONFIG_SOURCE_ROOT,
+    [string]$DevQualityRoot = $env:DEVQUALITY_SOURCE_ROOT,
+    [string]$MmdReimuArchive = $env:MMD_REIMU_SOURCE_ARCHIVE
+)
+
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $entries = New-Object System.Collections.Generic.List[object]
+
+foreach ($required in @(
+    @{ Name = 'GameConfigRoot'; Value = $GameConfigRoot },
+    @{ Name = 'DevQualityRoot'; Value = $DevQualityRoot },
+    @{ Name = 'MmdReimuArchive'; Value = $MmdReimuArchive }
+)) {
+    if ([string]::IsNullOrWhiteSpace($required.Value)) {
+        throw "$($required.Name) is required. Pass it as a parameter or configure the documented environment variable."
+    }
+}
+
+$gameConfig = (Resolve-Path -LiteralPath $GameConfigRoot).Path
+$devQuality = (Resolve-Path -LiteralPath $DevQualityRoot).Path
+$mmdReimu = (Resolve-Path -LiteralPath $MmdReimuArchive).Path
+$SourceBaseByName = @{
+    'GameConfig-Agent' = $gameConfig
+    'DevQuality-Agent' = $devQuality
+    'MMD_REIMU' = $mmdReimu
+}
 
 function Add-TreeMapping {
     param(
@@ -28,11 +53,18 @@ function Add-FileMapping {
     $destinationHash = if (Test-Path -LiteralPath $DestinationFile) {
         (Get-FileHash -LiteralPath $DestinationFile -Algorithm SHA256).Hash.ToLowerInvariant()
     } else { $null }
+    $sourceBase = $SourceBaseByName[$SourceName]
+    $relativeSource = if ($SourceFile -eq $sourceBase) {
+        Split-Path -Leaf $SourceFile
+    } else {
+        $SourceFile.Substring($sourceBase.Length).TrimStart([char]92)
+    }
+    $normalizedSource = $relativeSource.Replace([char]92, [char]47)
     $relativeDestination = $DestinationFile.Substring($RepoRoot.Length).TrimStart([char]92)
     $normalizedDestination = $relativeDestination.Replace([char]92, [char]47)
     $entries.Add([ordered]@{
         source_name = $SourceName
-        source_path = $SourceFile
+        source_relative_path = $normalizedSource
         destination_path = $normalizedDestination
         source_sha256 = $sourceHash
         destination_sha256 = $destinationHash
@@ -40,8 +72,6 @@ function Add-FileMapping {
     })
 }
 
-$gameConfig = "D:\Desktop\GameConfig-Agent"
-$devQuality = "D:\Desktop\DevQuality-Agent"
 Add-TreeMapping "$gameConfig\gameconfig_agent" "$RepoRoot\services\agent-python\gameconfig_agent" "GameConfig-Agent"
 Add-TreeMapping "$gameConfig\tests" "$RepoRoot\services\agent-python\tests" "GameConfig-Agent"
 Add-TreeMapping "$gameConfig\examples" "$RepoRoot\services\agent-python\examples" "GameConfig-Agent"
@@ -63,24 +93,26 @@ Add-TreeMapping "$devQuality\agent_service\examples" "$RepoRoot\services\agent-p
 Add-TreeMapping "$devQuality\agent_service\real_llm_smoke_cases" "$RepoRoot\services\agent-python\real_llm_smoke_cases" "DevQuality-Agent"
 Add-TreeMapping "$devQuality\docs" "$RepoRoot\docs\source-devquality" "DevQuality-Agent"
 
-Add-FileMapping "D:\Desktop\MMD_REIMU.ZIP.zip" "$RepoRoot\local-assets\reimu\source\MMD_REIMU.ZIP.zip" "MMD_REIMU"
+Add-FileMapping $mmdReimu "$RepoRoot\local-assets\reimu\source\MMD_REIMU.ZIP.zip" "MMD_REIMU"
 
-$content = ($entries | Sort-Object source_path | ForEach-Object { "$($_.source_path)|$($_.source_sha256)" }) -join "`n"
+$content = ($entries | Sort-Object source_name, source_relative_path | ForEach-Object {
+    "$($_.source_name)|$($_.source_relative_path)|$($_.source_sha256)"
+}) -join "`n"
 $bytes = [System.Text.Encoding]::UTF8.GetBytes($content)
 $sha = [System.Security.Cryptography.SHA256]::Create()
 $manifestHash = ([System.BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()
 $manifest = [ordered]@{
-    schema_version = "1.0"
+    schema_version = "1.1"
     snapshot_time = (Get-Date).ToUniversalTime().ToString('o')
     source_vcs = "none"
     source_roots = @(
-        [ordered]@{ name="GameConfig-Agent"; path=$gameConfig; excluded_paths=@('.env','.idea','.pytest_cache','frontend/node_modules','frontend/dist','unity/GameConfigRuntimeDemo/Library','unity/GameConfigRuntimeDemo/Temp','unity/GameConfigRuntimeDemo/Logs','unity/GameConfigRuntimeDemo/Builds','unity/GameConfigRuntimeDemo/UserSettings','outputs/runtime_runs') },
-        [ordered]@{ name="DevQuality-Agent"; path=$devQuality; excluded_paths=@('.idea','backend','frontend','design-system','scripts','agent_service/.env','agent_service/.pytest_cache','agent_service/logs','agent_service/outputs') },
-        [ordered]@{ name="MMD_REIMU"; path="D:\Desktop\MMD_REIMU.ZIP.zip"; excluded_paths=@() }
+        [ordered]@{ name="GameConfig-Agent"; excluded_paths=@('.env','.idea','.pytest_cache','frontend/node_modules','frontend/dist','unity/GameConfigRuntimeDemo/Library','unity/GameConfigRuntimeDemo/Temp','unity/GameConfigRuntimeDemo/Logs','unity/GameConfigRuntimeDemo/Builds','unity/GameConfigRuntimeDemo/UserSettings','outputs/runtime_runs') },
+        [ordered]@{ name="DevQuality-Agent"; excluded_paths=@('.idea','backend','frontend','design-system','scripts','agent_service/.env','agent_service/.pytest_cache','agent_service/logs','agent_service/outputs') },
+        [ordered]@{ name="MMD_REIMU"; excluded_paths=@() }
     )
     imported_file_count = $entries.Count
     manifest_sha256 = $manifestHash
-    files = @($entries | Sort-Object source_path)
+    files = @($entries | Sort-Object source_name, source_relative_path)
 }
 $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $RepoRoot 'source-manifest.json') -Encoding UTF8
 Write-Host "Source manifest generated with $($entries.Count) files."

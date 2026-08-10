@@ -20,6 +20,45 @@
 | Milestone 7 UX | 策划视图新手演示与可理解性优化 | complete |
 | Milestone 7 Visual | 固定轨迹自动画面对比与受限手动启动 | complete |
 | Milestone 8 | UE5 跨引擎最小垂直切片 | complete |
+| Milestone 8 Hotfix | UE5 可视手动试玩与打包修复 | in_progress |
+| GitHub Release | 公开发布安全审计与仓库整理 | in_progress |
+
+## GitHub Release：公开发布安全审计与仓库整理
+
+### 目标
+
+- [x] 建立本地发布前 Git bundle，并将全部历史作者邮箱改为 `theHerta27@users.noreply.github.com`。
+- [x] 脱敏 `source-manifest.json` 的本机绝对路径，保留来源名称、相对路径和 SHA256。
+- [x] 完成已跟踪文件与 Git 历史的凭据、个人信息、缓存、构建产物和大文件审计。
+- [x] 将 README 整理为中文为主的求职展示入口，并确保架构、能力、边界、命令和指标符合实际实现。
+- [x] 完善 `.gitignore` 和必要公开文档；不添加 License，不提交本地讨论稿或运行产物。
+- [x] 完成 Python、Web、仓库清洁检查及可用引擎 smoke，形成发布前 A-K 汇总。
+- [ ] 用户确认最终汇总后，才创建公开远程仓库并 Push。
+
+### 边界
+
+- 不重构现有目录、业务工作流、API、配置契约或引擎运行逻辑。
+- 不伪造截图、Telemetry、测试结果、Commit 历史或已实现能力。
+- `.env`、本地模型、工具链、Runtime artifacts、Unity/UE Build 和缓存不得进入 Git。
+- `docs/调整.md` 作为本地未跟踪讨论稿，不纳入发布提交。
+- License 按用户决定暂不添加。
+
+## Milestone 8 Hotfix：UE5 可视手动试玩与打包修复
+
+### 目标
+
+- [x] 手动试玩不使用 `-RenderOffscreen`，自动验证继续保持离屏运行。
+- [x] 后端在 UE 初始化握手成功后才返回 `launched`，立即退出或初始化失败返回真实错误。
+- [x] 手动场景结束后自动退出，避免残留不可见 Player 进程。
+- [x] 四个 Blueprint 表现资源被明确 Cook 到 Windows Player。
+- [x] Python 定向/全量测试、Web build、UE Build 与 smoke 通过。
+- [ ] 用户从 Web 点击修改前/修改后时能看到窗口并实际操作。
+
+### 边界
+
+- 不修改正式 `configs/bullet-hell/baseline.json`、工作流状态定义、自动修复策略或既有验收数据。
+- 不扩大 EngineRunner 可执行文件、命令或配置路径权限。
+- 修改后的 UE Runner 在真实 Build、自动 smoke 和可视手动试玩通过前不得继续宣称本轮 `verified`。
 
 ## Milestone 8：UE5 跨引擎最小垂直切片
 

@@ -1,7 +1,7 @@
 [project]
-name = "agentic-game-rd-agent"
+name = "game-change-verification-agent"
 version = "0.1.0"
-description = "Unified Python runtime for game configuration and code quality agents"
+description = "Bounded AI agent workflow for cross-engine game change verification"
 requires-python = ">=3.10"
 dependencies = [
   "fastapi>=0.115.0",

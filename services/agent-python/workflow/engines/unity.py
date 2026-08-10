@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 import json
+import os
 import subprocess
 
 from gameconfig_agent.bullet_hell import write_json
@@ -24,7 +25,10 @@ class UnityEngineRunner(EngineRunner):
     ) -> None:
         self.repository_root = repository_root
         self.executable = executable
-        self.editor_executable = editor_executable or Path(r"E:\Unity6\6000.3.19f1\Editor\Unity.exe")
+        configured_editor = os.environ.get("GAMECHANGE_UNITY_EDITOR")
+        self.editor_executable = editor_executable or Path(
+            configured_editor or "__unity_editor_not_configured__"
+        )
         self.project_path = repository_root / "game-unity"
         self.build_script = repository_root / "scripts" / "smoke-bullet-hell.ps1"
 

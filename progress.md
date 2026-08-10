@@ -476,3 +476,32 @@
 ### 最终状态
 
 `Milestone 8 complete。真实 UE5 跨引擎验证链路已完成，Unity 原闭环保持可用；下一阶段按用户确认的简历叙事统一收口并提交本分支。`
+
+## 2026-08-05 Milestone 8 Hotfix
+
+- 已定位 UE 手动试玩不可见、假成功、残留进程和 Blueprint 未 Cook 四项根因。
+- 已将 `-RenderOffscreen` 限定为自动运行，手动模式保留可见窗口参数。
+- 已增加 UE 初始化日志握手；早退和超时不再返回 `launched`。
+- 已让手动模拟结束后请求正常退出，并显式 Cook BulletHellDemo Map 与 Presentation 目录。
+- 新增手动可见窗口、早退失败、自动离屏和打包配置回归测试。
+- 定向测试：`19 passed`，1 条既有 Starlette/httpx 弃用告警。
+- Python 全量：`167 passed`，1 条既有 Starlette/httpx 弃用告警；Web production build 通过，`1585 modules transformed`。
+- UE5 C++ Windows Build 通过；最新真实自动 smoke 为 `runtime-artifacts/ue5-verification/ue5_smoke_20260805_143608/`，Baseline/Candidate 均正常结束且运行错误为 0。
+- 新包日志未出现 `/Game/Presentation/BP_*` 缺失；受限手动启动已取得 `Bullet Hell run initialized` 握手，进程 `10316` 在角色死亡后通过 `RequestExitWithStatus(0)` 正常退出。
+- 当前只剩用户从 Web 策划视图进行一次可见窗口与键盘操作确认；在此之前 Hotfix 保持 `in_progress`。
+- 修复 UE 玩法坐标到世界坐标的垂直镜像：玩家、Boss 和子弹统一通过 `SimulationToWorld` 映射，模拟层、固定轨迹、碰撞和 Telemetry 不变。
+- 重新完成 UE5 Windows Build；最新自动双跑 `ue5_smoke_20260805_150744` 为 `verified`，Baseline/Candidate 运行错误均为 0，自动截图确认 Boss 在上、玩家在下。
+- 已启动修复后的可见手动 Player（PID `34316`）供用户确认 `W=屏幕向上`、`S=屏幕向下`。
+
+## 2026-08-10 GitHub Release
+
+- 完成公开发布前目录、Git、依赖、测试、敏感信息、体积和忽略规则只读审计。
+- 在仓库外创建回退 bundle：`D:\Desktop\game-change-verification-agent-pre-public-20260810.bundle`，该文件不进入发布仓库。
+- 将 14 个历史提交的 author/committer 邮箱统一改为 GitHub noreply，并同步重写 `main` 与 `feature/ue5-runtime-adapter`。
+- 将 `source-manifest.json` 升级为公开 Schema 1.1，215 个条目只保留来源名称、相对路径和 SHA256；所有历史提交均无本机绝对来源路径。
+- 参数化 `generate-source-manifest.ps1` 的本地来源输入，更新 `verify-repo-clean.ps1` 以验证公开清单结构和路径安全。
+- 重写中文 README，补充架构、边界、Quick Start、真实指标以及 UE/Web 真实截图；统一 Python 与 Web 公开包名。
+- 将 Unity/UE 编辑器位置改为 `GAMECHANGE_UNITY_EDITOR` / `GAMECHANGE_UE_EDITOR` 或显式脚本参数，清理当前权威文档中的旧项目绝对路径。
+- 回归通过：Python `167 passed`、Web production build、UE5 smoke `ue5_smoke_20260810_233045`、`verify-repo-clean.ps1`、浏览器策划视图只读演示与无错误日志检查。
+- 历史复核：14 个提交邮箱全部正确、历史 manifest 绝对路径为 0、高置信度密钥命中为 0；382 个跟踪文件无超过 10 MiB 的文件。
+- 已完成发布前本地整理并准备 A-K 汇总；尚未 `git add`、提交发布整理、创建远程仓库或 Push，等待用户确认。

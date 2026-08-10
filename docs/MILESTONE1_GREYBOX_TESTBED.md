@@ -76,14 +76,14 @@ run_mode = auto
 执行命令：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd <repository-root>
 .\scripts\smoke-unity.ps1
 ```
 
 也可以单独评测已有 telemetry：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
+cd <repository-root>\services\agent-python
 ..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli evaluate_milestone1_testbed `
   --profile ..\..\scenarios\milestone1\starter_trial_baseline.json `
   --telemetry ..\..\runtime-artifacts\unity-smoke\telemetry.json `

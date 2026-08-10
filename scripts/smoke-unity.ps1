@@ -1,5 +1,5 @@
 param(
-    [string]$UnityEditor = "E:\Unity6\6000.3.19f1\Editor\Unity.exe",
+    [string]$UnityEditor = $env:GAMECHANGE_UNITY_EDITOR,
     [string]$ProfilePath = "",
     [int]$BuildTimeoutSeconds = 300,
     [int]$RunTimeoutSeconds = 120
@@ -19,7 +19,7 @@ $Contract = Join-Path $UnityProject "Assets\StreamingAssets\game_config.json"
 if (-not $ProfilePath) { $ProfilePath = Join-Path $RepoRoot "scenarios\milestone1\starter_trial_baseline.json" }
 
 if (-not (Test-Path -LiteralPath $UnityEditor)) {
-    throw "Unity Editor not found: $UnityEditor"
+    throw "Unity Editor not found. Set GAMECHANGE_UNITY_EDITOR or pass -UnityEditor explicitly. Received: $UnityEditor"
 }
 if (-not (Test-Path -LiteralPath $ProfilePath)) {
     throw "Milestone 1 test profile not found: $ProfilePath"

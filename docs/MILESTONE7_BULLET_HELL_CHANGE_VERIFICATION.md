@@ -150,7 +150,7 @@ POST /api/bullet-hell/benchmark
 启动后端和前端：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd <repository-root>
 .\scripts\start-backend.ps1
 .\scripts\start-web.ps1
 ```
@@ -158,14 +158,14 @@ cd D:\Desktop\agentic-game-rd
 运行离线工程回归：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
+cd <repository-root>\services\agent-python
 ..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_bullet_hell_benchmark --output ..\..\runtime-artifacts\bullet-hell-benchmark
 ```
 
 构建 Bullet Hell Player，并用同一配置和种子自动运行两次：
 
 ```powershell
-cd D:\Desktop\agentic-game-rd
+cd <repository-root>
 .\scripts\smoke-bullet-hell.ps1
 ```
 

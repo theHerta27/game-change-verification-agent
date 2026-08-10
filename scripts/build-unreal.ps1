@@ -1,5 +1,5 @@
 param(
-    [string]$UnrealEditor = "D:\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe"
+    [string]$UnrealEditor = $env:GAMECHANGE_UE_EDITOR
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,7 +9,7 @@ $Archive = Join-Path $RepoRoot "game-unreal\BulletHellUE\Builds\Windows"
 $Player = Join-Path $Archive "BulletHellUE.exe"
 
 if (-not (Test-Path -LiteralPath $UnrealEditor)) {
-    throw "Unreal Editor not found: $UnrealEditor"
+    throw "Unreal Editor not found. Set GAMECHANGE_UE_EDITOR or pass -UnrealEditor explicitly. Received: $UnrealEditor"
 }
 if (-not (Test-Path -LiteralPath $Project)) {
     throw "Unreal project not found: $Project"

@@ -71,7 +71,7 @@ GAMECONFIG_LLM_MODEL=your-model
 ## 5. CLI
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
+cd <repository-root>\services\agent-python
 ..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_real_code_evaluation `
   --output ..\..\runtime-artifacts\real-code-evaluation `
   --timeout-seconds 60

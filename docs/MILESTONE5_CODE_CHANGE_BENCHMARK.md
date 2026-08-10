@@ -70,7 +70,7 @@ evals/code_change_benchmark_v1.json
 ## 5. 运行方式
 
 ```powershell
-cd D:\Desktop\agentic-game-rd\services\agent-python
+cd <repository-root>\services\agent-python
 ..\..\.venv\Scripts\python.exe -m gameconfig_agent.cli run_code_change_benchmark `
   --output ..\..\runtime-artifacts\code-change-benchmark
 ```

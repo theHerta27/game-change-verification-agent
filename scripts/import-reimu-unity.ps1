@@ -1,5 +1,5 @@
 param(
-    [string]$UnityEditor = "E:\Unity6\6000.3.19f1\Editor\Unity.exe",
+    [string]$UnityEditor = $env:GAMECHANGE_UNITY_EDITOR,
     [int]$TimeoutSeconds = 300
 )
 
@@ -14,7 +14,7 @@ $RuntimeRoot = Join-Path $RepoRoot "runtime-artifacts\reimu-import"
 $UnityLog = Join-Path $RuntimeRoot "unity_import.log"
 $UnityReport = Join-Path $RuntimeRoot "unity_import_report.json"
 
-if (-not (Test-Path -LiteralPath $UnityEditor)) { throw "Unity Editor not found: $UnityEditor" }
+if (-not (Test-Path -LiteralPath $UnityEditor)) { throw "Unity Editor not found. Set GAMECHANGE_UNITY_EDITOR or pass -UnityEditor explicitly. Received: $UnityEditor" }
 if (-not (Test-Path -LiteralPath $SourceFbx)) { throw "Converted Reimu FBX is missing. Run scripts\convert-reimu.ps1 first." }
 
 New-Item -ItemType Directory -Force -Path $LocalModelRoot, $RuntimeRoot | Out-Null

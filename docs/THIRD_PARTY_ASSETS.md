@@ -2,10 +2,10 @@
 
 ## 博丽灵梦 MMD 模型
 
-本地来源：
+本地来源（不进入 Git）：
 
 ```text
-D:\Desktop\MMD_REIMU.ZIP.zip
+用户自行准备的 MMD_REIMU.ZIP.zip
 ```
 
 项目内本地归档：

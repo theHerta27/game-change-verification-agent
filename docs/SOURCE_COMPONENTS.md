@@ -4,11 +4,11 @@
 
 两个来源目录都不是 Git 仓库，因此没有 commit、branch 或 dirty 状态可记录。新仓库使用 `source-manifest.json` 保存逐文件 SHA256；迁移后的首次 Git 提交是第一份版本化基线。
 
-来源目录只读：
+来源项目只读：
 
 ```text
-D:\Desktop\GameConfig-Agent
-D:\Desktop\DevQuality-Agent
+GameConfig-Agent
+DevQuality-Agent
 ```
 
 ## GameConfig-Agent
@@ -51,4 +51,3 @@ D:\Desktop\DevQuality-Agent
 ```text
 services/agent-python/api/server.py
 ```
-

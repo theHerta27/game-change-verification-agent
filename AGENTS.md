@@ -9,7 +9,7 @@
 - 稳定数据契约：`contracts/`
 - 固定配置、场景和评测：`configs/`、`scenarios/`、`evals/`
 
-旧目录 `D:\Desktop\GameConfig-Agent` 与 `D:\Desktop\DevQuality-Agent` 仅作为只读来源。不得从新项目任务中修改它们。
+原始 `GameConfig-Agent` 与 `DevQuality-Agent` 项目仅作为只读来源。不得从本项目任务中修改它们。
 
 ## 当前阶段
 

@@ -1,5 +1,5 @@
 param(
-    [string]$UnityEditor = "E:\Unity6\6000.3.19f1\Editor\Unity.exe",
+    [string]$UnityEditor = $env:GAMECHANGE_UNITY_EDITOR,
     [int]$RunTimeoutSeconds = 60
 )
 

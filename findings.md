@@ -181,3 +181,26 @@
 - Unity 2026-07-31 新复跑仍被 Licensing Client IPC 阻塞，未生成新 Windows Player；Milestone 7 历史成功证据继续保留，README 与规划文档已明确该限制，避免把历史证据冒充本轮复测。
 - `runtime-artifacts/`、UE `Builds/`、`Binaries/`、`Intermediate/`、`Saved/` 均不提交 Git；最终提交只包含 `game-unreal` 源工程、Python/Web 源码、脚本、测试和文档。
 - 简历草稿中的 `FHighResScreenshotManager` 与实际 UE 源码不符；本工程截图使用 `FScreenshotRequest::RequestScreenshot`。已在校验矩阵中明确该差异，正式简历应使用实际类名，不能保留不存在的类名。
+
+## 2026-08-05 UE5 手动试玩缺陷
+
+- 根因一：`UnrealEngineRunner._command()` 对手动和自动运行无条件添加 `-RenderOffscreen`，导致后端成功创建进程但没有可见窗口。
+- 根因二：手动接口仅以 `subprocess.Popen` 返回 PID 作为成功，未等待 `Bullet Hell run initialized` 日志握手，无法识别立即退出。
+- 根因三：UE C++ 的 `FinishRun()` 只在自动模式请求退出，手动模拟结束后会残留后台进程。
+- 根因四：四个 Blueprint 通过字符串动态加载，Cook 依赖分析无法发现；最新 Player 日志显示 `/Game/Presentation/*` 未进入包。
+- 直接双击 `BulletHellUE.exe` 缺少 ConfigInput、TelemetryOutput、哈希、RunId 和 Variant 等强制参数，会按设计以 command_line_error 退出。
+- 上下方向异常来自表现层坐标映射：模拟坐标第二轴正方向表示玩法向上，但当前 UE 俯视相机把世界 `+Y` 显示为屏幕向下。应统一翻转表现层 Y，不应反转输入或修改固定轨迹。
+
+## 2026-08-10 GitHub 公开发布审计
+
+- 仓库已有 14 个真实提交，`main` 与 `feature/ue5-runtime-adapter` 均无远程地址；不得重新初始化或伪造历史。
+- 本地 `.env` 包含真实 Provider 配置，但已被忽略且从未进入历史；已跟踪内容未发现真实 API Key、Token、密码、私钥、邮箱或公网服务地址。
+- 原提交 author/committer 使用个人 QQ 邮箱；用户批准后已统一重写为 `theHerta27@users.noreply.github.com`，全部 14 个可达提交验证通过。
+- 原 `source-manifest.json` 含 215 个本机绝对来源路径；公开 Schema 1.1 改为来源名称、相对路径和 SHA256，并已清理全部历史版本。
+- `docs/调整.md` 是未跟踪的本地简历讨论稿，不属于发布内容；License 按用户决定暂不添加。
+- `git filter-repo` 未安装；Git for Windows 的 `filter-branch` 参数桥接无法可靠传递 env-filter，最终使用带本地回退 bundle 的 root rebase 完成可验证重写。
+- README 已改为中文优先的公开入口，并加入两张真实 UE 固定轨迹截图和一张真实 Web 策划视图截图；Web 截图中的保存 Workflow 与最新 smoke 指标明确分开说明。
+- Python 包和 Web package 名称已统一为 `game-change-verification-agent`；Unity/UE 编辑器路径改为环境变量或显式参数，不再把开发机绝对路径写死在公开运行器和构建脚本中。
+- 发布前回归为 Python `167 passed`、Web production build 通过、UE5 smoke `verified`、仓库清洁检查通过；浏览器载入只读 UE 演示成功且无 console error。
+- 最新 UE5 smoke `ue5_smoke_20260810_233045`：峰值存活子弹 `70 -> 192`、受击 `1 -> 0`、低分位 FPS 两侧均约 `60`、运行错误 `0`。
+- 全历史高置信度密钥扫描命中 `0`；382 个跟踪文件均不超过 10 MiB；远程仓库仍未创建，License 仍未添加。

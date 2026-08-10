@@ -3,8 +3,8 @@
 ```yaml
 unity:
   editor_version: 6000.3.19f1
-  executable: E:/Unity6/6000.3.19f1/Editor/Unity.exe
-  project_path: D:/Desktop/agentic-game-rd/game-unity
+  executable_env: GAMECHANGE_UNITY_EDITOR
+  project_path: game-unity
 
 python:
   required_version: ">=3.10"
@@ -14,6 +14,10 @@ python:
 node:
   detected_version: 22.16.0
   dependency_lock: web-console/package-lock.json
+
+unreal:
+  editor_version: 5.8.1
+  executable_env: GAMECHANGE_UE_EDITOR
 
 blender:
   target_version: 4.5.11 LTS

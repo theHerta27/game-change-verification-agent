@@ -4,10 +4,26 @@ $ManifestPath = Join-Path $RepoRoot "source-manifest.json"
 
 if (-not (Test-Path -LiteralPath $ManifestPath)) { throw "Missing source-manifest.json" }
 $manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+if ($manifest.schema_version -ne '1.1') {
+    throw "source-manifest.json must use the public schema_version 1.1."
+}
 foreach ($file in $manifest.files) {
-    if (-not (Test-Path -LiteralPath $file.source_path)) { throw "Source file disappeared: $($file.source_path)" }
-    $actual = (Get-FileHash -LiteralPath $file.source_path -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($actual -ne $file.source_sha256) { throw "Source file changed after snapshot: $($file.source_path)" }
+    if ([string]::IsNullOrWhiteSpace($file.source_name) -or
+        [string]::IsNullOrWhiteSpace($file.source_relative_path) -or
+        [string]::IsNullOrWhiteSpace($file.destination_path)) {
+        throw "Source manifest contains an incomplete public entry."
+    }
+    if ([System.IO.Path]::IsPathRooted($file.source_relative_path) -or
+        [System.IO.Path]::IsPathRooted($file.destination_path)) {
+        throw "Source manifest contains an absolute path."
+    }
+    if ($file.source_relative_path -match '(^|/)\.\.(/|$)' -or
+        $file.destination_path -match '(^|/)\.\.(/|$)') {
+        throw "Source manifest contains a path traversal segment."
+    }
+    if ($file.source_sha256 -notmatch '^[0-9a-f]{64}$') {
+        throw "Source manifest contains an invalid SHA256 value."
+    }
 }
 
 $nestedGit = Get-ChildItem -LiteralPath $RepoRoot -Directory -Recurse -Force |

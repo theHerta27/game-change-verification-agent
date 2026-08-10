@@ -1,5 +1,5 @@
 param(
-    [string]$UnityEditor = "E:\Unity6\6000.3.19f1\Editor\Unity.exe",
+    [string]$UnityEditor = $env:GAMECHANGE_UNITY_EDITOR,
     [int]$BuildTimeoutSeconds = 300,
     [int]$RunTimeoutSeconds = 120
 )
@@ -18,7 +18,7 @@ $RepeatPlayerLog = Join-Path $RuntimeDir "player_repeat.log"
 $Seed = 20260727
 
 if (-not (Test-Path -LiteralPath $UnityEditor)) {
-    throw "Unity Editor not found: $UnityEditor"
+    throw "Unity Editor not found. Set GAMECHANGE_UNITY_EDITOR or pass -UnityEditor explicitly. Received: $UnityEditor"
 }
 if (-not (Test-Path -LiteralPath $Config)) {
     throw "Bullet Hell baseline config not found: $Config"

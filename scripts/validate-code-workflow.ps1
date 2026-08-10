@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory = $true)][string]$RepositoryRoot,
     [Parameter(Mandatory = $true)][string]$WorkspaceRoot,
     [Parameter(Mandatory = $true)][string]$ArtifactDir,
-    [string]$UnityEditor = "E:\Unity6\6000.3.19f1\Editor\Unity.exe",
+    [string]$UnityEditor = $env:GAMECHANGE_UNITY_EDITOR,
     [int]$BuildTimeoutSeconds = 300,
     [int]$RunTimeoutSeconds = 120
 )
@@ -52,7 +52,7 @@ function Invoke-ProcessWithTimeout {
 }
 
 try {
-    if (-not (Test-Path -LiteralPath $UnityEditor)) { throw "Unity Editor not found: $UnityEditor" }
+    if (-not (Test-Path -LiteralPath $UnityEditor)) { throw "Unity Editor not found. Set GAMECHANGE_UNITY_EDITOR or pass -UnityEditor explicitly. Received: $UnityEditor" }
     if (-not (Test-Path -LiteralPath $UnityProject)) { throw "Isolated Unity project not found: $UnityProject" }
     if (-not (Test-Path -LiteralPath $Profile)) { throw "Testbed profile not found: $Profile" }
     New-Item -ItemType Directory -Force -Path $ArtifactDir | Out-Null

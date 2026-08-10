@@ -1,7 +1,6 @@
 function Resolve-BasePython {
     $candidates = @()
     if ($env:AGENTIC_GAME_RD_PYTHON) { $candidates += $env:AGENTIC_GAME_RD_PYTHON }
-    $candidates += "D:\anaconda\python.exe"
     $command = Get-Command python -ErrorAction SilentlyContinue
     if ($command) { $candidates += $command.Source }
 
