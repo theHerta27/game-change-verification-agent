@@ -21,7 +21,7 @@
 | Milestone 7 Visual | 固定轨迹自动画面对比与受限手动启动 | complete |
 | Milestone 8 | UE5 跨引擎最小垂直切片 | complete |
 | Milestone 8 Hotfix | UE5 可视手动试玩与打包修复 | in_progress |
-| GitHub Release | 公开发布安全审计与仓库整理 | in_progress |
+| GitHub Release | 公开发布安全审计与仓库整理 | complete |
 
 ## GitHub Release：公开发布安全审计与仓库整理
 
@@ -33,7 +33,7 @@
 - [x] 将 README 整理为中文为主的求职展示入口，并确保架构、能力、边界、命令和指标符合实际实现。
 - [x] 完善 `.gitignore` 和必要公开文档；不添加 License，不提交本地讨论稿或运行产物。
 - [x] 完成 Python、Web、仓库清洁检查及可用引擎 smoke，形成发布前 A-K 汇总。
-- [ ] 用户确认最终汇总后，才创建公开远程仓库并 Push。
+- [x] 用户确认最终汇总后，创建公开远程仓库并 Push。
 
 ### 边界
 

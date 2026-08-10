@@ -505,3 +505,6 @@
 - 回归通过：Python `167 passed`、Web production build、UE5 smoke `ue5_smoke_20260810_233045`、`verify-repo-clean.ps1`、浏览器策划视图只读演示与无错误日志检查。
 - 历史复核：14 个提交邮箱全部正确、历史 manifest 绝对路径为 0、高置信度密钥命中为 0；382 个跟踪文件无超过 10 MiB 的文件。
 - 已完成发布前本地整理并准备 A-K 汇总；尚未 `git add`、提交发布整理、创建远程仓库或 Push，等待用户确认。
+- 用户确认后创建两次真实提交：`24e3a23 fix: 修复 UE5 手动试玩与方向映射`、`5625756 chore: 整理 GitHub 公开发布内容`。
+- 将 `feature/ue5-runtime-adapter` 快进合并到 `main`，创建公开仓库 `theHerta27/game-change-verification-agent` 并成功推送 `main`。
+- GitHub Description 与 10 个 Topics 已按公开发布方案设置；License 继续保持未添加。
